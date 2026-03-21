@@ -1,0 +1,1041 @@
+"use client";
+
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Save,
+  ShieldCheck,
+  Store,
+  Truck,
+  Upload,
+  UserCircle2,
+} from "lucide-react";
+import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
+import { Button } from "@/components/ui/Button";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import haitiData from "@/data/haitiData.json";
+import { uploadImage } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
+import {
+  useCurrentAccountQuery,
+  useUpdateAccountProfileMutation,
+  useUpdateSellerProfileMutation,
+} from "@/hooks/useAccount";
+import {
+  useSellerApplicationQuery,
+  useUploadSellerKycDocumentMutation,
+} from "@/hooks/useSellerWorkspace";
+import type {
+  Address,
+  SellerKycDocumentType,
+  SellerNotificationSettings,
+  SellerPayoutDetails,
+  SellerShippingSettings,
+} from "@/data/types";
+
+type SellerTab = "profile" | "shipping" | "kyc";
+
+type HaitiLocation = {
+  name: string;
+  type?: string;
+  commune?: string;
+  lat?: number;
+  lng?: number;
+  [key: string]: unknown;
+};
+
+type ProfileFormState = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  avatar: string;
+  businessName: string;
+  description: string;
+  contactPerson: string;
+  contactPhone: string;
+  contactEmail: string;
+  notificationSettings: SellerNotificationSettings;
+  payoutDetails: SellerPayoutDetails;
+};
+
+type ShippingFormState = {
+  locationName: string;
+  locationType: string;
+  locationDept: string;
+  latitude?: number;
+  longitude?: number;
+  basePrice: string;
+  pricePerKm: string;
+  allowPickup: boolean;
+  pickupAddress: string;
+  pickupCity: string;
+  pickupCountry: string;
+  pickupPhone: string;
+};
+
+const defaultNotificationSettings: SellerNotificationSettings = {
+  newOrders: true,
+  newMessages: true,
+  productReviews: true,
+  promotions: false,
+  newsletter: true,
+};
+
+const requiredDocuments: Array<{
+  type: SellerKycDocumentType;
+  label: string;
+  description: string;
+}> = [
+  {
+    type: "national_id",
+    label: "Piece d'identite",
+    description: "Recto ou scan lisible de votre carte nationale.",
+  },
+  {
+    type: "selfie_verification",
+    label: "Photo reelle",
+    description: "Photo claire de vous avec le visage visible.",
+  },
+  {
+    type: "proof_of_address",
+    label: "Preuve d'adresse",
+    description: "Facture, recu ou attestation recente.",
+  },
+  {
+    type: "bank_statement",
+    label: "Justificatif bancaire",
+    description: "Releve ou document utile pour les paiements vendeur.",
+  },
+];
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (error && typeof error === "object") {
+    const candidate = error as {
+      message?: unknown;
+      details?: unknown;
+      hint?: unknown;
+      code?: unknown;
+    };
+
+    const parts = [
+      typeof candidate.message === "string" ? candidate.message : null,
+      typeof candidate.details === "string" ? `Details: ${candidate.details}` : null,
+      typeof candidate.hint === "string" ? `Hint: ${candidate.hint}` : null,
+      typeof candidate.code === "string" ? `Code: ${candidate.code}` : null,
+    ].filter(Boolean);
+
+    if (parts.length > 0) {
+      return parts.join(" | ");
+    }
+  }
+
+  return fallback;
+}
+
+function formatDocumentDate(value?: string) {
+  if (!value) {
+    return "Jamais";
+  }
+
+  return new Date(value).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function getLocationDepartment(item: HaitiLocation) {
+  const match = Object.entries(item).find(([key]) =>
+    key.toLowerCase().includes("part"),
+  );
+
+  return typeof match?.[1] === "string" ? match[1] : "";
+}
+
+export default function SellerSettingsPage() {
+  const { data: account, isLoading } = useCurrentAccountQuery();
+  const { data: application } = useSellerApplicationQuery();
+  const updateAccountMutation = useUpdateAccountProfileMutation();
+  const updateSellerMutation = useUpdateSellerProfileMutation();
+  const uploadKycMutation = useUploadSellerKycDocumentMutation();
+
+  const [activeTab, setActiveTab] = useState<SellerTab>("profile");
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [profileForm, setProfileForm] = useState<ProfileFormState | null>(null);
+  const [shippingForm, setShippingForm] = useState<ShippingFormState | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const locationOptions = useMemo(() => {
+    const raw = (((haitiData as unknown) as { default?: HaitiLocation[] }).default ||
+      (haitiData as HaitiLocation[])) as HaitiLocation[];
+
+    const seen = new Set<string>();
+
+    return raw
+      .filter((item) => {
+        const department = getLocationDepartment(item);
+        const key = `${item.name}|${item.type || ""}|${department}|${item.lat || ""}|${item.lng || ""}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+      .map((item) => {
+        const department = getLocationDepartment(item);
+
+        return {
+          value: `${item.name}|${item.type || ""}|${department}|${item.lat ?? ""}|${item.lng ?? ""}`,
+          label: item.name,
+          sublabel: `${department}${item.type ? ` - ${item.type}` : ""}${item.commune ? ` (${item.commune})` : ""}`,
+        };
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!account) {
+      return;
+    }
+
+    setProfileForm({
+      firstName: account.firstName || "",
+      lastName: account.lastName || "",
+      phone: account.phone || "",
+      avatar: account.avatar || "",
+      businessName: account.seller?.businessName || "",
+      description: account.seller?.description || "",
+      contactPerson: account.seller?.contactPerson || "",
+      contactPhone: account.seller?.contactPhone || "",
+      contactEmail: account.seller?.contactEmail || account.email || "",
+      notificationSettings:
+        account.seller?.notificationSettings || defaultNotificationSettings,
+      payoutDetails: account.seller?.payoutDetails || {},
+    });
+
+    setShippingForm({
+      locationName: account.seller?.shippingSettings?.locationName || "",
+      locationType: account.seller?.shippingSettings?.locationType || "",
+      locationDept: account.seller?.shippingSettings?.locationDept || "",
+      latitude: account.seller?.shippingSettings?.latitude,
+      longitude: account.seller?.shippingSettings?.longitude,
+      basePrice: String(account.seller?.shippingSettings?.basePrice ?? 0),
+      pricePerKm: String(account.seller?.shippingSettings?.pricePerKm ?? 0),
+      allowPickup: Boolean(account.seller?.shippingSettings?.allowPickup),
+      pickupAddress: account.seller?.pickupAddress?.address || "",
+      pickupCity: account.seller?.pickupAddress?.city || "",
+      pickupCountry: account.seller?.pickupAddress?.country || "Haiti",
+      pickupPhone:
+        account.seller?.pickupAddress?.phone || account.seller?.contactPhone || "",
+    });
+  }, [account]);
+
+  if (isLoading || !profileForm || !shippingForm) {
+    return (
+      <SellerWorkspaceShell
+        title="Parametres vendeur"
+        description="Chargement de votre espace profil et livraison."
+      >
+        <div className="rounded-3xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500">
+          Chargement des parametres vendeur...
+        </div>
+      </SellerWorkspaceShell>
+    );
+  }
+
+  if (!account?.seller) {
+    return (
+      <SellerWorkspaceShell
+        title="Parametres vendeur"
+        description="Votre espace vendeur n'est pas encore disponible."
+      >
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+          Ce compte n'a pas encore de profil vendeur actif. Finalisez votre dossier vendeur
+          pour gerer le profil, la livraison et vos documents KYC.
+        </div>
+      </SellerWorkspaceShell>
+    );
+  }
+
+  const currentAccount = account;
+  const seller = currentAccount.seller!;
+  const currentProfile = profileForm!;
+  const currentShipping = shippingForm!;
+
+  const selectedLocationValue = currentShipping.locationName
+    ? `${currentShipping.locationName}|${currentShipping.locationType || ""}|${currentShipping.locationDept || ""}|${currentShipping.latitude ?? ""}|${currentShipping.longitude ?? ""}`
+    : "";
+
+  const sellerStatusTone =
+    seller.status === "approved"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : seller.status === "pending"
+        ? "bg-amber-50 text-amber-700 border-amber-200"
+        : "bg-rose-50 text-rose-700 border-rose-200";
+
+  const kycStatusTone =
+    seller.kycStatus === "approved"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : seller.kycStatus === "pending"
+        ? "bg-amber-50 text-amber-700 border-amber-200"
+        : "bg-neutral-100 text-neutral-700 border-neutral-200";
+
+  async function handleAvatarUpload(file?: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setError(null);
+    setFeedback(null);
+    setUploadingAvatar(true);
+
+    try {
+      const extension = file.name.split(".").pop() || "jpg";
+      const avatarUrl = await uploadImage(
+        "avatars",
+        `${currentAccount.authId || currentAccount.userId}/seller-profile-${Date.now()}.${extension}`,
+        file,
+      );
+
+      if (!avatarUrl) {
+        throw new Error("Le televersement de la photo de profil a echoue.");
+      }
+
+      await updateAccountMutation.mutateAsync({ avatar: avatarUrl });
+      setProfileForm((current) =>
+        current
+          ? {
+              ...current,
+              avatar: avatarUrl,
+            }
+          : current,
+      );
+      setFeedback("Photo de profil mise a jour.");
+    } catch (uploadError) {
+      setError(getErrorMessage(uploadError, "Impossible d'envoyer la photo de profil."));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  async function handleProfileSave() {
+    setError(null);
+    setFeedback(null);
+
+    try {
+      await updateAccountMutation.mutateAsync({
+        firstName: currentProfile.firstName.trim(),
+        lastName: currentProfile.lastName.trim(),
+        phone: currentProfile.phone.trim(),
+      });
+
+      await updateSellerMutation.mutateAsync({
+        businessName: currentProfile.businessName.trim(),
+        description: currentProfile.description.trim(),
+        contactPerson: currentProfile.contactPerson.trim(),
+        contactPhone: currentProfile.contactPhone.trim(),
+        contactEmail: currentProfile.contactEmail.trim(),
+        notificationSettings: currentProfile.notificationSettings,
+        payoutDetails: currentProfile.payoutDetails,
+      });
+
+      setFeedback("Profil vendeur enregistre rapidement avec succes.");
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Impossible d'enregistrer le profil vendeur."));
+    }
+  }
+
+  async function handleShippingSave() {
+    setError(null);
+    setFeedback(null);
+
+    if (!currentShipping.locationName.trim()) {
+      setError("Choisissez votre localisation pivot pour la livraison dynamique.");
+      setActiveTab("shipping");
+      return;
+    }
+
+    const basePrice = Number(currentShipping.basePrice);
+    const pricePerKm = Number(currentShipping.pricePerKm);
+
+    if (!Number.isFinite(basePrice) || !Number.isFinite(pricePerKm)) {
+      setError("Les frais de base et le prix par kilometre doivent etre valides.");
+      setActiveTab("shipping");
+      return;
+    }
+
+    if (currentShipping.allowPickup && !currentShipping.pickupAddress.trim()) {
+      setError("Ajoutez l'adresse de retrait si le retrait en magasin est active.");
+      setActiveTab("shipping");
+      return;
+    }
+
+    const shippingSettings: SellerShippingSettings = {
+      freeShipping: false,
+      allowPickup: currentShipping.allowPickup,
+      basePrice,
+      pricePerKm,
+      locationName: currentShipping.locationName.trim(),
+      locationType: currentShipping.locationType.trim() || undefined,
+      locationDept: currentShipping.locationDept.trim() || undefined,
+      latitude: currentShipping.latitude,
+      longitude: currentShipping.longitude,
+    };
+
+    const pickupAddress: Address | null = currentShipping.allowPickup
+      ? {
+          firstName: currentProfile.firstName || "Retrait",
+          lastName: currentProfile.lastName || "Boutique",
+          address: currentShipping.pickupAddress.trim(),
+          city: currentShipping.pickupCity.trim() || currentShipping.locationName.trim(),
+          postalCode: "",
+          country: currentShipping.pickupCountry.trim() || "Haiti",
+          phone: currentShipping.pickupPhone.trim() || currentProfile.contactPhone.trim(),
+        }
+      : null;
+
+    try {
+      await updateSellerMutation.mutateAsync({
+        shippingSettings,
+        pickupAddress,
+      });
+      setFeedback("Configuration livraison vendeur enregistree.");
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Impossible d'enregistrer la livraison."));
+    }
+  }
+
+  async function handleKycUpload(type: SellerKycDocumentType, file?: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setError(null);
+    setFeedback(null);
+
+    try {
+      await uploadKycMutation.mutateAsync({
+        documentType: type,
+        sellerApplicationId: application?.id,
+        file,
+      });
+      setFeedback("Document KYC envoye avec succes.");
+    } catch (uploadError) {
+      setError(getErrorMessage(uploadError, "Impossible d'envoyer le document KYC."));
+      setActiveTab("kyc");
+    }
+  }
+
+  return (
+    <SellerWorkspaceShell
+      title="Parametres vendeur"
+      description="Separez votre profil, votre livraison et vos documents KYC pour mettre a jour votre boutique plus vite."
+      actions={
+        activeTab === "profile" ? (
+          <Button
+            onClick={handleProfileSave}
+            isLoading={updateAccountMutation.isPending || updateSellerMutation.isPending}
+            className="gap-2"
+          >
+            <Save className="h-4 w-4" />
+            Enregistrer le profil
+          </Button>
+        ) : activeTab === "shipping" ? (
+          <Button
+            onClick={handleShippingSave}
+            isLoading={updateSellerMutation.isPending}
+            className="gap-2"
+          >
+            <Save className="h-4 w-4" />
+            Enregistrer la livraison
+          </Button>
+        ) : null
+      }
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatusCard
+          icon={<Store className="h-5 w-5" />}
+          label="Statut vendeur"
+          value={account.seller.status}
+          tone={sellerStatusTone}
+        />
+        <StatusCard
+          icon={<ShieldCheck className="h-5 w-5" />}
+          label="KYC"
+          value={account.seller.kycStatus || "not_submitted"}
+          tone={kycStatusTone}
+        />
+        <StatusCard
+          icon={<Truck className="h-5 w-5" />}
+          label="Expedition"
+          value={
+            shippingForm.locationName
+              ? `${shippingForm.locationName} - ${shippingForm.basePrice} HTG`
+              : "A configurer"
+          }
+          tone="bg-sky-50 text-sky-700 border-sky-200"
+        />
+      </div>
+
+      {error ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {error}
+        </div>
+      ) : null}
+
+      {feedback ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {feedback}
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2 rounded-3xl border border-neutral-200 bg-white p-2">
+        {[
+          { id: "profile", label: "Profil", icon: UserCircle2 },
+          { id: "shipping", label: "Livraison", icon: Truck },
+          { id: "kyc", label: "KYC", icon: ShieldCheck },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id as SellerTab)}
+            className={cn(
+              "flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+              activeTab === tab.id
+                ? "bg-neutral-900 text-white"
+                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+            )}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "profile" ? (
+        <div className="grid gap-6 xl:grid-cols-[1.05fr_1.45fr]">
+          <section className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Profil rapide</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Modifiez votre photo profil et vos coordonnees principales sans passer
+                par l'admin.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
+                {profileForm.avatar ? (
+                  <img
+                    src={profileForm.avatar}
+                    alt="Profil vendeur"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserCircle2 className="h-14 w-14 text-neutral-400" />
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                  <Upload className="h-4 w-4" />
+                  {uploadingAvatar ? "Envoi..." : "Changer la photo profil"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => handleAvatarUpload(event.target.files?.[0])}
+                    disabled={uploadingAvatar}
+                  />
+                </label>
+                <p className="text-xs text-neutral-500">
+                  Cette photo utilise votre profil utilisateur et reste visible dans votre
+                  espace vendeur.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Prenom">
+                <input
+                  value={profileForm.firstName}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, firstName: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Nom">
+                <input
+                  value={profileForm.lastName}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, lastName: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Telephone">
+                <input
+                  value={profileForm.phone}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, phone: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Email du compte">
+                <input value={account.email} disabled className={`${inputClassName} bg-neutral-50`} />
+              </Field>
+            </div>
+          </section>
+
+          <section className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Boutique et paiements</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Gardez vos informations vendeur, notifications et paiement a jour.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Nom de la boutique">
+                <input
+                  value={profileForm.businessName}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, businessName: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Contact principal">
+                <input
+                  value={profileForm.contactPerson}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, contactPerson: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Telephone boutique">
+                <input
+                  value={profileForm.contactPhone}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, contactPhone: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Email boutique">
+                <input
+                  type="email"
+                  value={profileForm.contactEmail}
+                  onChange={(event) =>
+                    setProfileForm({ ...profileForm, contactEmail: event.target.value })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Titulaire paiement">
+                <input
+                  value={profileForm.payoutDetails.accountHolder || ""}
+                  onChange={(event) =>
+                    setProfileForm({
+                      ...profileForm,
+                      payoutDetails: {
+                        ...profileForm.payoutDetails,
+                        accountHolder: event.target.value,
+                      },
+                    })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Banque">
+                <input
+                  value={profileForm.payoutDetails.bankName || ""}
+                  onChange={(event) =>
+                    setProfileForm({
+                      ...profileForm,
+                      payoutDetails: {
+                        ...profileForm.payoutDetails,
+                        bankName: event.target.value,
+                      },
+                    })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+              <Field label="Numero compte">
+                <input
+                  value={profileForm.payoutDetails.accountNumber || ""}
+                  onChange={(event) =>
+                    setProfileForm({
+                      ...profileForm,
+                      payoutDetails: {
+                        ...profileForm.payoutDetails,
+                        accountNumber: event.target.value,
+                      },
+                    })
+                  }
+                  className={inputClassName}
+                />
+              </Field>
+            </div>
+
+            <Field label="Description boutique">
+              <textarea
+                rows={4}
+                value={profileForm.description}
+                onChange={(event) =>
+                  setProfileForm({ ...profileForm, description: event.target.value })
+                }
+                className={textareaClassName}
+              />
+            </Field>
+
+            <Field label="Note de paiement">
+              <textarea
+                rows={3}
+                value={profileForm.payoutDetails.payoutNote || ""}
+                onChange={(event) =>
+                  setProfileForm({
+                    ...profileForm,
+                    payoutDetails: {
+                      ...profileForm.payoutDetails,
+                      payoutNote: event.target.value,
+                    },
+                  })
+                }
+                className={textareaClassName}
+              />
+            </Field>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ToggleCard
+                label="Nouvelles commandes"
+                checked={profileForm.notificationSettings.newOrders}
+                onChange={(checked) =>
+                  setProfileForm({
+                    ...profileForm,
+                    notificationSettings: {
+                      ...profileForm.notificationSettings,
+                      newOrders: checked,
+                    },
+                  })
+                }
+              />
+              <ToggleCard
+                label="Promotions"
+                checked={profileForm.notificationSettings.promotions}
+                onChange={(checked) =>
+                  setProfileForm({
+                    ...profileForm,
+                    notificationSettings: {
+                      ...profileForm.notificationSettings,
+                      promotions: checked,
+                    },
+                  })
+                }
+              />
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {activeTab === "shipping" ? (
+        <div className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
+          <div>
+            <h2 className="text-lg font-semibold text-neutral-900">
+              Livraison dynamique par distance (Vos propres produits)
+            </h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              Meme logique que l'admin, mais appliquee a votre boutique vendeur.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Votre localisation pivot (Point de depart)" className="md:col-span-2">
+              <SearchableSelect
+                options={locationOptions}
+                value={selectedLocationValue}
+                onChange={(value) => {
+                  const [name, type, dept, lat, lng] = value.split("|");
+                  setShippingForm({
+                    ...shippingForm,
+                    locationName: name || "",
+                    locationType: type || "",
+                    locationDept: dept || "",
+                    latitude: lat ? Number(lat) : undefined,
+                    longitude: lng ? Number(lng) : undefined,
+                  });
+                }}
+                placeholder="Rechercher une commune..."
+              />
+            </Field>
+
+            <Field label="Frais de base de deplacement (HTG)">
+              <input
+                type="number"
+                value={shippingForm.basePrice}
+                onChange={(event) =>
+                  setShippingForm({ ...shippingForm, basePrice: event.target.value })
+                }
+                className={inputClassName}
+              />
+            </Field>
+            <Field label="Prix par kilometre supplementaire (HTG)">
+              <input
+                type="number"
+                value={shippingForm.pricePerKm}
+                onChange={(event) =>
+                  setShippingForm({ ...shippingForm, pricePerKm: event.target.value })
+                }
+                className={inputClassName}
+              />
+            </Field>
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">
+            Remarque : assurez-vous que votre point de depart soit correct. Il sera
+            utilise pour calculer automatiquement la distance et les frais client.
+          </div>
+
+          <div className="space-y-4 rounded-3xl border border-neutral-200 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-medium text-neutral-900">Retrait en magasin</h3>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Permettre aux clients de recuperer leur commande sur place.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setShippingForm({
+                    ...shippingForm,
+                    allowPickup: !shippingForm.allowPickup,
+                  })
+                }
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                  shippingForm.allowPickup
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-neutral-100 text-neutral-600",
+                )}
+              >
+                {shippingForm.allowPickup ? "Autorise" : "Desactive"}
+              </button>
+            </div>
+
+            {shippingForm.allowPickup ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Adresse de retrait" className="md:col-span-2">
+                  <textarea
+                    rows={3}
+                    value={shippingForm.pickupAddress}
+                    onChange={(event) =>
+                      setShippingForm({
+                        ...shippingForm,
+                        pickupAddress: event.target.value,
+                      })
+                    }
+                    className={textareaClassName}
+                  />
+                </Field>
+                <Field label="Ville">
+                  <input
+                    value={shippingForm.pickupCity}
+                    onChange={(event) =>
+                      setShippingForm({ ...shippingForm, pickupCity: event.target.value })
+                    }
+                    className={inputClassName}
+                  />
+                </Field>
+                <Field label="Pays">
+                  <input
+                    value={shippingForm.pickupCountry}
+                    onChange={(event) =>
+                      setShippingForm({
+                        ...shippingForm,
+                        pickupCountry: event.target.value,
+                      })
+                    }
+                    className={inputClassName}
+                  />
+                </Field>
+                <Field label="Telephone retrait">
+                  <input
+                    value={shippingForm.pickupPhone}
+                    onChange={(event) =>
+                      setShippingForm({ ...shippingForm, pickupPhone: event.target.value })
+                    }
+                    className={inputClassName}
+                  />
+                </Field>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {activeTab === "kyc" ? (
+        <div className="grid gap-6 xl:grid-cols-[1fr_1.15fr]">
+          <section className="space-y-5 rounded-3xl border border-neutral-200 bg-white p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Etat du dossier KYC</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Suivez vos documents et ajoutez rapidement les pieces manquantes.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+              <div className="text-sm text-neutral-500">Derniere soumission</div>
+              <div className="mt-1 font-medium text-neutral-900">
+                {formatDocumentDate(application?.submittedAt || account.seller.kycSubmittedAt)}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+              <div className="text-sm text-neutral-500">Note admin</div>
+              <div className="mt-1 text-sm text-neutral-700">
+                {account.seller.kycReviewNotes || "Aucune note pour le moment."}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {(application?.kycDocuments || []).length > 0 ? (
+                application?.kycDocuments?.map((document) => (
+                  <div
+                    key={document.id}
+                    className="flex items-center justify-between rounded-2xl border border-neutral-200 p-4"
+                  >
+                    <div>
+                      <div className="font-medium text-neutral-900">{document.fileName || document.documentType}</div>
+                      <div className="mt-1 text-xs text-neutral-500">
+                        {document.documentType} · {formatDocumentDate(document.createdAt)}
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
+                      {document.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
+                  Aucun document KYC envoye pour le moment.
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Ajouter des documents</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Chaque envoi sera rattache a votre dossier vendeur actuel.
+              </p>
+            </div>
+
+            {requiredDocuments.map((document) => (
+              <label
+                key={document.type}
+                className="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50"
+              >
+                <div>
+                  <div className="font-medium text-neutral-900">{document.label}</div>
+                  <div className="mt-1 text-sm text-neutral-500">{document.description}</div>
+                </div>
+                <span className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-3 py-2 text-xs font-medium text-white">
+                  <Upload className="h-3.5 w-3.5" />
+                  Envoyer
+                </span>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={(event) => handleKycUpload(document.type, event.target.files?.[0])}
+                />
+              </label>
+            ))}
+          </section>
+        </div>
+      ) : null}
+    </SellerWorkspaceShell>
+  );
+}
+
+const inputClassName =
+  "w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200";
+
+const textareaClassName =
+  "w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-200";
+
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function StatusCard({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  tone: string;
+}) {
+  return (
+    <div className={cn("rounded-3xl border p-5", tone)}>
+      <div className="flex items-center gap-2 text-sm font-medium">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-2 text-lg font-semibold capitalize">{value}</div>
+    </div>
+  );
+}
+
+function ToggleCard({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition-colors",
+        checked
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+      )}
+    >
+      <span className="text-sm font-medium">{label}</span>
+      {checked ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+    </button>
+  );
+}

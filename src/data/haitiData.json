@@ -1,0 +1,1703 @@
+[
+ 
+  {
+    "name": "Port-au-Prince",
+    "lat": 18.5392,
+    "lng": -72.3288,
+    "type": "arrondissement",
+    "département": "Ouest"
+  },
+  {
+    "name": "l'Arcahaie",
+    "lat": 18.7716,
+    "lng": -72.5278,
+    "type": "arrondissement",
+    "département": "Ouest"
+  },
+  {
+    "name": "Croix-des-Bouquets",
+    "lat": 18.5768,
+    "lng": -72.2263,
+    "type": "arrondissement",
+    "département": "Ouest"
+  },
+  {
+    "name": "La Gonâve",
+    "lat": 18.8,
+    "lng": -73.0,
+    "type": "arrondissement",
+    "département": "Ouest"
+  },
+  {
+    "name": "Léogâne",
+    "lat": 18.5111,
+    "lng": -72.6334,
+    "type": "arrondissement",
+    "département": "Ouest"
+  },
+  {
+    "name": "Gonaïves",
+    "lat": 19.4167,
+    "lng": -72.6833,
+    "type": "arrondissement",
+    "département": "Artibonite"
+  },
+  {
+    "name": "Dessalines",
+    "lat": 19.2833,
+    "lng": -72.5,
+    "type": "arrondissement",
+    "département": "Artibonite"
+  },
+  {
+    "name": "Gros-Morne",
+    "lat": 19.6667,
+    "lng": -72.6833,
+    "type": "arrondissement",
+    "département": "Artibonite"
+  },
+  {
+    "name": "Marmelade",
+    "lat": 19.5167,
+    "lng": -72.35,
+    "type": "arrondissement",
+    "département": "Artibonite"
+  },
+  {
+    "name": "Saint-Marc",
+    "lat": 19.1114,
+    "lng": -72.7008,
+    "type": "arrondissement",
+    "département": "Artibonite"
+  },
+  {
+    "name": "Hinche",
+    "lat": 19.1409,
+    "lng": -72.0119,
+    "type": "arrondissement",
+    "département": "Centre"
+  },
+  {
+    "name": "Mirebalais",
+    "lat": 18.8369,
+    "lng": -72.1108,
+    "type": "arrondissement",
+    "département": "Centre"
+  },
+  {
+    "name": "Lascahobas",
+    "lat": 18.8333,
+    "lng": -71.95,
+    "type": "arrondissement",
+    "département": "Centre"
+  },
+  {
+    "name": "Cerca la Source",
+    "lat": 18.9833,
+    "lng": -71.8667,
+    "type": "arrondissement",
+    "département": "Centre"
+  },
+  {
+    "name": "Cap-Haïtien",
+    "lat": 19.7596,
+    "lng": -72.2008,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "l'Acul-du-Nord",
+    "lat": 19.7833,
+    "lng": -72.3333,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "Borgne",
+    "lat": 19.85,
+    "lng": -72.5333,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "Grande-Rivière-du-Nord",
+    "lat": 19.5833,
+    "lng": -72.1667,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "Limbé",
+    "lat": 19.7,
+    "lng": -72.4,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "Plaisance",
+    "lat": 19.6,
+    "lng": -72.4667,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "Saint-Raphaël",
+    "lat": 19.4833,
+    "lng": -72.2167,
+    "type": "arrondissement",
+    "département": "Nord"
+  },
+  {
+    "name": "Fort-Liberté",
+    "lat": 19.65,
+    "lng": -71.8333,
+    "type": "arrondissement",
+    "département": "Nord-Est"
+  },
+  {
+    "name": "Ouanaminthe",
+    "lat": 19.5533,
+    "lng": -71.7333,
+    "type": "arrondissement",
+    "département": "Nord-Est"
+  },
+  {
+    "name": "Trou-du-Nord",
+    "lat": 19.6975,
+    "lng": -72.025,
+    "type": "arrondissement",
+    "département": "Nord-Est"
+  },
+  {
+    "name": "Vallières",
+    "lat": 19.4667,
+    "lng": -71.9667,
+    "type": "arrondissement",
+    "département": "Nord-Est"
+  },
+  {
+    "name": "Port-de-Paix",
+    "lat": 19.9398,
+    "lng": -72.8304,
+    "type": "arrondissement",
+    "département": "Nord-Ouest"
+  },
+  {
+    "name": "Môle-Saint-Nicolas",
+    "lat": 19.8,
+    "lng": -73.3667,
+    "type": "arrondissement",
+    "département": "Nord-Ouest"
+  },
+  {
+    "name": "Saint-Louis-du-Nord",
+    "lat": 19.95,
+    "lng": -72.7167,
+    "type": "arrondissement",
+    "département": "Nord-Ouest"
+  },
+  {
+    "name": "Cayes",
+    "lat": 18.192,
+    "lng": -73.7495,
+    "type": "arrondissement",
+    "département": "Sud"
+  },
+  {
+    "name": "Aquin",
+    "lat": 18.2833,
+    "lng": -73.3833,
+    "type": "arrondissement",
+    "département": "Sud"
+  },
+  {
+    "name": "Chardonnières",
+    "lat": 18.2667,
+    "lng": -74.1333,
+    "type": "arrondissement",
+    "département": "Sud"
+  },
+  {
+    "name": "Côteaux",
+    "lat": 18.2333,
+    "lng": -74.0167,
+    "type": "arrondissement",
+    "département": "Sud"
+  },
+  {
+    "name": "Port-Salut",
+    "lat": 18.1667,
+    "lng": -73.9167,
+    "type": "arrondissement",
+    "département": "Sud"
+  },
+  {
+    "name": "Jacmel",
+    "lat": 18.2357,
+    "lng": -72.5369,
+    "type": "arrondissement",
+    "département": "Sud-Est"
+  },
+  {
+    "name": "Bainet",
+    "lat": 18.2167,
+    "lng": -72.8167,
+    "type": "arrondissement",
+    "département": "Sud-Est"
+  },
+  {
+    "name": "Belle-Anse",
+    "lat": 18.2167,
+    "lng": -72.0667,
+    "type": "arrondissement",
+    "département": "Sud-Est"
+  },
+  {
+    "name": "Jérémie",
+    "lat": 18.65,
+    "lng": -74.1167,
+    "type": "arrondissement",
+    "département": "Grand'Anse"
+  },
+  {
+    "name": "Anse-d'Hainault",
+    "lat": 18.4833,
+    "lng": -74.45,
+    "type": "arrondissement",
+    "département": "Grand'Anse"
+  },
+  {
+    "name": "Corail",
+    "lat": 18.5667,
+    "lng": -73.8833,
+    "type": "arrondissement",
+    "département": "Grand'Anse"
+  },
+  {
+    "name": "Miragoâne",
+    "lat": 18.4456,
+    "lng": -73.0878,
+    "type": "arrondissement",
+    "département": "Nippes"
+  },
+  {
+    "name": "l'Anse-à-Veau",
+    "lat": 18.5,
+    "lng": -73.3667,
+    "type": "arrondissement",
+    "département": "Nippes"
+  },
+  {
+    "name": "Baradères",
+    "lat": 18.4833,
+    "lng": -73.65,
+    "type": "arrondissement",
+    "département": "Nippes"
+  },
+  {
+    "name": "Port-au-Prince",
+    "lat": 18.54349,
+    "lng": -72.33881,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Carrefour",
+    "lat": 18.54114,
+    "lng": -72.39922,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Delmas",
+    "lat": 18.54478,
+    "lng": -72.30036,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Pétion-Ville",
+    "lat": 18.51382,
+    "lng": -72.28819,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Tabarre",
+    "lat": 18.58333,
+    "lng": -72.28333,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Cité Soleil",
+    "lat": 18.57143,
+    "lng": -72.33754,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Kenscoff",
+    "lat": 18.48333,
+    "lng": -72.25,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Port-au-Prince"
+  },
+  {
+    "name": "Arcahaie",
+    "lat": 18.77157,
+    "lng": -72.52777,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Arcahaie"
+  },
+  {
+    "name": "Cabaret",
+    "lat": 18.7,
+    "lng": -72.53333,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Arcahaie"
+  },
+  {
+    "name": "Montrouis",
+    "lat": 19.10556,
+    "lng": -72.70722,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Arcahaie"
+  },
+  {
+    "name": "Croix-des-Bouquets",
+    "lat": 18.57677,
+    "lng": -72.22625,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Croix-des-Bouquets"
+  },
+  {
+    "name": "Thomazeau",
+    "lat": 18.65,
+    "lng": -72.09,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Croix-des-Bouquets"
+  },
+  {
+    "name": "Cornillon",
+    "lat": 18.63333,
+    "lng": -72.06667,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Croix-des-Bouquets"
+  },
+  {
+    "name": "Fonds-Verrettes",
+    "lat": 18.51667,
+    "lng": -71.96667,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Croix-des-Bouquets"
+  },
+  {
+    "name": "Anse-à-Galets",
+    "lat": 18.8,
+    "lng": -72.76667,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "La Gonâve"
+  },
+  {
+    "name": "Pointe-à-Raquette",
+    "lat": 18.83333,
+    "lng": -73.01667,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "La Gonâve"
+  },
+  {
+    "name": "Léogâne",
+    "lat": 18.5111,
+    "lng": -72.63343,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Léogâne"
+  },
+  {
+    "name": "Gressier",
+    "lat": 18.53333,
+    "lng": -72.51667,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Léogâne"
+  },
+  {
+    "name": "Grand-Goâve",
+    "lat": 18.43333,
+    "lng": -72.78333,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Léogâne"
+  },
+  {
+    "name": "Petit-Goâve",
+    "lat": 18.43117,
+    "lng": -72.86521,
+    "type": "commune",
+    "département": "Ouest",
+    "arrondissement": "Léogâne"
+  },
+  {
+    "name": "Gonaïves",
+    "lat": 19.41667,
+    "lng": -72.68333,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Gonaïves"
+  },
+  {
+    "name": "Ennery",
+    "lat": 19.48333,
+    "lng": -72.5,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Gonaïves"
+  },
+  {
+    "name": "Dessalines",
+    "lat": 19.28333,
+    "lng": -72.5,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Dessalines"
+  },
+  {
+    "name": "Petite-Rivière-de-l'Artibonite",
+    "lat": 19.13333,
+    "lng": -72.48333,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Dessalines"
+  },
+  {
+    "name": "Verrettes",
+    "lat": 19.05,
+    "lng": -72.46667,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Dessalines"
+  },
+  {
+    "name": "La Chapelle",
+    "lat": 19.11667,
+    "lng": -72.41667,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Dessalines"
+  },
+  {
+    "name": "Gros-Morne",
+    "lat": 19.66667,
+    "lng": -72.68333,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Gros-Morne"
+  },
+  {
+    "name": "Terre-Neuve",
+    "lat": 19.65,
+    "lng": -72.75,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Gros-Morne"
+  },
+  {
+    "name": "Anse-Rouge",
+    "lat": 19.63333,
+    "lng": -73.06667,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Gros-Morne"
+  },
+  {
+    "name": "Marmelade",
+    "lat": 19.51667,
+    "lng": -72.35,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Marmelade"
+  },
+  {
+    "name": "Saint-Michel-de-l'Attalaye",
+    "lat": 19.36667,
+    "lng": -72.35,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Marmelade"
+  },
+  {
+    "name": "Saint-Marc",
+    "lat": 19.11136,
+    "lng": -72.70078,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Saint-Marc"
+  },
+  {
+    "name": "Liancourt",
+    "lat": 19.08333,
+    "lng": -72.35,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Saint-Marc"
+  },
+  {
+    "name": "La Chapelle",
+    "lat": 19.11667,
+    "lng": -72.41667,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Saint-Marc"
+  },
+  {
+    "name": "Les Arcadins",
+    "lat": 19.2,
+    "lng": -72.83333,
+    "type": "commune",
+    "département": "Artibonite",
+    "arrondissement": "Saint-Marc"
+  },
+  {
+    "name": "Hinche",
+    "lat": 19.1409,
+    "lng": -72.01194,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Hinche"
+  },
+  {
+    "name": "Thomonde",
+    "lat": 19.06667,
+    "lng": -72.08333,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Hinche"
+  },
+  {
+    "name": "Maïssade",
+    "lat": 19.16667,
+    "lng": -72.13333,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Hinche"
+  },
+  {
+    "name": "Boucan-Carré",
+    "lat": 19.0,
+    "lng": -72.2,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Hinche"
+  },
+  {
+    "name": "Mirebalais",
+    "lat": 18.8369,
+    "lng": -72.1108,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Mirebalais"
+  },
+  {
+    "name": "Saut-d'Eau",
+    "lat": 18.8667,
+    "lng": -72.3,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Mirebalais"
+  },
+  {
+    "name": "Cerca-Carvajal",
+    "lat": 18.9833,
+    "lng": -71.9833,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Mirebalais"
+  },
+  {
+    "name": "Lascahobas",
+    "lat": 18.83333,
+    "lng": -71.95,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Lascahobas"
+  },
+  {
+    "name": "Belladère",
+    "lat": 18.8533,
+    "lng": -71.7833,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Lascahobas"
+  },
+  {
+    "name": "Savanette",
+    "lat": 18.7833,
+    "lng": -71.9333,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Lascahobas"
+  },
+  {
+    "name": "Cerca-la-Source",
+    "lat": 18.9833,
+    "lng": -71.8667,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Cerca la Source"
+  },
+  {
+    "name": "Baptiste",
+    "lat": 19.0,
+    "lng": -71.8333,
+    "type": "commune",
+    "département": "Centre",
+    "arrondissement": "Cerca la Source"
+  },
+  {
+    "name": "Cap-Haïtien",
+    "lat": 19.75952,
+    "lng": -72.20081,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Cap-Haïtien"
+  },
+  {
+    "name": "Quartier-Morin",
+    "lat": 19.71667,
+    "lng": -72.16667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Cap-Haïtien"
+  },
+  {
+    "name": "Limonade",
+    "lat": 19.71667,
+    "lng": -72.13333,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Cap-Haïtien"
+  },
+  {
+    "name": "Milot",
+    "lat": 19.73333,
+    "lng": -72.21667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Cap-Haïtien"
+  },
+  {
+    "name": "Grande-Rivière-du-Nord",
+    "lat": 19.58333,
+    "lng": -72.16667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Grande-Rivière-du-Nord"
+  },
+  {
+    "name": "Dondon",
+    "lat": 19.51667,
+    "lng": -72.26667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Grande-Rivière-du-Nord"
+  },
+  {
+    "name": "Acul-du-Nord",
+    "lat": 19.78333,
+    "lng": -72.33333,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Acul-du-Nord"
+  },
+  {
+    "name": "Plaine-du-Nord",
+    "lat": 19.76667,
+    "lng": -72.26667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Acul-du-Nord"
+  },
+  {
+    "name": "Bahon",
+    "lat": 19.46667,
+    "lng": -72.11667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Acul-du-Nord"
+  },
+  {
+    "name": "Borgne",
+    "lat": 19.85,
+    "lng": -72.53333,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Borgne"
+  },
+  {
+    "name": "Port-Margot",
+    "lat": 19.76667,
+    "lng": -72.46667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Borgne"
+  },
+  {
+    "name": "La Victoire",
+    "lat": 19.8,
+    "lng": -72.46667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Borgne"
+  },
+  {
+    "name": "Limbé",
+    "lat": 19.7,
+    "lng": -72.4,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Limbé"
+  },
+  {
+    "name": "Bas-Limbé",
+    "lat": 19.73333,
+    "lng": -72.35,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Limbé"
+  },
+  {
+    "name": "Plaisance",
+    "lat": 19.6,
+    "lng": -72.46667,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Plaisance"
+  },
+  {
+    "name": "Saint-Raphaël",
+    "lat": 19.4833,
+    "lng": -72.2167,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Saint-Raphaël"
+  },
+  {
+    "name": "Pignon",
+    "lat": 19.3667,
+    "lng": -72.1333,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Saint-Raphaël"
+  },
+  {
+    "name": "La Victoire",
+    "lat": 19.45,
+    "lng": -72.23333,
+    "type": "commune",
+    "département": "Nord",
+    "arrondissement": "Saint-Raphaël"
+  },
+  {
+    "name": "Fort-Liberté",
+    "lat": 19.65,
+    "lng": -71.8333,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Fort-Liberté"
+  },
+  {
+    "name": "Ferrier",
+    "lat": 19.6167,
+    "lng": -71.8167,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Fort-Liberté"
+  },
+  {
+    "name": "Mont-Organisé",
+    "lat": 19.3167,
+    "lng": -71.9833,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Fort-Liberté"
+  },
+  {
+    "name": "Ouanaminthe",
+    "lat": 19.5533,
+    "lng": -71.7333,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Ouanaminthe"
+  },
+  {
+    "name": "Capotille",
+    "lat": 19.5667,
+    "lng": -71.9333,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Ouanaminthe"
+  },
+  {
+    "name": "Trou-du-Nord",
+    "lat": 19.6975,
+    "lng": -72.025,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Trou-du-Nord"
+  },
+  {
+    "name": "Sainte-Suzanne",
+    "lat": 19.65,
+    "lng": -72.05,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Trou-du-Nord"
+  },
+  {
+    "name": "Caracol",
+    "lat": 19.7167,
+    "lng": -71.95,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Trou-du-Nord"
+  },
+  {
+    "name": "Terrier-Rouge",
+    "lat": 19.6667,
+    "lng": -71.9833,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Trou-du-Nord"
+  },
+  {
+    "name": "Vallières",
+    "lat": 19.4667,
+    "lng": -71.9667,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Vallières"
+  },
+  {
+    "name": "Carice",
+    "lat": 19.4833,
+    "lng": -71.9167,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Vallières"
+  },
+  {
+    "name": "Mombin-Crochu",
+    "lat": 19.4167,
+    "lng": -72.0167,
+    "type": "commune",
+    "département": "Nord-Est",
+    "arrondissement": "Vallières"
+  },
+  {
+    "name": "Port-de-Paix",
+    "lat": 19.93984,
+    "lng": -72.83037,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Port-de-Paix"
+  },
+  {
+    "name": "Saint-Louis-du-Nord",
+    "lat": 19.95,
+    "lng": -72.7167,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Port-de-Paix"
+  },
+  {
+    "name": "Anse-à-Foleur",
+    "lat": 19.9167,
+    "lng": -72.7,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Port-de-Paix"
+  },
+  {
+    "name": "Chansolme",
+    "lat": 20.0167,
+    "lng": -72.9667,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Port-de-Paix"
+  },
+  {
+    "name": "Ti Port-de-Paix",
+    "lat": 19.86667,
+    "lng": -72.83333,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Port-de-Paix"
+  },
+  {
+    "name": "Bassin-Bleu",
+    "lat": 19.8167,
+    "lng": -72.9167,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Port-de-Paix"
+  },
+  {
+    "name": "Môle-Saint-Nicolas",
+    "lat": 19.8,
+    "lng": -73.3667,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Môle-Saint-Nicolas"
+  },
+  {
+    "name": "Jean-Rabel",
+    "lat": 19.8667,
+    "lng": -73.1833,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Môle-Saint-Nicolas"
+  },
+  {
+    "name": "Bombardopolis",
+    "lat": 20.0667,
+    "lng": -73.0167,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Môle-Saint-Nicolas"
+  },
+  {
+    "name": "Baie-de-Henne",
+    "lat": 19.75,
+    "lng": -73.2167,
+    "type": "commune",
+    "département": "Nord-Ouest",
+    "arrondissement": "Môle-Saint-Nicolas"
+  },
+  {
+    "name": "Les Cayes",
+    "lat": 18.19199,
+    "lng": -73.74948,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Les Cayes"
+  },
+  {
+    "name": "Torbeck",
+    "lat": 18.1833,
+    "lng": -73.8167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Les Cayes"
+  },
+  {
+    "name": "Camp-Perrin",
+    "lat": 18.3167,
+    "lng": -73.5667,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Les Cayes"
+  },
+  {
+    "name": "Cavaillon",
+    "lat": 18.3,
+    "lng": -73.6167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Les Cayes"
+  },
+  {
+    "name": "Maniche",
+    "lat": 18.2833,
+    "lng": -73.7167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Les Cayes"
+  },
+  {
+    "name": "Aquin",
+    "lat": 18.2833,
+    "lng": -73.3833,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Aquin"
+  },
+  {
+    "name": "Saint-Louis-du-Sud",
+    "lat": 18.2667,
+    "lng": -73.5167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Aquin"
+  },
+  {
+    "name": "Fond-des-Blancs",
+    "lat": 18.2333,
+    "lng": -73.4167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Aquin"
+  },
+  {
+    "name": "Vieux-Bourg-d'Aquin",
+    "lat": 18.3167,
+    "lng": -73.3667,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Aquin"
+  },
+  {
+    "name": "Chardonnières",
+    "lat": 18.2667,
+    "lng": -74.1333,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Chardonnières"
+  },
+  {
+    "name": "Les Anglais",
+    "lat": 18.25,
+    "lng": -74.1667,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Chardonnières"
+  },
+  {
+    "name": "Tiburon",
+    "lat": 18.3333,
+    "lng": -74.0,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Chardonnières"
+  },
+  {
+    "name": "Côteaux",
+    "lat": 18.2333,
+    "lng": -74.0167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Côteaux"
+  },
+  {
+    "name": "Roche-à-Bateau",
+    "lat": 18.1833,
+    "lng": -73.9167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Côteaux"
+  },
+  {
+    "name": "Port-à-Piment",
+    "lat": 18.1667,
+    "lng": -74.0,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Côteaux"
+  },
+  {
+    "name": "Port-Salut",
+    "lat": 18.1667,
+    "lng": -73.9167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Port-Salut"
+  },
+  {
+    "name": "Saint-Jean-du-Sud",
+    "lat": 18.1833,
+    "lng": -73.8833,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Port-Salut"
+  },
+  {
+    "name": "Arniquet",
+    "lat": 18.25,
+    "lng": -73.8167,
+    "type": "commune",
+    "département": "Sud",
+    "arrondissement": "Port-Salut"
+  },
+  {
+    "name": "Jacmel",
+    "lat": 18.23569,
+    "lng": -72.53686,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Jacmel"
+  },
+  {
+    "name": "Cayes-Jacmel",
+    "lat": 18.2167,
+    "lng": -72.6333,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Jacmel"
+  },
+  {
+    "name": "La Vallée-de-Jacmel",
+    "lat": 18.2,
+    "lng": -72.7333,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Jacmel"
+  },
+  {
+    "name": "Marigot",
+    "lat": 18.2167,
+    "lng": -72.3167,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Jacmel"
+  },
+  {
+    "name": "Bainet",
+    "lat": 18.2167,
+    "lng": -72.8167,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Bainet"
+  },
+  {
+    "name": "Côtes-de-Fer",
+    "lat": 18.3167,
+    "lng": -72.7667,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Bainet"
+  },
+  {
+    "name": "Cyvadier",
+    "lat": 18.2333,
+    "lng": -72.5,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Bainet"
+  },
+  {
+    "name": "Belle-Anse",
+    "lat": 18.2167,
+    "lng": -72.0667,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Belle-Anse"
+  },
+  {
+    "name": "Grand-Gosier",
+    "lat": 18.3167,
+    "lng": -71.9333,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Belle-Anse"
+  },
+  {
+    "name": "Thiotte",
+    "lat": 18.3167,
+    "lng": -71.8167,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Belle-Anse"
+  },
+  {
+    "name": "Anse-à-Pitres",
+    "lat": 18.0667,
+    "lng": -71.7833,
+    "type": "commune",
+    "département": "Sud-Est",
+    "arrondissement": "Belle-Anse"
+  },
+  {
+    "name": "Jérémie",
+    "lat": 18.65,
+    "lng": -74.11667,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Jérémie"
+  },
+  {
+    "name": "Abricots",
+    "lat": 18.6333,
+    "lng": -74.0,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Jérémie"
+  },
+  {
+    "name": "Moron",
+    "lat": 18.55,
+    "lng": -74.0,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Jérémie"
+  },
+  {
+    "name": "Bonbon",
+    "lat": 18.5,
+    "lng": -74.0167,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Jérémie"
+  },
+  {
+    "name": "Marfranc",
+    "lat": 18.6,
+    "lng": -74.0333,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Jérémie"
+  },
+  {
+    "name": "Anse-d'Hainault",
+    "lat": 18.4833,
+    "lng": -74.45,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Anse-d'Hainault"
+  },
+  {
+    "name": "Dame-Marie",
+    "lat": 18.5667,
+    "lng": -74.4333,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Anse-d'Hainault"
+  },
+  {
+    "name": "Les Irois",
+    "lat": 18.4667,
+    "lng": -74.4333,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Anse-d'Hainault"
+  },
+  {
+    "name": "Beaumont",
+    "lat": 18.3833,
+    "lng": -74.1167,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Anse-d'Hainault"
+  },
+  {
+    "name": "Corail",
+    "lat": 18.5667,
+    "lng": -73.8833,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Corail"
+  },
+  {
+    "name": "Chambellan",
+    "lat": 18.55,
+    "lng": -73.9333,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Corail"
+  },
+  {
+    "name": "Pestel",
+    "lat": 18.6167,
+    "lng": -73.85,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Corail"
+  },
+  {
+    "name": "Roseaux",
+    "lat": 18.4833,
+    "lng": -73.9,
+    "type": "commune",
+    "département": "Grand'Anse",
+    "arrondissement": "Corail"
+  },
+  {
+    "name": "Miragoâne",
+    "lat": 18.4456,
+    "lng": -73.0878,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Miragoâne"
+  },
+  {
+    "name": "Petit-Trou-de-Nippes",
+    "lat": 18.5167,
+    "lng": -73.5833,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Miragoâne"
+  },
+  {
+    "name": "Plaisance-du-Sud",
+    "lat": 18.3833,
+    "lng": -73.6167,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Miragoâne"
+  },
+  {
+    "name": "Arnaud",
+    "lat": 18.4,
+    "lng": -73.35,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Miragoâne"
+  },
+  {
+    "name": "Anse-à-Veau",
+    "lat": 18.5,
+    "lng": -73.3667,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Anse-à-Veau"
+  },
+  {
+    "name": "Paillant",
+    "lat": 18.3167,
+    "lng": -73.3167,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Anse-à-Veau"
+  },
+  {
+    "name": "Acul-du-Sud",
+    "lat": 18.5,
+    "lng": -73.35,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Anse-à-Veau"
+  },
+  {
+    "name": "L'Asile",
+    "lat": 18.3667,
+    "lng": -73.4167,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Anse-à-Veau"
+  },
+  {
+    "name": "Baradères",
+    "lat": 18.4833,
+    "lng": -73.65,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Baradères"
+  },
+  {
+    "name": "Grand-Boucan",
+    "lat": 18.4333,
+    "lng": -73.65,
+    "type": "commune",
+    "département": "Nippes",
+    "arrondissement": "Baradères"
+  },
+  {
+    "name": "Martissant",
+    "lat": 18.525,
+    "lng": -72.35,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Bel-Air",
+    "lat": 18.55,
+    "lng": -72.34,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Christ-Roi",
+    "lat": 18.54,
+    "lng": -72.33,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Turgeau",
+    "lat": 18.54,
+    "lng": -72.32,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Bourdon",
+    "lat": 18.53,
+    "lng": -72.31,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Canapé-Vert",
+    "lat": 18.525,
+    "lng": -72.3,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Lalue",
+    "lat": 18.545,
+    "lng": -72.335,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Bas-Peu-de-Chose",
+    "lat": 18.55,
+    "lng": -72.332,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Portail Léogâne",
+    "lat": 18.542,
+    "lng": -72.345,
+    "type": "section communale",
+    "commune": "Port-au-Prince"
+  },
+  {
+    "name": "Juvenat",
+    "lat": 18.5,
+    "lng": -72.28,
+    "type": "section communale",
+    "commune": "Pétion-Ville"
+  },
+  {
+    "name": "Fermathe",
+    "lat": 18.48,
+    "lng": -72.26,
+    "type": "section communale",
+    "commune": "Pétion-Ville"
+  },
+  {
+    "name": "Desprez",
+    "lat": 18.52,
+    "lng": -72.29,
+    "type": "section communale",
+    "commune": "Pétion-Ville"
+  },
+  {
+    "name": "Delmas 32",
+    "lat": 18.55,
+    "lng": -72.31,
+    "type": "section communale",
+    "commune": "Delmas"
+  },
+  {
+    "name": "Delmas 75",
+    "lat": 18.54,
+    "lng": -72.3,
+    "type": "section communale",
+    "commune": "Delmas"
+  },
+  {
+    "name": "Nazon",
+    "lat": 18.56,
+    "lng": -72.29,
+    "type": "section communale",
+    "commune": "Delmas"
+  },
+  {
+    "name": "Diquini",
+    "lat": 18.54,
+    "lng": -72.39,
+    "type": "section communale",
+    "commune": "Carrefour"
+  },
+  {
+    "name": "Mariani",
+    "lat": 18.52,
+    "lng": -72.41,
+    "type": "section communale",
+    "commune": "Carrefour"
+  },
+  {
+    "name": "Raboteau",
+    "lat": 19.43,
+    "lng": -72.7,
+    "type": "section communale",
+    "commune": "Gonaïves"
+  },
+  {
+    "name": "La Pointe",
+    "lat": 19.41,
+    "lng": -72.68,
+    "type": "section communale",
+    "commune": "Gonaïves"
+  },
+  {
+    "name": "Mapou",
+    "lat": 19.26,
+    "lng": -72.51,
+    "type": "section communale",
+    "commune": "Dessalines"
+  },
+  {
+    "name": "Sans-Souci",
+    "lat": 19.74,
+    "lng": -72.21,
+    "type": "section communale",
+    "commune": "Milot"
+  },
+  {
+    "name": "Cormier",
+    "lat": 19.78,
+    "lng": -72.2,
+    "type": "section communale",
+    "commune": "Cap-Haïtien"
+  },
+  {
+    "name": "Petite-Anse",
+    "lat": 19.74,
+    "lng": -72.18,
+    "type": "section communale",
+    "commune": "Cap-Haïtien"
+  },
+  {
+    "name": "Haut-du-Cap",
+    "lat": 19.77,
+    "lng": -72.2,
+    "type": "section communale",
+    "commune": "Cap-Haïtien"
+  },
+  {
+    "name": "Plaine-du-Nord",
+    "lat": 19.76,
+    "lng": -72.27,
+    "type": "section communale",
+    "commune": "Acul-du-Nord"
+  },
+  {
+    "name": "Bois-de-Lance",
+    "lat": 19.6,
+    "lng": -72.18,
+    "type": "section communale",
+    "commune": "Grande-Rivière-du-Nord"
+  },
+  {
+    "name": "Labadie",
+    "lat": 19.8,
+    "lng": -72.22,
+    "type": "section communale",
+    "commune": "Cap-Haïtien"
+  },
+  {
+    "name": "Mapou",
+    "lat": 19.55,
+    "lng": -71.75,
+    "type": "section communale",
+    "commune": "Ouanaminthe"
+  },
+  {
+    "name": "Gros-Manguier",
+    "lat": 19.92,
+    "lng": -72.85,
+    "type": "section communale",
+    "commune": "Port-de-Paix"
+  },
+  {
+    "name": "Lacoma",
+    "lat": 19.88,
+    "lng": -73.2,
+    "type": "section communale",
+    "commune": "Jean-Rabel"
+  },
+  {
+    "name": "Ti Rivière",
+    "lat": 18.2,
+    "lng": -73.74,
+    "type": "section communale",
+    "commune": "Les Cayes"
+  },
+  {
+    "name": "Savane Raquette",
+    "lat": 18.31,
+    "lng": -73.58,
+    "type": "section communale",
+    "commune": "Camp-Perrin"
+  },
+  {
+    "name": "Fond-des-Blancs",
+    "lat": 18.2,
+    "lng": -73.42,
+    "type": "section communale",
+    "commune": "Aquin"
+  },
+  {
+    "name": "Marigot",
+    "lat": 18.22,
+    "lng": -72.32,
+    "type": "section communale",
+    "commune": "Jacmel"
+  },
+  {
+    "name": "Fond-Jean-Noël",
+    "lat": 18.2,
+    "lng": -72.09,
+    "type": "section communale",
+    "commune": "Belle-Anse"
+  },
+  {
+    "name": "Cyvadier",
+    "lat": 18.23,
+    "lng": -72.49,
+    "type": "section communale",
+    "commune": "Jacmel"
+  },
+  {
+    "name": "La Digue",
+    "lat": 18.63,
+    "lng": -74.09,
+    "type": "section communale",
+    "commune": "Jérémie"
+  },
+  {
+    "name": "Marfranc",
+    "lat": 18.6,
+    "lng": -74.04,
+    "type": "section communale",
+    "commune": "Jérémie"
+  },
+  {
+    "name": "Fond-Cochon",
+    "lat": 18.44,
+    "lng": -73.09,
+    "type": "section communale",
+    "commune": "Miragoâne"
+  },
+  {
+    "name": "Petite-Rivière-de-Nippes",
+    "lat": 18.52,
+    "lng": -73.4,
+    "type": "section communale",
+    "commune": "Anse-à-Veau"
+  },
+  {
+    "name": "Boucan-Carré",
+    "lat": 19.0,
+    "lng": -72.2,
+    "type": "section communale",
+    "commune": "Hinche"
+  },
+  {
+    "name": "Savane Carré",
+    "lat": 18.85,
+    "lng": -72.1,
+    "type": "section communale",
+    "commune": "Mirebalais"
+  }
+]
