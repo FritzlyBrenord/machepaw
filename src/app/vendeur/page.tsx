@@ -74,8 +74,16 @@ export default function SellerDashboardPage() {
       description="Suivez vos ventes, vos produits publies et les elements qui demandent une action."
       actions={
         <>
+          {seller?.storeSlug ? (
+            <Link href={`/boutique/${seller.storeSlug}`} target="_blank">
+              <Button variant="outline">Voir ma boutique</Button>
+            </Link>
+          ) : null}
           <Link href="/vendeur/produits/nouveau">
             <Button>Ajouter un produit</Button>
+          </Link>
+          <Link href="/vendeur/clients">
+            <Button variant="outline">Clients</Button>
           </Link>
           <Link href="/vendeur/promotions">
             <Button variant="outline">Ventes flash</Button>
@@ -260,6 +268,15 @@ export default function SellerDashboardPage() {
                 <p className="mt-1 text-sm text-neutral-500">
                   {seller?.isVerified ? "Vendeur verifie par l'administration." : "Verification admin en attente."}
                 </p>
+                {seller?.storeSlug ? (
+                  <Link
+                    href={`/boutique/${seller.storeSlug}`}
+                    target="_blank"
+                    className="mt-3 inline-flex text-sm font-medium text-neutral-900 underline underline-offset-4"
+                  >
+                    /boutique/{seller.storeSlug}
+                  </Link>
+                ) : null}
               </div>
 
               <div className="rounded-2xl bg-neutral-50 p-4">

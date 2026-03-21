@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   CheckCircle2,
+  CreditCard,
   Save,
   ShieldCheck,
   Store,
@@ -14,7 +16,12 @@ import {
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
 import { Button } from "@/components/ui/Button";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import {
+  SELLER_PAYMENT_METHODS,
+  type SellerPaymentMethodCode,
+} from "@/data/paymentMethods";
 import haitiData from "@/data/haitiData.json";
+import type { SellerPaymentMethod } from "@/data/types";
 import { uploadImage } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import {
@@ -26,6 +33,10 @@ import {
   useSellerApplicationQuery,
   useUploadSellerKycDocumentMutation,
 } from "@/hooks/useSellerWorkspace";
+import {
+  useSellerPaymentMethodsQuery,
+  useUpsertSellerPaymentMethodsMutation,
+} from "@/hooks/useSellerPaymentMethods";
 import type {
   Address,
   SellerKycDocumentType,
@@ -34,7 +45,7 @@ import type {
   SellerShippingSettings,
 } from "@/data/types";
 
-type SellerTab = "profile" | "shipping" | "kyc";
+type SellerTab = "profile" | "shipping" | "payments" | "kyc";
 
 type HaitiLocation = {
   name: string;
@@ -51,6 +62,7 @@ type ProfileFormState = {
   phone: string;
   avatar: string;
   businessName: string;
+  storeSlug: string;
   description: string;
   contactPerson: string;
   contactPhone: string;
@@ -74,6 +86,18 @@ type ShippingFormState = {
   pickupPhone: string;
 };
 
+type PaymentMethodFormItem = {
+  isActive: boolean;
+  merchantFirstName: string;
+  merchantLastName: string;
+  merchantAgentCode: string;
+};
+
+type PaymentFormState = {
+  confirmCorrect: boolean;
+  methods: Record<SellerPaymentMethodCode, PaymentMethodFormItem>;
+};
+
 const defaultNotificationSettings: SellerNotificationSettings = {
   newOrders: true,
   newMessages: true,
@@ -81,6 +105,27 @@ const defaultNotificationSettings: SellerNotificationSettings = {
   promotions: false,
   newsletter: true,
 };
+
+function buildDefaultPaymentFormState(rows: SellerPaymentMethod[] = []): PaymentFormState {
+  return {
+    confirmCorrect: false,
+    methods: Object.fromEntries(
+      SELLER_PAYMENT_METHODS.map((definition) => {
+        const current = rows.find((row) => row.methodCode === definition.code);
+
+        return [
+          definition.code,
+          {
+            isActive: Boolean(current?.isActive),
+            merchantFirstName: current?.merchantFirstName || "",
+            merchantLastName: current?.merchantLastName || "",
+            merchantAgentCode: current?.merchantAgentCode || "",
+          },
+        ];
+      }),
+    ) as Record<SellerPaymentMethodCode, PaymentMethodFormItem>,
+  };
+}
 
 const requiredDocuments: Array<{
   type: SellerKycDocumentType;
@@ -157,11 +202,24 @@ function getLocationDepartment(item: HaitiLocation) {
   return typeof match?.[1] === "string" ? match[1] : "";
 }
 
+function normalizeStoreSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
 export default function SellerSettingsPage() {
   const { data: account, isLoading } = useCurrentAccountQuery();
   const { data: application } = useSellerApplicationQuery();
+  const { data: sellerPaymentMethods = [], isLoading: sellerPaymentMethodsLoading } =
+    useSellerPaymentMethodsQuery(account?.seller?.id);
   const updateAccountMutation = useUpdateAccountProfileMutation();
   const updateSellerMutation = useUpdateSellerProfileMutation();
+  const upsertPaymentMethodsMutation = useUpsertSellerPaymentMethodsMutation();
   const uploadKycMutation = useUploadSellerKycDocumentMutation();
 
   const [activeTab, setActiveTab] = useState<SellerTab>("profile");
@@ -169,6 +227,7 @@ export default function SellerSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [profileForm, setProfileForm] = useState<ProfileFormState | null>(null);
   const [shippingForm, setShippingForm] = useState<ShippingFormState | null>(null);
+  const [paymentForm, setPaymentForm] = useState<PaymentFormState | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const locationOptions = useMemo(() => {
@@ -210,6 +269,9 @@ export default function SellerSettingsPage() {
       phone: account.phone || "",
       avatar: account.avatar || "",
       businessName: account.seller?.businessName || "",
+      storeSlug:
+        account.seller?.storeSlug ||
+        normalizeStoreSlug(account.seller?.businessName || ""),
       description: account.seller?.description || "",
       contactPerson: account.seller?.contactPerson || "",
       contactPhone: account.seller?.contactPhone || "",
@@ -236,7 +298,15 @@ export default function SellerSettingsPage() {
     });
   }, [account]);
 
-  if (isLoading || !profileForm || !shippingForm) {
+  useEffect(() => {
+    if (!account?.seller || sellerPaymentMethodsLoading || paymentForm) {
+      return;
+    }
+
+    setPaymentForm(buildDefaultPaymentFormState(sellerPaymentMethods));
+  }, [account?.seller, sellerPaymentMethods, sellerPaymentMethodsLoading, paymentForm]);
+
+  if (isLoading || !profileForm || !shippingForm || !paymentForm) {
     return (
       <SellerWorkspaceShell
         title="Parametres vendeur"
@@ -267,6 +337,8 @@ export default function SellerSettingsPage() {
   const seller = currentAccount.seller!;
   const currentProfile = profileForm!;
   const currentShipping = shippingForm!;
+  const boutiqueSlug = normalizeStoreSlug(currentProfile.storeSlug || "");
+  const boutiquePath = boutiqueSlug ? `/boutique/${boutiqueSlug}` : null;
 
   const selectedLocationValue = currentShipping.locationName
     ? `${currentShipping.locationName}|${currentShipping.locationType || ""}|${currentShipping.locationDept || ""}|${currentShipping.latitude ?? ""}|${currentShipping.longitude ?? ""}`
@@ -337,6 +409,7 @@ export default function SellerSettingsPage() {
 
       await updateSellerMutation.mutateAsync({
         businessName: currentProfile.businessName.trim(),
+        storeSlug: normalizeStoreSlug(currentProfile.storeSlug.trim()),
         description: currentProfile.description.trim(),
         contactPerson: currentProfile.contactPerson.trim(),
         contactPhone: currentProfile.contactPhone.trim(),
@@ -411,6 +484,99 @@ export default function SellerSettingsPage() {
     }
   }
 
+  async function handlePaymentSave() {
+    setError(null);
+    setFeedback(null);
+
+    if (!paymentForm?.confirmCorrect) {
+      setError("Confirmez que toutes les informations sont correctes avant de creer.");
+      setActiveTab("payments");
+      return;
+    }
+
+    if (!account?.seller) {
+      setError("Compte vendeur introuvable.");
+      return;
+    }
+
+    try {
+      const allowPickup = Boolean(
+        currentAccount.seller?.shippingSettings?.allowPickup &&
+          currentAccount.seller?.pickupAddress,
+      );
+
+      const payload = SELLER_PAYMENT_METHODS.map((definition) => {
+        const draft = paymentForm.methods[definition.code];
+        const isActive = Boolean(draft.isActive);
+
+        if (isActive && !definition.operational) {
+          throw new Error(`${definition.label} n'est pas encore operationnel.`);
+        }
+
+        if (isActive && definition.code === "store_pickup" && !allowPickup) {
+          throw new Error(
+            "Activez d'abord le retrait en magasin dans la section Livraison avant d'activer ce mode.",
+          );
+        }
+
+        if (isActive && definition.requiresManualEntry) {
+          if (!draft.merchantFirstName.trim() || !draft.merchantLastName.trim()) {
+            throw new Error(
+              `Le prenom et le nom sont obligatoires pour ${definition.label}.`,
+            );
+          }
+
+          if (!/^[0-9]{6}$/.test(draft.merchantAgentCode.trim())) {
+            throw new Error("Le code agent doit contenir exactement 6 chiffres.");
+          }
+        }
+
+        return {
+          methodCode: definition.code,
+          isActive,
+          merchantFirstName: draft.merchantFirstName.trim(),
+          merchantLastName: draft.merchantLastName.trim(),
+          merchantAgentCode: draft.merchantAgentCode.trim(),
+        };
+      });
+
+      await upsertPaymentMethodsMutation.mutateAsync(payload);
+      setPaymentForm((current) =>
+        current
+          ? {
+              ...current,
+              confirmCorrect: false,
+            }
+          : current,
+      );
+      setFeedback("Modes de paiement enregistres pour votre boutique.");
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Impossible d'enregistrer les modes de paiement."));
+      setActiveTab("payments");
+    }
+  }
+
+  function updatePaymentMethodDraft(
+    methodCode: SellerPaymentMethodCode,
+    nextDraft: Partial<PaymentMethodFormItem>,
+  ) {
+    setPaymentForm((current) =>
+      current
+        ? {
+            ...current,
+            confirmCorrect: false,
+            methods: {
+              ...current.methods,
+              [methodCode]: {
+                ...current.methods[methodCode],
+                ...nextDraft,
+              },
+            },
+          }
+        : current,
+    );
+  }
+
   async function handleKycUpload(type: SellerKycDocumentType, file?: File | null) {
     if (!file) {
       return;
@@ -435,7 +601,7 @@ export default function SellerSettingsPage() {
   return (
     <SellerWorkspaceShell
       title="Parametres vendeur"
-      description="Separez votre profil, votre livraison et vos documents KYC pour mettre a jour votre boutique plus vite."
+      description="Separez votre profil, votre livraison, vos paiements et vos documents KYC pour mettre a jour votre boutique plus vite."
       actions={
         activeTab === "profile" ? (
           <Button
@@ -454,6 +620,16 @@ export default function SellerSettingsPage() {
           >
             <Save className="h-4 w-4" />
             Enregistrer la livraison
+          </Button>
+        ) : activeTab === "payments" ? (
+          <Button
+            onClick={handlePaymentSave}
+            isLoading={upsertPaymentMethodsMutation.isPending}
+            disabled={!paymentForm.confirmCorrect}
+            className="gap-2"
+          >
+            <Save className="h-4 w-4" />
+            Creer les modes de paiement
           </Button>
         ) : null
       }
@@ -499,6 +675,7 @@ export default function SellerSettingsPage() {
         {[
           { id: "profile", label: "Profil", icon: UserCircle2 },
           { id: "shipping", label: "Livraison", icon: Truck },
+          { id: "payments", label: "Paiements", icon: CreditCard },
           { id: "kyc", label: "KYC", icon: ShieldCheck },
         ].map((tab) => (
           <button
@@ -598,7 +775,7 @@ export default function SellerSettingsPage() {
             <div>
               <h2 className="text-lg font-semibold text-neutral-900">Boutique et paiements</h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Gardez vos informations vendeur, notifications et paiement a jour.
+                Gardez vos informations vendeur, votre lien boutique, vos notifications et votre paiement a jour.
               </p>
             </div>
 
@@ -611,6 +788,37 @@ export default function SellerSettingsPage() {
                   }
                   className={inputClassName}
                 />
+              </Field>
+              <Field label="Lien boutique">
+                <div className="space-y-2">
+                  <input
+                    value={profileForm.storeSlug}
+                    onChange={(event) =>
+                      setProfileForm({
+                        ...profileForm,
+                        storeSlug: normalizeStoreSlug(event.target.value),
+                      })
+                    }
+                    className={inputClassName}
+                    placeholder="ma-boutique"
+                  />
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
+                    <span>
+                      URL publique:
+                      {" "}
+                      {boutiquePath || "/boutique/ma-boutique"}
+                    </span>
+                    {boutiquePath ? (
+                      <Link
+                        href={boutiquePath}
+                        target="_blank"
+                        className="font-medium text-neutral-900 underline underline-offset-4"
+                      >
+                        Ouvrir ma boutique
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
               </Field>
               <Field label="Contact principal">
                 <input
@@ -880,6 +1088,218 @@ export default function SellerSettingsPage() {
               </div>
             ) : null}
           </div>
+        </div>
+      ) : null}
+
+      {activeTab === "payments" ? (
+        <div className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900">Modes de paiement de la boutique</h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Configurez les moyens de paiement propres à cette boutique. Seuls
+                MonCash manuel, NatCash manuel et Paiement au magasin sont
+                activables aujourd&apos;hui.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab("shipping")}
+              className="rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+            >
+              Aller a Livraison
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
+            Le paiement au magasin est reserve au retrait en boutique. Si vous
+            activez ce mode, assurez-vous que le retrait soit deja disponible dans
+            l&apos;onglet Livraison.
+          </div>
+
+          <div className="grid gap-4">
+            {SELLER_PAYMENT_METHODS.map((definition) => {
+              const draft = paymentForm.methods[definition.code];
+              const isPickupMethod = definition.code === "store_pickup";
+              const canUsePickupMode = Boolean(
+                currentAccount.seller?.shippingSettings?.allowPickup &&
+                  currentAccount.seller?.pickupAddress,
+              );
+              const isRestricted = isPickupMethod && !canUsePickupMode;
+
+              return (
+                <article
+                  key={definition.code}
+                  className={cn(
+                    "rounded-3xl border p-5 transition",
+                    draft.isActive
+                      ? "border-neutral-900 bg-neutral-50"
+                      : "border-neutral-200 bg-white",
+                  )}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-semibold text-neutral-900">
+                          {definition.label}
+                        </h3>
+                        <span
+                          className={cn(
+                            "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+                            definition.operational
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-700",
+                          )}
+                        >
+                          {definition.operational ? "Operationnel" : "Bientot"}
+                        </span>
+                        <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-600">
+                          {definition.fulfillmentMode === "pickup"
+                            ? "Retrait"
+                            : definition.fulfillmentMode === "delivery"
+                              ? "Livraison"
+                              : "Tous"}
+                        </span>
+                      </div>
+                      <p className="mt-2 max-w-3xl text-sm text-neutral-500">
+                        {definition.description}
+                      </p>
+                      {isRestricted ? (
+                        <p className="mt-3 text-sm font-medium text-amber-700">
+                          Le retrait en boutique doit etre active dans l&apos;onglet
+                          Livraison avant d&apos;activer ce mode.
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!definition.operational) {
+                          setError(`${definition.label} n'est pas encore operationnel.`);
+                          return;
+                        }
+
+                        if (isRestricted) {
+                          setError(
+                            "Activez d'abord le retrait en magasin dans la section Livraison avant d'activer ce mode.",
+                          );
+                          setActiveTab("shipping");
+                          return;
+                        }
+
+                        updatePaymentMethodDraft(definition.code, {
+                          isActive: !draft.isActive,
+                        });
+                      }}
+                      className={cn(
+                        "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                        draft.isActive
+                          ? "bg-neutral-900 text-white"
+                          : definition.operational
+                            ? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                            : "cursor-not-allowed bg-amber-50 text-amber-700",
+                      )}
+                    >
+                      {draft.isActive
+                        ? "Actif"
+                        : definition.operational
+                          ? "Activer"
+                          : "Non operationnel"}
+                    </button>
+                  </div>
+
+                  {definition.requiresManualEntry ? (
+                    <div className="mt-5 grid gap-4 md:grid-cols-3">
+                      <Field label="Prenom du titulaire">
+                        <input
+                          value={draft.merchantFirstName}
+                          onChange={(event) =>
+                            updatePaymentMethodDraft(definition.code, {
+                              merchantFirstName: event.target.value,
+                            })
+                          }
+                          className={inputClassName}
+                          placeholder="Jean"
+                        />
+                      </Field>
+                      <Field label="Nom du titulaire">
+                        <input
+                          value={draft.merchantLastName}
+                          onChange={(event) =>
+                            updatePaymentMethodDraft(definition.code, {
+                              merchantLastName: event.target.value,
+                            })
+                          }
+                          className={inputClassName}
+                          placeholder="Pierre"
+                        />
+                      </Field>
+                      <Field label="Code agent (6 chiffres)">
+                        <input
+                          value={draft.merchantAgentCode}
+                          onChange={(event) =>
+                            updatePaymentMethodDraft(definition.code, {
+                              merchantAgentCode: event.target.value.replace(/\D/g, "").slice(0, 6),
+                            })
+                          }
+                          inputMode="numeric"
+                          maxLength={6}
+                          className={inputClassName}
+                          placeholder="123456"
+                        />
+                      </Field>
+                    </div>
+                  ) : null}
+
+                  {definition.requiresManualEntry ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600">
+                      <p className="font-medium text-neutral-900">
+                        Ces informations seront affichees au client lors du checkout.
+                      </p>
+                      <p className="mt-1">
+                        Le client verra les instructions exactes de paiement, le nom
+                        du titulaire et le code agent avant de cliquer sur
+                        Commander.
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {isPickupMethod ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600">
+                      <p className="font-medium text-neutral-900">Paiement au magasin</p>
+                      <p className="mt-1">
+                        Aucun numero de transaction n&apos;est requis. Ce mode est
+                        autorise uniquement quand le client choisit le retrait en
+                        boutique.
+                      </p>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+            <input
+              type="checkbox"
+              checked={paymentForm.confirmCorrect}
+              onChange={(event) =>
+                setPaymentForm((current) =>
+                  current
+                    ? {
+                        ...current,
+                        confirmCorrect: event.target.checked,
+                      }
+                    : current,
+                )
+              }
+              className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+            />
+            <span className="text-sm text-neutral-700">
+              Oui, je confirme que toutes ces informations sont correctes.
+            </span>
+          </label>
         </div>
       ) : null}
 

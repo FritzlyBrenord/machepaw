@@ -40,6 +40,8 @@ export function ProductCard({
     product.ownerType === "seller" && product.ownerName
       ? product.ownerName
       : null;
+  const sellerStorePath =
+    sellerStoreName && product.storeSlug ? `/boutique/${product.storeSlug}` : null;
   const fallbackImage =
     "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400";
 
@@ -104,9 +106,18 @@ export function ProductCard({
               {product.category}
             </p>
             {sellerStoreName ? (
-              <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-neutral-400">
-                Boutique {sellerStoreName}
-              </p>
+              sellerStorePath ? (
+                <Link
+                  href={sellerStorePath}
+                  className="mb-1 block text-[11px] uppercase tracking-[0.2em] text-neutral-400 hover:text-neutral-700"
+                >
+                  Boutique {sellerStoreName}
+                </Link>
+              ) : (
+                <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-neutral-400">
+                  Boutique {sellerStoreName}
+                </p>
+              )
             ) : null}
             <Link href={`/produit/${product.id}`}>
               <h3 className="font-medium text-neutral-900 line-clamp-1 group-hover:text-neutral-600 transition-colors">

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/vendeur", label: "Tableau de bord" },
   { href: "/vendeur/produits", label: "Produits" },
+  { href: "/vendeur/clients", label: "Clients" },
   { href: "/vendeur/promotions", label: "Ventes flash" },
   { href: "/vendeur/annonces", label: "Annonces" },
   { href: "/vendeur/commandes", label: "Commandes" },

@@ -1,5 +1,3 @@
-"use client";
-
 import { PRODUCT_ONTOLOGY } from "@/data/productOntology";
 import { COUNTRIES } from "@/data/haitiCities";
 import type {
@@ -158,7 +156,9 @@ export function mapSupabaseProductToProduct(product: SupabaseProduct): Product {
     discount: product.discount || 0,
     ownerType: product.owner_type,
     ownerId: product.owner_id,
+    sellerId: product.seller_id,
     ownerName: product.owner_name,
+    storeSlug: product.seller_store_slug,
     views: product.views || 0,
     sales: product.sales || 0,
     attributes: product.attributes || [],

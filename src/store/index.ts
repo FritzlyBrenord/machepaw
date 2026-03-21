@@ -34,6 +34,7 @@ interface CartState {
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
+  clearCartItems: (cartItemIds: string[]) => void;
   getCartTotal: () => number;
   getCartCount: () => number;
 }
@@ -168,6 +169,12 @@ export const useStore = create<StoreState>()(
         }));
       },
       clearCart: () => set({ items: [] }),
+      clearCartItems: (cartItemIds) =>
+        set((state) => ({
+          items: state.items.filter(
+            (item) => !cartItemIds.includes(item.id || item.product.id),
+          ),
+        })),
       getCartTotal: () => {
         return get().items.reduce(
           (total, item) => total + (item.unitPrice || getDiscountedPrice(item.product)) * item.quantity,
@@ -350,6 +357,7 @@ export const useCartAddItem = () => useStore((state) => state.addToCart);
 export const useCartRemoveItem = () => useStore((state) => state.removeFromCart);
 export const useCartUpdateQuantity = () => useStore((state) => state.updateQuantity);
 export const useCartClear = () => useStore((state) => state.clearCart);
+export const useCartClearItems = () => useStore((state) => state.clearCartItems);
 export const useCartGetTotal = () => useStore((state) => state.getCartTotal);
 export const useCartGetCount = () => useStore((state) => state.getCartCount);
 
@@ -418,6 +426,7 @@ export function useCart() {
   const removeFromCart = useCartRemoveItem();
   const updateQuantity = useCartUpdateQuantity();
   const clearCart = useCartClear();
+  const clearCartItems = useCartClearItems();
   const getCartTotal = useCartGetTotal();
   const getCartCount = useCartGetCount();
   
@@ -427,9 +436,10 @@ export function useCart() {
     removeFromCart,
     updateQuantity,
     clearCart,
+    clearCartItems,
     getCartTotal,
     getCartCount,
-  }), [items, addToCart, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartCount]);
+  }), [items, addToCart, removeFromCart, updateQuantity, clearCart, clearCartItems, getCartTotal, getCartCount]);
 }
 
 export function useWishlist() {

@@ -31,6 +31,7 @@ type SellerRow = {
   user_id: string;
   status: Seller["status"];
   business_name: string;
+  store_slug?: string | null;
   business_type: Seller["businessType"];
   has_physical_store: boolean;
   physical_store_address?: Address | null;
@@ -127,6 +128,7 @@ function mapSellerRow(row: SellerRow): Seller {
     userId: row.user_id,
     status: row.status,
     businessName: row.business_name,
+    storeSlug: row.store_slug || undefined,
     businessType: row.business_type,
     hasPhysicalStore: row.has_physical_store,
     physicalStoreAddress: asAddress(row.physical_store_address),
@@ -288,6 +290,7 @@ export function useUpdateAccountProfileMutation() {
 
 type UpdateSellerProfileInput = {
   businessName?: string;
+  storeSlug?: string;
   description?: string;
   logo?: string | null;
   banner?: string | null;
@@ -313,6 +316,7 @@ export function useUpdateSellerProfileMutation() {
 
       const payload = {
         ...(input.businessName !== undefined ? { business_name: input.businessName } : {}),
+        ...(input.storeSlug !== undefined ? { store_slug: input.storeSlug || null } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.logo !== undefined ? { logo: input.logo } : {}),
         ...(input.banner !== undefined ? { banner: input.banner } : {}),

@@ -1,3 +1,5 @@
+import type { SellerPaymentMethodCode } from "./paymentMethods";
+
 export interface Product {
   id: string;
   name: string;
@@ -23,7 +25,9 @@ export interface Product {
   discount?: number;
   ownerType?: "admin" | "seller";
   ownerId?: string;
+  sellerId?: string;
   ownerName?: string;
+  storeSlug?: string;
   views?: number;
   sales?: number;
   attributes?: ProductAttributeValue[];
@@ -57,15 +61,19 @@ export interface Category {
 
 export interface Order {
   id: string;
+  orderNumber?: string;
   userId: string;
   items: OrderItem[];
   status: OrderStatus;
+  fulfillmentMethod?: "delivery" | "pickup";
   subtotal?: number;
   discount?: number;
   total: number;
   shipping: number;
   tax: number;
+  currency?: string;
   paymentMethod?: string;
+  paymentStatus?: string;
   createdAt: string;
   updatedAt: string;
   shippingAddress: Address;
@@ -73,18 +81,29 @@ export interface Order {
   paymentProofUrl?: string;
   trackingNumber?: string;
   estimatedDelivery?: string;
+  deliveredAt?: string;
+  notes?: string;
 }
 
 export interface OrderItem {
+  id?: string;
   product: Product;
   quantity: number;
   price: number;
+  total?: number;
+  sku?: string;
+  image?: string;
+  status?: OrderStatus;
+  sellerId?: string;
+  ownerId?: string;
+  ownerName?: string;
 }
 
 export type OrderStatus =
   | "pending"
   | "confirmed"
   | "processing"
+  | "ready_for_pickup"
   | "shipped"
   | "delivered"
   | "cancelled"
@@ -161,6 +180,7 @@ export interface SupabaseProduct {
   owner_id: string;
   seller_id?: string;
   owner_name: string;
+  seller_store_slug?: string;
   status: "active" | "inactive" | "pending" | "rejected" | "out_of_stock";
   admin_notes?: string;
   views: number;
@@ -193,6 +213,20 @@ export interface Address {
   isDefault?: boolean;
   latitude?: number;
   longitude?: number;
+}
+
+export interface BoutiqueCustomer {
+  id: string;
+  sellerId: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  status: "active" | "blocked";
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
 }
 
 export interface User {
@@ -265,6 +299,18 @@ export interface SellerPayoutDetails {
   payoutNote?: string;
 }
 
+export interface SellerPaymentMethod {
+  id: string;
+  sellerId: string;
+  methodCode: SellerPaymentMethodCode;
+  isActive: boolean;
+  merchantFirstName?: string;
+  merchantLastName?: string;
+  merchantAgentCode?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SellerKycDocument {
   id: string;
   userId: string;
@@ -289,6 +335,7 @@ export interface Seller {
   userId: string;
   status: SellerStatus;
   businessName: string;
+  storeSlug?: string;
   businessType: "individual" | "company";
   hasPhysicalStore: boolean;
   physicalStoreAddress?: Address;
@@ -389,6 +436,7 @@ export interface SellerWorkspaceOrderItem {
   paymentId?: string;
   paymentProofPath?: string;
   trackingNumber?: string;
+  fulfillmentMethod?: "delivery" | "pickup";
   shippingAddress: Address;
   customerId: string;
   customerName: string;

@@ -158,6 +158,7 @@ export default function CheckoutPage() {
           const orderData = {
             subtotal: cartTotal,
             shipping: shippingSummary.amount,
+            fulfillmentMethod: deliveryMode,
             tax: taxAmount,
             total: finalTotal,
             paymentMethod: paymentMethod,

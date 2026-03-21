@@ -11,6 +11,7 @@ import {
   Settings,
   ShoppingCart,
   ShieldCheck,
+  Users,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 const sellerNavigation = [
   { href: "/vendeur", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/vendeur/produits", label: "Produits", icon: Package },
+  { href: "/vendeur/clients", label: "Clients", icon: Users },
   { href: "/vendeur/promotions", label: "Ventes flash", icon: Zap },
   { href: "/vendeur/annonces", label: "Annonces", icon: Megaphone },
   { href: "/vendeur/commandes", label: "Commandes", icon: ShoppingCart },

@@ -19,6 +19,7 @@ import {
 import { useSingleOrderQuery } from "@/hooks/useOrders";
 import { useStorefront } from "@/components/StorefrontProvider";
 import { Button } from "@/components/ui/Button";
+import { getSellerPaymentMethodLabel } from "@/data/paymentMethods";
 import { cn, getEstimatedDeliveryRange, formatDate } from "@/lib/utils";
 import { ProductRecommendations } from "@/components/ProductRecommendations";
 
@@ -29,10 +30,24 @@ const orderSteps = [
   { id: "delivered", label: "Livrée", icon: MapPin },
 ];
 
+function getOrderSteps(fulfillmentMethod?: "delivery" | "pickup") {
+  if (fulfillmentMethod === "pickup") {
+    return [
+      { id: "confirmed", label: "Commande confirmée", icon: CheckCircle },
+      { id: "processing", label: "En préparation", icon: Package },
+      { id: "ready_for_pickup", label: "Prête à retirer", icon: MapPin },
+      { id: "delivered", label: "Remise au client", icon: CheckCircle },
+    ];
+  }
+
+  return orderSteps;
+}
+
 const statusColors: Record<string, string> = {
   pending: "text-amber-600 bg-amber-50 border-amber-200",
   confirmed: "text-blue-600 bg-blue-50 border-blue-200",
   processing: "text-purple-600 bg-purple-50 border-purple-200",
+  ready_for_pickup: "text-amber-600 bg-amber-50 border-amber-200",
   shipped: "text-indigo-600 bg-indigo-50 border-indigo-200",
   delivered: "text-green-600 bg-green-50 border-green-200",
   cancelled: "text-red-600 bg-red-50 border-red-200",
@@ -43,6 +58,7 @@ const statusLabels: Record<string, string> = {
   pending: "En attente de confirmation",
   confirmed: "Commande confirmée",
   processing: "En préparation",
+  ready_for_pickup: "Prête à retirer",
   shipped: "Expédiée",
   delivered: "Livrée",
   cancelled: "Annulée",
@@ -84,12 +100,13 @@ export default function OrderTrackingPage() {
     );
   }
 
+  const orderSteps = getOrderSteps(order.fulfillmentMethod);
   const currentStepIndex = orderSteps.findIndex((s) => s.id === order.status);
   const orderSubtotal = order.subtotal ?? order.total - order.shipping - order.tax;
   const progressPercent =
     order.status === "delivered"
       ? 100
-      : order.status === "shipped"
+      : order.status === "ready_for_pickup" || order.status === "shipped"
         ? 75
         : order.status === "processing"
           ? 50
@@ -321,11 +338,17 @@ export default function OrderTrackingPage() {
                   Livraison estimée
                 </p>
                 <p className="font-medium text-neutral-900 text-sm">
-                  {order.status === "delivered" 
-                    ? `Livrée le ${formatDate(order.deliveredAt || order.updatedAt)}`
-                    : order.status === "cancelled" || order.status === "refunded"
-                    ? `${statusLabels[order.status]} le ${formatDate(order.updatedAt)}`
-                    : `Prévue du ${deliveryRange}`
+                  {order.fulfillmentMethod === "pickup"
+                    ? order.status === "delivered"
+                      ? `Remise le ${formatDate(order.deliveredAt || order.updatedAt)}`
+                      : order.status === "ready_for_pickup"
+                        ? `Prête à retirer depuis le ${formatDate(order.updatedAt)}`
+                        : `Prévue du ${deliveryRange}`
+                    : order.status === "delivered" 
+                      ? `Livrée le ${formatDate(order.deliveredAt || order.updatedAt)}`
+                      : order.status === "cancelled" || order.status === "refunded"
+                        ? `${statusLabels[order.status]} le ${formatDate(order.updatedAt)}`
+                        : `Prévue du ${deliveryRange}`
                   }
                 </p>
               </div>
@@ -338,7 +361,7 @@ export default function OrderTrackingPage() {
                 Paiement
               </h3>
               <div className="text-sm text-neutral-600 space-y-1">
-                <p className="uppercase">Méthode: {order.paymentMethod}</p>
+                <p className="uppercase">Méthode: {getSellerPaymentMethodLabel(order.paymentMethod)}</p>
                 <p className="capitalize">Statut: {order.paymentStatus || 'En attente'}</p>
                 {order.paymentId && (
                   <p className="text-xs mt-2 bg-neutral-100 p-1 rounded font-mono">
@@ -416,24 +439,47 @@ export default function OrderTrackingPage() {
                     },
                   ]
                 : []),
-              ...(order.status === "shipped" || order.status === "delivered"
+              ...(order.fulfillmentMethod === "pickup"
                 ? [
-                    {
-                      date: order.updatedAt,
-                      title: "Commande expédiée",
-                      desc: `Votre colis est en route. N° de suivi: ${order.trackingNumber}`,
-                    },
+                    ...(order.status === "ready_for_pickup" || order.status === "delivered"
+                      ? [
+                          {
+                            date: order.updatedAt,
+                            title: "Commande prête à retirer",
+                            desc: "Votre commande peut être récupérée en boutique",
+                          },
+                        ]
+                      : []),
+                    ...(order.status === "delivered"
+                      ? [
+                          {
+                            date: order.deliveredAt || order.updatedAt,
+                            title: "Commande remise",
+                            desc: "La commande a été remise au client",
+                          },
+                        ]
+                      : []),
                   ]
-                : []),
-              ...(order.status === "delivered"
-                ? [
-                    {
-                      date: order.updatedAt,
-                      title: "Commande livrée",
-                      desc: "Votre colis a été livré",
-                    },
-                  ]
-                : []),
+                : [
+                    ...(order.status === "shipped" || order.status === "delivered"
+                      ? [
+                          {
+                            date: order.updatedAt,
+                            title: "Commande expédiée",
+                            desc: `Votre colis est en route. N° de suivi: ${order.trackingNumber || "Non renseigné"}`,
+                          },
+                        ]
+                      : []),
+                    ...(order.status === "delivered"
+                      ? [
+                          {
+                            date: order.deliveredAt || order.updatedAt,
+                            title: "Commande livrée",
+                            desc: "Votre colis a été livré",
+                          },
+                        ]
+                      : []),
+                  ]),
             ].map((event, index) => (
               <div key={index} className="flex gap-4">
                 <div className="flex flex-col items-center">

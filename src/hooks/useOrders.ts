@@ -15,6 +15,7 @@ export const mapSupabaseOrderToOrder = (item: any): any => {
     orderNumber: item.order_number,
     userId: item.user_id,
     status: item.status as OrderStatus,
+    fulfillmentMethod: item.fulfillment_method || undefined,
     subtotal: Number(item.subtotal),
     shipping: Number(item.shipping),
     tax: Number(item.tax),
@@ -40,24 +41,41 @@ export const mapSupabaseOrderToOrder = (item: any): any => {
     updatedAt: item.updated_at,
     items: (item.items || []).map((oi: any) => ({
       id: oi.id,
-      productId: oi.product_id,
-      name: oi.name,
+      sellerId: oi.seller_id,
+      ownerId: oi.owner_id,
+      ownerName: oi.owner_name,
       sku: oi.sku,
       image: oi.image,
+      total: Number(oi.total),
+      status: oi.status as OrderStatus,
+      productId: oi.product_id,
+      name: oi.name,
       price: Number(oi.price),
       quantity: Number(oi.quantity),
-      total: Number(oi.total),
       product: {
         id: oi.product_id,
         name: oi.name,
         images: [oi.image],
         price: Number(oi.price),
+        sellerId: oi.seller_id,
+        ownerId: oi.owner_id,
+        ownerName: oi.owner_name,
         minProcessingDays: oi.min_processing_days,
         maxProcessingDays: oi.max_processing_days,
       }
     }))
   };
 };
+
+function orderBelongsToSeller(order: any, sellerId?: string) {
+  if (!sellerId) {
+    return false;
+  }
+
+  return (order.items || []).some(
+    (item: any) => item.sellerId === sellerId || item.product?.sellerId === sellerId,
+  );
+}
 
 // --- Client: Fetch User Orders ---
 export function useUserOrdersQuery(userId?: string) {
@@ -137,6 +155,74 @@ export function useAdminOrdersQuery() {
       if (error) throw error;
       return (data || []).map(mapSupabaseOrderToOrder);
     },
+  });
+}
+
+export function useBoutiqueCustomerOrdersQuery(sellerId?: string) {
+  return useQuery({
+    queryKey: [...ORDERS_QUERY_KEY, "boutique", sellerId],
+    queryFn: async () => {
+      if (!sellerId) {
+        return [];
+      }
+
+      const account = await fetchCurrentAccount();
+
+      if (!account) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from("order_details")
+        .select("*")
+        .eq("user_id", account.userId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return (data || [])
+        .map(mapSupabaseOrderToOrder)
+        .filter((order) => orderBelongsToSeller(order, sellerId));
+    },
+    enabled: Boolean(sellerId),
+  });
+}
+
+export function useBoutiqueSingleOrderQuery(orderNumber?: string, sellerId?: string) {
+  return useQuery({
+    queryKey: [...ORDERS_QUERY_KEY, "boutique", sellerId, orderNumber],
+    queryFn: async () => {
+      if (!orderNumber || !sellerId) {
+        return null;
+      }
+
+      const account = await fetchCurrentAccount();
+
+      if (!account) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from("order_details")
+        .select("*")
+        .eq("order_number", orderNumber)
+        .eq("user_id", account.userId)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      const order = mapSupabaseOrderToOrder(data);
+      return orderBelongsToSeller(order, sellerId) ? order : null;
+    },
+    enabled: Boolean(orderNumber && sellerId),
   });
 }
 

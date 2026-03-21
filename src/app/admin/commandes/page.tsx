@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/Button";
+import { getSellerPaymentMethodLabel } from "@/data/paymentMethods";
 import {
   useAdminOrdersQuery,
   useUpdateOrderStatusMutation,
@@ -29,7 +30,7 @@ import {
 import { formatPrice, formatDate, getEstimatedDeliveryRange, cn } from "@/lib/utils";
 import type { AdminOrder, OrderStatus } from "@/data/types";
 
-const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
+const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   pending: { label: "En attente", color: "bg-amber-100 text-amber-700", icon: Clock },
   confirmed: { label: "Confirmé", color: "bg-blue-100 text-blue-700", icon: CheckCircle },
   processing: { label: "En préparation", color: "bg-purple-100 text-purple-700", icon: Package },
@@ -37,6 +38,12 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
   delivered: { label: "Livré", color: "bg-green-100 text-green-700", icon: CheckCircle },
   cancelled: { label: "Annulé", color: "bg-red-100 text-red-700", icon: XCircle },
   refunded: { label: "Remboursé", color: "bg-gray-100 text-gray-700", icon: RotateCcw },
+};
+
+statusConfig.ready_for_pickup = {
+  label: "Prêt à retirer",
+  color: "bg-amber-100 text-amber-700",
+  icon: MapPin,
 };
 
 export default function AdminOrdersPage() {
@@ -253,7 +260,7 @@ export default function AdminOrdersPage() {
                             )}
 
                             {/* Payment confirmation logic */}
-                            {!(order.paymentStatus === "paid" || order.paymentStatus === "confirmed" || order.paymentMethod === "delivery") && order.status !== "cancelled" && (
+                            {!(order.paymentStatus === "paid" || order.paymentStatus === "confirmed" || order.paymentMethod === "delivery" || order.paymentMethod === "store_pickup") && order.status !== "cancelled" && (
                                <button
                                  onClick={async () => {
                                    try {
@@ -271,7 +278,7 @@ export default function AdminOrdersPage() {
                             )}
 
                             {/* Status progression logic (only if payment is confirmed) */}
-                            {(order.paymentStatus === "paid" || order.paymentStatus === "confirmed" || order.paymentMethod === "delivery") && (
+                            {(order.paymentStatus === "paid" || order.paymentStatus === "confirmed" || order.paymentMethod === "delivery" || order.paymentMethod === "store_pickup") && (
                               <>
                                 {order.status === "pending" && (
                                     <button
@@ -543,7 +550,9 @@ export default function AdminOrdersPage() {
                       <div className="bg-neutral-50 p-4 rounded-lg space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-neutral-600">Méthode:</span>
-                          <span className="font-medium uppercase">{selectedOrder.paymentMethod}</span>
+                        <span className="font-medium">
+                          {getSellerPaymentMethodLabel(selectedOrder.paymentMethod)}
+                        </span>
                         </div>
                         {selectedOrder.paymentId && (
                           <div className="flex justify-between items-center">
@@ -586,7 +595,7 @@ export default function AdminOrdersPage() {
                         Fermer
                       </Button>
                       
-                      {!(selectedOrder.paymentStatus === "paid" || selectedOrder.paymentStatus === "confirmed" || selectedOrder.paymentMethod === "delivery") && selectedOrder.status !== "cancelled" && (
+                      {!(selectedOrder.paymentStatus === "paid" || selectedOrder.paymentStatus === "confirmed" || selectedOrder.paymentMethod === "delivery" || selectedOrder.paymentMethod === "store_pickup") && selectedOrder.status !== "cancelled" && (
                         <Button
                           fullWidth
                           className="bg-green-600 hover:bg-green-700"
@@ -603,7 +612,7 @@ export default function AdminOrdersPage() {
                         </Button>
                       )}
 
-                      {(selectedOrder.paymentStatus === "paid" || selectedOrder.paymentStatus === "confirmed" || selectedOrder.paymentMethod === "delivery") && selectedOrder.status === "pending" && (
+                      {(selectedOrder.paymentStatus === "paid" || selectedOrder.paymentStatus === "confirmed" || selectedOrder.paymentMethod === "delivery" || selectedOrder.paymentMethod === "store_pickup") && selectedOrder.status === "pending" && (
                         <Button
                           fullWidth
                           onClick={() => {

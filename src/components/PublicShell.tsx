@@ -10,7 +10,7 @@ type PublicShellProps = {
   children: React.ReactNode;
 };
 
-const HIDDEN_PREFIXES = ["/vendeur", "/admin"];
+const HIDDEN_PREFIXES = ["/vendeur", "/admin", "/boutique"];
 
 export function PublicShell({ children }: PublicShellProps) {
   const pathname = usePathname();

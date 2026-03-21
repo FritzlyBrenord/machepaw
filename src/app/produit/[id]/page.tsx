@@ -104,6 +104,8 @@ export default function ProductPage() {
     product.ownerType === "seller" && product.ownerName
       ? product.ownerName
       : null;
+  const sellerStorePath =
+    sellerStoreName && product.storeSlug ? `/boutique/${product.storeSlug}` : null;
   const displayAttributes = getDisplayAttributes(
     product.attributes,
     selectedAttributes,
@@ -253,9 +255,18 @@ export default function ProductPage() {
             </p>
 
             {sellerStoreName ? (
-              <p className="mb-3 text-sm uppercase tracking-[0.24em] text-neutral-400">
-                Boutique {sellerStoreName}
-              </p>
+              sellerStorePath ? (
+                <Link
+                  href={sellerStorePath}
+                  className="mb-3 block text-sm uppercase tracking-[0.24em] text-neutral-400 hover:text-neutral-700"
+                >
+                  Boutique {sellerStoreName}
+                </Link>
+              ) : (
+                <p className="mb-3 text-sm uppercase tracking-[0.24em] text-neutral-400">
+                  Boutique {sellerStoreName}
+                </p>
+              )
             ) : null}
 
             <h1 className="text-3xl md:text-4xl font-light text-neutral-900 mb-4">

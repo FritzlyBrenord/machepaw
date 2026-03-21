@@ -6,6 +6,9 @@ import { CURRENT_ACCOUNT_QUERY_KEY, fetchCurrentAccount } from "@/hooks/useAccou
 import { getAttributesForSubcategory } from "@/data/productOntology";
 import type {
   Address,
+  AdminOrder,
+  OrderItem,
+  OrderStatus,
   ProductAttributeValue,
   ProductVariant,
   SellerApplication,
@@ -18,6 +21,7 @@ import type {
 const SELLER_APPLICATION_QUERY_KEY = ["seller-application"];
 const SELLER_PRODUCTS_QUERY_KEY = ["seller-products"];
 const SELLER_ORDER_ITEMS_QUERY_KEY = ["seller-order-items"];
+const SELLER_CUSTOMERS_QUERY_KEY = ["seller-customers"];
 
 type SellerApplicationRow = {
   id: string;
@@ -83,6 +87,7 @@ type SellerOrderItemRow = {
   payment_id?: string | null;
   payment_proof_url?: string | null;
   tracking_number?: string | null;
+  fulfillment_method?: "delivery" | "pickup" | null;
   shipping_address: Address | string;
   customer_id: string;
   customer_first_name: string;
@@ -90,6 +95,66 @@ type SellerOrderItemRow = {
   customer_email: string;
   created_at: string;
   updated_at: string;
+};
+
+type SellerOrderRow = {
+  id: string;
+  order_number: string;
+  user_id: string;
+  status: OrderStatus;
+  fulfillment_method?: "delivery" | "pickup" | null;
+  subtotal: number | string;
+  shipping: number | string;
+  tax: number | string;
+  discount?: number | string | null;
+  total: number | string;
+  currency?: string | null;
+  shipping_address: Address | string;
+  tracking_number?: string | null;
+  estimated_delivery?: string | null;
+  delivered_at?: string | null;
+  payment_method?: string | null;
+  payment_status?: string | null;
+  payment_id?: string | null;
+  payment_proof_url?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  storefront_seller_id?: string | null;
+};
+
+type SellerBoutiqueCustomerRow = {
+  id: string;
+  seller_id: string;
+  user_id: string;
+  status: "active" | "blocked";
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone?: string | null;
+  last_login_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type SellerBoutiqueCustomerAddressRow = {
+  id: string;
+  boutique_customer_id: string;
+  seller_id: string;
+  user_id: string;
+  label?: string | null;
+  address: string;
+  city: string;
+  country: string;
+  is_default?: boolean | null;
+};
+
+type SellerBoutiqueOrderRow = {
+  id: string;
+  boutique_customer_id: string | null;
+  order_number: string;
+  status: SellerWorkspaceOrderItem["orderStatus"];
+  created_at: string;
 };
 
 export type SellerApplicationSubmission = {
@@ -159,6 +224,25 @@ export type UpdateSellerProductInput = {
   images: string[];
   minProcessingDays?: number;
   maxProcessingDays?: number;
+};
+
+export type SellerBoutiqueCustomerSummary = {
+  id: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  status: "active" | "blocked";
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
+  orderCount: number;
+  lastOrderNumber?: string;
+  lastOrderAt?: string;
+  addressCount: number;
+  defaultAddressLabel?: string;
+  defaultAddressSummary?: string;
 };
 
 function asAddress(value: Address | string): Address {
@@ -354,6 +438,16 @@ function mapSellerKycDocument(row: SellerKycDocumentRow): SellerKycDocument {
   };
 }
 
+function resolvePublicPaymentProofUrl(path?: string | null) {
+  if (!path) {
+    return undefined;
+  }
+
+  return path.startsWith("http")
+    ? path
+    : supabase.storage.from("payment-proofs").getPublicUrl(path).data.publicUrl;
+}
+
 function mapSellerApplication(
   row: SellerApplicationRow,
   documents: SellerKycDocument[],
@@ -389,13 +483,7 @@ function mapSellerApplication(
 }
 
 function mapSellerOrderItem(row: SellerOrderItemRow): SellerWorkspaceOrderItem {
-  const paymentProofPath = row.payment_proof_url
-    ? row.payment_proof_url.startsWith("http")
-      ? row.payment_proof_url
-      : supabase.storage
-          .from("payment-proofs")
-          .getPublicUrl(row.payment_proof_url).data.publicUrl
-    : undefined;
+  const paymentProofPath = resolvePublicPaymentProofUrl(row.payment_proof_url);
 
   return {
     id: row.id,
@@ -415,6 +503,7 @@ function mapSellerOrderItem(row: SellerOrderItemRow): SellerWorkspaceOrderItem {
     paymentId: row.payment_id || undefined,
     paymentProofPath,
     trackingNumber: row.tracking_number || undefined,
+    fulfillmentMethod: row.fulfillment_method || undefined,
     shippingAddress: asAddress(row.shipping_address),
     customerId: row.customer_id || "unknown-customer",
     customerName:
@@ -424,6 +513,171 @@ function mapSellerOrderItem(row: SellerOrderItemRow): SellerWorkspaceOrderItem {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function mapSellerOrderRow(
+  row: SellerOrderRow,
+  items: SellerWorkspaceOrderItem[],
+  sellerName: string,
+): AdminOrder {
+  const mappedItems: OrderItem[] = items.map((item) => ({
+    id: item.id,
+    product: {
+      id: item.productId,
+      name: item.productName,
+      description: "",
+      images: item.image ? [item.image] : [],
+      category: "",
+      tags: [],
+      rating: 0,
+      reviewCount: 0,
+      stock: 0,
+      sku: item.sku || "",
+      features: [],
+      specifications: {},
+      price: item.price,
+      sellerId: row.storefront_seller_id || undefined,
+      ownerId: row.storefront_seller_id || undefined,
+      ownerName: sellerName,
+      minProcessingDays: 1,
+      maxProcessingDays: 3,
+    },
+    quantity: item.quantity,
+    price: item.price,
+    total: item.total,
+    sku: item.sku,
+    image: item.image,
+    status: item.itemStatus,
+    sellerId: row.storefront_seller_id || undefined,
+    ownerId: row.storefront_seller_id || undefined,
+    ownerName: sellerName,
+  }));
+
+  return {
+    id: row.id,
+    orderNumber: row.order_number,
+    userId: row.user_id,
+    status: row.status,
+    fulfillmentMethod: row.fulfillment_method || undefined,
+    subtotal: Number(row.subtotal || 0),
+    shipping: Number(row.shipping || 0),
+    tax: Number(row.tax || 0),
+    discount: Number(row.discount || 0),
+    total: Number(row.total || 0),
+    currency: row.currency || "HTG",
+    paymentMethod: row.payment_method || undefined,
+    paymentStatus: row.payment_status || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    shippingAddress: asAddress(row.shipping_address),
+    paymentId: row.payment_id || undefined,
+    paymentProofUrl: resolvePublicPaymentProofUrl(row.payment_proof_url),
+    trackingNumber: row.tracking_number || undefined,
+    estimatedDelivery: row.estimated_delivery || undefined,
+    deliveredAt: row.delivered_at || undefined,
+    notes: row.notes || undefined,
+    items: mappedItems,
+    sellerId: row.storefront_seller_id || undefined,
+    sellerName,
+    products: mappedItems.map((item) => ({
+      productId: item.product.id,
+      name: item.product.name,
+      price: item.price,
+      quantity: item.quantity,
+      sellerId: row.storefront_seller_id || undefined,
+      sellerName,
+    })),
+  };
+}
+
+function mapSellerBoutiqueCustomers(
+  customerRows: SellerBoutiqueCustomerRow[],
+  addressRows: SellerBoutiqueCustomerAddressRow[],
+  orderRows: SellerBoutiqueOrderRow[],
+): SellerBoutiqueCustomerSummary[] {
+  const addressStats = new Map<
+    string,
+    {
+      count: number;
+      defaultAddressLabel?: string;
+      defaultAddressSummary?: string;
+    }
+  >();
+  const orderStats = new Map<
+    string,
+    {
+      orderIds: Set<string>;
+      orderCount: number;
+      lastOrderNumber?: string;
+      lastOrderAt?: string;
+    }
+  >();
+
+  addressRows.forEach((row) => {
+    const current = addressStats.get(row.boutique_customer_id) || {
+      count: 0,
+    };
+
+    current.count += 1;
+
+    if (row.is_default || !current.defaultAddressLabel) {
+      current.defaultAddressLabel = row.label || "Adresse boutique";
+      current.defaultAddressSummary = [row.address, row.city, row.country]
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    addressStats.set(row.boutique_customer_id, current);
+  });
+
+  orderRows.forEach((row) => {
+    if (!row.boutique_customer_id) {
+      return;
+    }
+
+    const current = orderStats.get(row.boutique_customer_id) || {
+      orderIds: new Set<string>(),
+      orderCount: 0,
+    };
+
+    if (!current.orderIds.has(row.id)) {
+      current.orderIds.add(row.id);
+      current.orderCount += 1;
+    }
+
+    if (!current.lastOrderAt || row.created_at > current.lastOrderAt) {
+      current.lastOrderAt = row.created_at;
+      current.lastOrderNumber = row.order_number;
+    }
+
+    orderStats.set(row.boutique_customer_id, current);
+  });
+
+  return customerRows
+    .map((row) => {
+      const addressStat = addressStats.get(row.id);
+      const orderStat = orderStats.get(row.id);
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        email: row.email,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        phone: row.phone || undefined,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        lastLoginAt: row.last_login_at || undefined,
+        orderCount: orderStat?.orderCount || 0,
+        lastOrderNumber: orderStat?.lastOrderNumber,
+        lastOrderAt: orderStat?.lastOrderAt,
+        addressCount: addressStat?.count || 0,
+        defaultAddressLabel: addressStat?.defaultAddressLabel,
+        defaultAddressSummary: addressStat?.defaultAddressSummary,
+      };
+    })
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
 function sanitizeFileName(fileName: string) {
@@ -641,15 +895,16 @@ export function useSellerProductsQuery() {
     queryKey: SELLER_PRODUCTS_QUERY_KEY,
     queryFn: async () => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         return [];
       }
 
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .eq("seller_id", account.seller.id)
+        .eq("seller_id", seller.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -670,8 +925,9 @@ export function useSellerProductQuery(productId?: string) {
       }
 
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         return null;
       }
 
@@ -679,7 +935,7 @@ export function useSellerProductQuery(productId?: string) {
         .from("products")
         .select("*")
         .eq("id", productId)
-        .eq("seller_id", account.seller.id)
+        .eq("seller_id", seller.id)
         .maybeSingle();
 
       if (error) {
@@ -698,8 +954,9 @@ export function useCreateSellerProductMutation() {
   return useMutation({
     mutationFn: async (input: CreateSellerProductInput) => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller || account.seller.status !== "approved") {
+      if (!seller || seller.status !== "approved") {
         throw new Error("An approved seller account is required");
       }
 
@@ -760,8 +1017,8 @@ export function useCreateSellerProductMutation() {
         currency_code: input.currencyCode || "HTG",
         owner_type: "seller" as const,
         owner_id: account.userId,
-        seller_id: account.seller.id,
-        owner_name: account.seller.businessName,
+        seller_id: seller.id,
+        owner_name: seller.businessName,
         status: "active" as const,
         is_featured: input.isFeatured || false,
         priority: 0,
@@ -786,7 +1043,7 @@ export function useCreateSellerProductMutation() {
       if (error) {
         logSupabaseLikeError("Supabase seller product insert error", error, {
           productId,
-          sellerId: account.seller.id,
+          sellerId: seller.id,
           categoryId: input.categoryId,
           subcategory: input.subcategory || null,
           currencyCode: input.currencyCode || "HTG",
@@ -815,8 +1072,9 @@ export function useUpdateSellerProductMutation() {
   return useMutation({
     mutationFn: async (input: UpdateSellerProductInput) => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         throw new Error("Seller account required");
       }
 
@@ -851,7 +1109,7 @@ export function useUpdateSellerProductMutation() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", input.productId)
-        .eq("seller_id", account.seller.id)
+        .eq("seller_id", seller.id)
         .select("*")
         .maybeSingle();
 
@@ -887,8 +1145,9 @@ export function useUpdateSellerProductStatusMutation() {
       status: SupabaseProduct["status"];
     }) => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         throw new Error("Seller account required");
       }
 
@@ -899,7 +1158,7 @@ export function useUpdateSellerProductStatusMutation() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", productId)
-        .eq("seller_id", account.seller.id);
+        .eq("seller_id", seller.id);
 
       if (error) {
         throw error;
@@ -918,8 +1177,9 @@ export function useDeleteSellerProductMutation() {
   return useMutation({
     mutationFn: async (productId: string) => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         throw new Error("Seller account required");
       }
 
@@ -927,7 +1187,7 @@ export function useDeleteSellerProductMutation() {
         .from("products")
         .delete()
         .eq("id", productId)
-        .eq("seller_id", account.seller.id);
+        .eq("seller_id", seller.id);
 
       if (error) {
         throw error;
@@ -952,8 +1212,9 @@ export function useUpdateSellerProductStockMutation() {
       stock: number;
     }) => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         throw new Error("Seller account required");
       }
 
@@ -968,7 +1229,7 @@ export function useUpdateSellerProductStockMutation() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", productId)
-        .eq("seller_id", account.seller.id)
+        .eq("seller_id", seller.id)
         .select("*")
         .maybeSingle();
 
@@ -997,15 +1258,16 @@ export function useSellerOrderItemsQuery() {
     queryKey: SELLER_ORDER_ITEMS_QUERY_KEY,
     queryFn: async () => {
       const account = await fetchCurrentAccount();
+      const seller = account?.seller;
 
-      if (!account?.seller) {
+      if (!seller) {
         return [];
       }
 
       const { data, error } = await supabase
         .from("seller_order_items_view")
         .select("*")
-        .eq("seller_id", account.seller.id)
+        .eq("seller_id", seller.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -1014,6 +1276,120 @@ export function useSellerOrderItemsQuery() {
 
       return (data || []).map((row) =>
         mapSellerOrderItem(row as SellerOrderItemRow),
+      );
+    },
+  });
+}
+
+export function useSellerOrdersQuery() {
+  return useQuery({
+    queryKey: [...SELLER_ORDER_ITEMS_QUERY_KEY, "orders"],
+    queryFn: async () => {
+      const account = await fetchCurrentAccount();
+      const seller = account?.seller;
+
+      if (!seller) {
+        return [];
+      }
+
+      const [ordersResponse, itemsResponse] = await Promise.all([
+        supabase
+          .from("orders")
+          .select(
+            "id,order_number,user_id,status,fulfillment_method,subtotal,shipping,tax,discount,total,currency,shipping_address,tracking_number,estimated_delivery,delivered_at,payment_method,payment_status,payment_id,payment_proof_url,notes,created_at,updated_at,storefront_seller_id",
+          )
+          .eq("storefront_seller_id", seller.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("seller_order_items_view")
+          .select("*")
+          .eq("seller_id", seller.id)
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (ordersResponse.error) {
+        throw ordersResponse.error;
+      }
+
+      if (itemsResponse.error) {
+        throw itemsResponse.error;
+      }
+
+      const items = (itemsResponse.data || []).map((row) =>
+        mapSellerOrderItem(row as SellerOrderItemRow),
+      );
+      const itemsByOrderNumber = new Map<string, SellerWorkspaceOrderItem[]>();
+
+      items.forEach((item) => {
+        const current = itemsByOrderNumber.get(item.orderNumber) || [];
+        current.push(item);
+        itemsByOrderNumber.set(item.orderNumber, current);
+      });
+
+      return ((ordersResponse.data || []) as SellerOrderRow[])
+        .map((row) =>
+          mapSellerOrderRow(
+            row,
+            itemsByOrderNumber.get(row.order_number) || [],
+            seller.businessName,
+          ),
+        )
+        .filter((order) => order.items.length > 0);
+    },
+  });
+}
+
+export function useSellerCustomersQuery() {
+  return useQuery({
+    queryKey: SELLER_CUSTOMERS_QUERY_KEY,
+    queryFn: async () => {
+      const account = await fetchCurrentAccount();
+      const seller = account?.seller;
+
+      if (!seller) {
+        return [];
+      }
+
+      const [customersResponse, addressesResponse, ordersResponse] =
+        await Promise.all([
+          supabase
+            .from("boutique_customers")
+            .select("*")
+            .eq("seller_id", seller.id)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("boutique_customer_addresses")
+            .select(
+              "id,boutique_customer_id,seller_id,user_id,label,address,city,country,is_default",
+            )
+            .eq("seller_id", seller.id)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("orders")
+            .select("id,boutique_customer_id,order_number,status,created_at")
+            .eq("storefront_seller_id", seller.id)
+            .order("created_at", { ascending: false }),
+        ]);
+
+      const customersError = customersResponse.error;
+      if (customersError) {
+        throw customersError;
+      }
+
+      const addressesError = addressesResponse.error;
+      if (addressesError) {
+        throw addressesError;
+      }
+
+      const ordersError = ordersResponse.error;
+      if (ordersError) {
+        throw ordersError;
+      }
+
+      return mapSellerBoutiqueCustomers(
+        (customersResponse.data || []) as SellerBoutiqueCustomerRow[],
+        (addressesResponse.data || []) as SellerBoutiqueCustomerAddressRow[],
+        (ordersResponse.data || []) as SellerBoutiqueOrderRow[],
       );
     },
   });
@@ -1044,13 +1420,83 @@ export function useUpdateSellerOrderItemStatusMutation() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: SELLER_ORDER_ITEMS_QUERY_KEY });
+      await queryClient.invalidateQueries({
+        queryKey: [...SELLER_ORDER_ITEMS_QUERY_KEY, "orders"],
+      });
       await queryClient.invalidateQueries({ queryKey: ["orders"] });
+      await queryClient.invalidateQueries({ queryKey: SELLER_CUSTOMERS_QUERY_KEY });
+    },
+  });
+}
+
+export function useUpdateSellerOrderPaymentStatusMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      paymentStatus,
+    }: {
+      orderId: string;
+      paymentStatus: string;
+    }) => {
+      const { error } = await supabase.rpc("seller_update_order_payment_status", {
+        p_order_id: orderId,
+        p_payment_status: paymentStatus,
+      });
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SELLER_ORDER_ITEMS_QUERY_KEY });
+      await queryClient.invalidateQueries({
+        queryKey: [...SELLER_ORDER_ITEMS_QUERY_KEY, "orders"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
+      await queryClient.invalidateQueries({ queryKey: SELLER_CUSTOMERS_QUERY_KEY });
+    },
+  });
+}
+
+export function useUpdateSellerOrderDeliveryDateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      estimatedDelivery,
+    }: {
+      orderId: string;
+      estimatedDelivery: string | null;
+    }) => {
+      const { error } = await supabase.rpc(
+        "seller_update_order_estimated_delivery",
+        {
+          p_order_id: orderId,
+          p_estimated_delivery: estimatedDelivery,
+        },
+      );
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SELLER_ORDER_ITEMS_QUERY_KEY });
+      await queryClient.invalidateQueries({
+        queryKey: [...SELLER_ORDER_ITEMS_QUERY_KEY, "orders"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
+      await queryClient.invalidateQueries({ queryKey: SELLER_CUSTOMERS_QUERY_KEY });
     },
   });
 }
 
 export {
   SELLER_APPLICATION_QUERY_KEY,
+  SELLER_CUSTOMERS_QUERY_KEY,
   SELLER_ORDER_ITEMS_QUERY_KEY,
   SELLER_PRODUCTS_QUERY_KEY,
 };

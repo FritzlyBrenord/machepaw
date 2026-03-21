@@ -34,6 +34,7 @@ type CheckoutOrderInput = {
   paymentMethod?: string;
   paymentId?: string;
   paymentProofUrl?: string;
+  fulfillmentMethod?: "delivery" | "pickup";
   shippingAddress: Address;
   notes?: string;
 };
@@ -364,6 +365,7 @@ export function useAuth() {
         p_shipping_address: orderData.shippingAddress,
         p_items: rpcItems,
         p_shipping_amount: orderData.shipping || 0,
+        p_fulfillment_method: orderData.fulfillmentMethod || null,
         p_tax_amount: orderData.tax || 0,
         p_payment_method: orderData.paymentMethod || null,
         p_payment_id: orderData.paymentId || null,
