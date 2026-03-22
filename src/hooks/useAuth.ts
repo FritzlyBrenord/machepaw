@@ -5,6 +5,7 @@ import { supabase, uploadImage } from "@/lib/supabase";
 import { useStore } from "@/store";
 import { useRouter } from "next/navigation";
 import type { Address, CartItem } from "@/data/types";
+import { sanitizeAuthRedirect } from "@/lib/authRedirect";
 
 type AuthMetadata = Record<string, unknown>;
 
@@ -101,14 +102,15 @@ export function useAuth() {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectPath = "/") => {
     setLoading(true);
     setError(null);
     try {
+      const safeRedirect = sanitizeAuthRedirect(redirectPath, "/");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(safeRedirect)}`,
         },
       });
 

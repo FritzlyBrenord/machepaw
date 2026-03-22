@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Building2,
@@ -17,6 +18,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { useCategories } from "@/hooks/useCategories";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useSellerApplicationQuery,
   useSubmitSellerApplicationMutation,
@@ -101,8 +103,10 @@ function getErrorMessage(error: unknown) {
 }
 
 export default function BecomeSellerPage() {
+  const router = useRouter();
   const { data: account, isLoading: accountLoading } = useCurrentAccountQuery();
   const { data: application } = useSellerApplicationQuery();
+  const { signOut } = useAuth();
   const { data: categories = [], isLoading: categoriesLoading } =
     useCategories();
   const submitApplicationMutation = useSubmitSellerApplicationMutation();
@@ -121,6 +125,16 @@ export default function BecomeSellerPage() {
     useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (
+      !accountLoading &&
+      account?.role === "seller" &&
+      account.seller?.status === "approved"
+    ) {
+      router.replace("/vendeur");
+    }
+  }, [account, accountLoading, router]);
 
   useEffect(() => {
     if (!account && !application) {
@@ -154,6 +168,10 @@ export default function BecomeSellerPage() {
       identityDocumentNumber: application?.identityDocumentNumber || "",
     });
   }, [account, application]);
+
+  const handleSignOut = () => {
+    void signOut();
+  };
 
   const existingDocumentTypes = useMemo(
     () =>
@@ -339,11 +357,11 @@ export default function BecomeSellerPage() {
             verification KYC.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/auth/login?redirect=/devenir-vendeur">
+            <Link href="/auth/login?redirect=/vendeur">
               <Button>Se connecter</Button>
             </Link>
             <Link href="/">
-              <Button variant="outline">Retour au site</Button>
+              <Button variant="outline">Abandonner</Button>
             </Link>
           </div>
         </div>
@@ -369,8 +387,8 @@ export default function BecomeSellerPage() {
             <Link href="/vendeur">
               <Button>Aller au dashboard vendeur</Button>
             </Link>
-            <Link href="/vendeur/parametres">
-              <Button variant="outline">Verifier mes parametres</Button>
+            <Link href="/">
+              <Button variant="outline">Abandonner</Button>
             </Link>
           </div>
         </div>
@@ -417,6 +435,25 @@ export default function BecomeSellerPage() {
             lies a votre `seller_id` et gestion reelle des commandes par
             vendeur.
           </p>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          {account ? (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="inline-flex items-center rounded-full border border-neutral-900 px-5 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-900 hover:text-white transition-colors"
+            >
+              Deconnexion
+            </button>
+          ) : (
+            <Link href="/auth/login?redirect=/vendeur">
+              <Button>Se connecter</Button>
+            </Link>
+          )}
+          <Link href="/">
+            <Button variant="outline">Abandonner</Button>
+          </Link>
         </div>
 
         {application ? (

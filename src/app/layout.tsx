@@ -15,9 +15,9 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "LUXE | Boutique de Luxe en Ligne",
+  title: "LUXE | Creez votre boutique premium",
   description:
-    "LUXE - Boutique en ligne de luxe. Découvrez notre collection de montres, bijoux et accessoires d'exception.",
+    "LUXE aide les vendeurs a creer une boutique premium, gerer les commandes et offrir une experience client professionnelle.",
 };
 
 export default function RootLayout({

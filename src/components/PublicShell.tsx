@@ -10,12 +10,16 @@ type PublicShellProps = {
   children: React.ReactNode;
 };
 
-const HIDDEN_PREFIXES = ["/vendeur", "/admin", "/boutique"];
+const HIDDEN_PREFIXES = ["/vendeur", "/admin", "/boutique", "/auth"];
+const MARKETING_PATHS = ["/", "/prix", "/modeles", "/a-propos", "/devenir-vendeur"];
 
 export function PublicShell({ children }: PublicShellProps) {
   const pathname = usePathname();
   const hidePublicChrome = HIDDEN_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix),
+  );
+  const isMarketingPage = MARKETING_PATHS.some((path) =>
+    pathname === path || pathname.startsWith(`${path}/`),
   );
 
   if (hidePublicChrome) {
@@ -25,10 +29,10 @@ export function PublicShell({ children }: PublicShellProps) {
   return (
     <>
       <Navbar />
-      <CartDrawer />
+      {!isMarketingPage ? <CartDrawer /> : null}
       <main>{children}</main>
       <Footer />
-      <ChatBot />
+      {!isMarketingPage ? <ChatBot /> : null}
     </>
   );
 }

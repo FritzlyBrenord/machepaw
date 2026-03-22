@@ -185,6 +185,48 @@ export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
   }
 
   if (!userRow) {
+    const { data: sellerRow, error: sellerError } = await supabase
+      .from("sellers")
+      .select("*")
+      .eq("user_id", authUser.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (sellerError) {
+      throw sellerError;
+    }
+
+    if (authUser.user_metadata?.role === "admin") {
+      return {
+        userId: authUser.id,
+        authId: authUser.id,
+        email: authUser.email || "",
+        firstName: authUser.user_metadata?.first_name || "",
+        lastName: authUser.user_metadata?.last_name || "",
+        phone: authUser.user_metadata?.phone || undefined,
+        avatar: authUser.user_metadata?.avatar_url || undefined,
+        role: "admin",
+        isBlocked: false,
+        seller: null,
+      };
+    }
+
+    if (sellerRow) {
+      return {
+        userId: authUser.id,
+        authId: authUser.id,
+        email: authUser.email || "",
+        firstName: authUser.user_metadata?.first_name || "",
+        lastName: authUser.user_metadata?.last_name || "",
+        phone: authUser.user_metadata?.phone || undefined,
+        avatar: authUser.user_metadata?.avatar_url || undefined,
+        role: "seller" as UserRole,
+        isBlocked: false,
+        seller: mapSellerRow(sellerRow as SellerRow),
+      };
+    }
+
     return {
       userId: authUser.id,
       authId: authUser.id,
@@ -213,6 +255,13 @@ export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
     throw sellerError;
   }
 
+  const resolvedRole =
+    resolvedUserRow.role === "admin"
+      ? "admin"
+      : sellerRow
+        ? "seller"
+        : resolvedUserRow.role;
+
   return {
     userId: resolvedUserRow.id,
     authId: resolvedUserRow.auth_id || authUser.id,
@@ -221,7 +270,7 @@ export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
     lastName: resolvedUserRow.last_name,
     phone: resolvedUserRow.phone || undefined,
     avatar: resolvedUserRow.avatar || undefined,
-    role: (authUser.user_metadata?.role === "admin" ? "admin" : resolvedUserRow.role) as UserRole,
+    role: (authUser.user_metadata?.role === "admin" ? "admin" : resolvedRole) as UserRole,
     isBlocked: Boolean(resolvedUserRow.is_blocked),
     seller: sellerRow ? mapSellerRow(sellerRow as SellerRow) : null,
   };

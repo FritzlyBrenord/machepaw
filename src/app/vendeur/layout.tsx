@@ -18,11 +18,17 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
   const pathname = usePathname();
   const { data: account, isLoading } = useCurrentAccountQuery();
 
+  const isApprovedSeller =
+    account?.role === "seller" && account.seller?.status === "approved";
+  const shouldRedirectToBecomeSeller = Boolean(
+    account && !isApprovedSeller && !account.isBlocked,
+  );
+
   useEffect(() => {
-    if (!isLoading && !account) {
-      router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
+    if (!isLoading && shouldRedirectToBecomeSeller) {
+      router.replace(`/devenir-vendeur?redirect=${encodeURIComponent(pathname)}`);
     }
-  }, [account, isLoading, pathname, router]);
+  }, [account, isLoading, pathname, router, shouldRedirectToBecomeSeller]);
 
   if (isLoading) {
     return (
@@ -34,7 +40,22 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
   }
 
   if (!account) {
-    return null;
+    return (
+      <WorkspaceStatusCard
+        title="Connexion requise"
+        description="Connectez-vous pour acceder a votre espace vendeur. Si vous n'avez pas encore de compte vendeur, vous pourrez poursuivre vers le parcours de candidature apres connexion."
+        actions={
+          <>
+            <Link href={`/auth/login?redirect=${encodeURIComponent(pathname)}`}>
+              <Button>Se connecter</Button>
+            </Link>
+            <Link href="/auth/signup?redirect=/vendeur">
+              <Button variant="outline">Creer un compte</Button>
+            </Link>
+          </>
+        }
+      />
+    );
   }
 
   if (account.isBlocked) {
@@ -51,20 +72,15 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     );
   }
 
-  if (account.role !== "seller" || account.seller?.status !== "approved") {
+  if (!isApprovedSeller) {
     return (
       <WorkspaceStatusCard
-        title="Acces vendeur restreint"
-        description="Cette zone est reservee aux vendeurs approuves. Finalisez ou suivez votre candidature pour retrouver l'acces complet."
+        title="Redirection vers Devenir vendeur"
+        description="Votre compte n'est pas encore approuve pour l'espace vendeur. Vous allez etre redirige vers le parcours de candidature."
         actions={
-          <>
-            <Link href="/devenir-vendeur">
-              <Button>Gerer ma candidature</Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline">Retour au site</Button>
-            </Link>
-          </>
+          <Link href="/devenir-vendeur">
+            <Button>Continuer</Button>
+          </Link>
         }
       />
     );

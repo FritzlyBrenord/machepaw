@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   Instagram,
   Facebook,
@@ -20,24 +19,23 @@ const footerLinks = {
     { name: "FAQ", href: "/faq" },
     { name: "Livraison & Retours", href: "/livraison" },
     { name: "Suivi de commande", href: "/profil" },
-    { name: "Guide des tailles", href: "/guide" },
+    { name: "Guide", href: "/guide" },
   ],
   about: [
-    { name: "Notre Histoire", href: "/a-propos" },
-    { name: "Nos Boutiques", href: "/boutiques" },
-    { name: "Carrières", href: "/carrieres" },
-    { name: "Presse", href: "/presse" },
-    { name: "Développement Durable", href: "/durabilite" },
+    { name: "Notre approche", href: "/a-propos" },
+    { name: "Prix", href: "/prix" },
+    { name: "Modeles", href: "/modeles" },
+    { name: "Comment ca marche", href: "/devenir-vendeur" },
   ],
   sell: [
-    { name: "Devenir Vendeur", href: "/devenir-vendeur" },
+    { name: "Creer ma boutique", href: "/auth/signup?redirect=/vendeur" },
     { name: "Espace Vendeur", href: "/vendeur" },
     { name: "Aide vendeurs", href: "/aide-vendeurs" },
   ],
   legal: [
-    { name: "Mentions Légales", href: "/mentions-legales" },
+    { name: "Mentions Legales", href: "/mentions-legales" },
     { name: "CGV", href: "/cgv" },
-    { name: "Politique de Confidentialité", href: "/confidentialite" },
+    { name: "Politique de Confidentialite", href: "/confidentialite" },
     { name: "Politique de Cookies", href: "/cookies" },
   ],
 };
@@ -55,18 +53,17 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-neutral-900 text-white">
-      {/* Newsletter Section */}
+    <footer className="bg-neutral-950 text-white">
       <div className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-16">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <h3 className="text-2xl font-light mb-2">
-                Inscrivez-vous à notre newsletter
+                Recevez nos conseils vendeur et nouveautes
               </h3>
               <p className="text-white/60">
-                Recevez nos dernières collections et offres exclusives en
-                avant-première.
+                Des idees pour lancer une boutique plus propre, mieux equipee et
+                plus facile a gerer au quotidien.
               </p>
             </div>
             <form className="flex gap-4">
@@ -86,10 +83,8 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-          {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
             <Link href="/" className="inline-block">
               <h2 className="text-3xl font-light tracking-[0.2em] mb-6">
@@ -97,8 +92,8 @@ export function Footer() {
               </h2>
             </Link>
             <p className="text-white/60 text-sm mb-6 max-w-xs">
-              L&apos;excellence du luxe depuis 1850. Découvrez notre collection
-              de montres, bijoux et accessoires d&apos;exception.
+              Une plateforme boutique premium pour creer, vendre et suivre des
+              commandes dans un cadre propre, isole et professionnel.
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
@@ -114,11 +109,8 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Categories */}
           <div>
-            <h4 className="text-sm uppercase tracking-wider mb-6">
-              Catégories
-            </h4>
+            <h4 className="text-sm uppercase tracking-wider mb-6">Collections</h4>
             <ul className="space-y-3">
               {categories.slice(0, 5).map((category) => (
                 <li key={category.id}>
@@ -133,7 +125,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Customer Service */}
           <div>
             <h4 className="text-sm uppercase tracking-wider mb-6">
               Service Client
@@ -152,9 +143,8 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* About */}
           <div>
-            <h4 className="text-sm uppercase tracking-wider mb-6">À Propos</h4>
+            <h4 className="text-sm uppercase tracking-wider mb-6">A propos</h4>
             <ul className="space-y-3">
               {footerLinks.about.map((link) => (
                 <li key={link.name}>
@@ -169,7 +159,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Sell */}
           <div>
             <h4 className="text-sm uppercase tracking-wider mb-6">Vendre</h4>
             <ul className="space-y-3">
@@ -186,34 +175,33 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <h4 className="text-sm uppercase tracking-wider mb-6">Contact</h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-white/40 shrink-0 mt-0.5" />
                 <span className="text-sm text-white/60">
-                  12 Avenue des Champs-Élysées
+                  Support vendeur en ligne
                   <br />
-                  75008 Paris, France
+                  Espace digital premium
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-white/40" />
                 <a
-                  href="tel:+33123456789"
+                  href="tel:+0000000000"
                   className="text-sm text-white/60 hover:text-white transition-colors"
                 >
-                  +33 1 23 45 67 89
+                  +00 00 00 00 00
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-white/40" />
                 <a
-                  href="mailto:contact@luxe.com"
+                  href="mailto:support@luxe.com"
                   className="text-sm text-white/60 hover:text-white transition-colors"
                 >
-                  contact@luxe.com
+                  support@luxe.com
                 </a>
               </li>
             </ul>
@@ -221,12 +209,11 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-white/40">
-              © 2025 LUXE. Tous droits réservés.
+              © 2026 LUXE. Tous droits reserves.
             </p>
             <div className="flex flex-wrap justify-center gap-6">
               {footerLinks.legal.map((link) => (
