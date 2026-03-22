@@ -7,12 +7,16 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { BoutiqueNavbar } from "@/components/boutique/BoutiqueNavbar";
 import { BoutiqueFooter } from "@/components/boutique/BoutiqueFooter";
-import { useBoutiqueStore } from "@/components/boutique/BoutiqueStoreProvider";
+import {
+  useBoutiqueStore,
+  useBoutiqueTheme,
+} from "@/components/boutique/BoutiqueStoreProvider";
 import { useBoutiqueAnnouncementsQuery } from "@/hooks/useBoutiqueStorefront";
 import { resolveBoutiqueHref } from "@/lib/boutique";
 
 export function BoutiqueShell({ children }: { children: ReactNode }) {
   const store = useBoutiqueStore();
+  const theme = useBoutiqueTheme();
   const { data: topBarAnnouncements = [] } = useBoutiqueAnnouncementsQuery("top_bar");
   const { data: popupAnnouncements = [] } = useBoutiqueAnnouncementsQuery("popup");
   const [dismissedBarIds, setDismissedBarIds] = useState<string[]>([]);
@@ -69,8 +73,8 @@ export function BoutiqueShell({ children }: { children: ReactNode }) {
         <div
           className="relative px-10 py-2 text-center text-sm font-medium"
           style={{
-            backgroundColor: bar.background_color || "#171411",
-            color: bar.text_color || "#FFFFFF",
+            backgroundColor: bar.background_color || theme.palette.topBarBackground,
+            color: bar.text_color || theme.palette.topBarText,
           }}
         >
           <span>{bar.title}</span>
@@ -105,8 +109,8 @@ export function BoutiqueShell({ children }: { children: ReactNode }) {
             className="relative w-full max-w-md overflow-hidden rounded-[2rem] shadow-2xl"
             onClick={(event) => event.stopPropagation()}
             style={{
-              backgroundColor: popup.background_color || "#171411",
-              color: popup.text_color || "#FFFFFF",
+              backgroundColor: popup.background_color || theme.palette.heroBase,
+              color: popup.text_color || theme.palette.topBarText,
             }}
           >
             <button

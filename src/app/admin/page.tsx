@@ -69,6 +69,18 @@ export default function AdminDashboardPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link
+              href="/admin/plans"
+              className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-neutral-300 hover:text-neutral-900"
+            >
+              Gerer les plans
+            </Link>
+            <Link
+              href="/admin/plans/demandes"
+              className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-neutral-300 hover:text-neutral-900"
+            >
+              Approver les demandes
+            </Link>
+            <Link
               href="/admin/vendeurs"
               className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-neutral-300 hover:text-neutral-900"
             >

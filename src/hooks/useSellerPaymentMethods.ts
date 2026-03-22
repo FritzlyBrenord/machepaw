@@ -88,6 +88,11 @@ export function useUpsertSellerPaymentMethodsMutation() {
       }
 
       const allowPickup = Boolean(seller.shippingSettings?.allowPickup && seller.pickupAddress);
+      const hasAnyActiveMethod = methods.some((method) => method.isActive);
+
+      if (!hasAnyActiveMethod) {
+        throw new Error("Activez au moins un mode de paiement pour votre boutique.");
+      }
 
       const rows = methods.map((method) => {
         const definition = SELLER_PAYMENT_METHODS.find((item) => item.code === method.methodCode);

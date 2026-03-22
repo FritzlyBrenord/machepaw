@@ -289,6 +289,7 @@ export interface SellerShippingSettings {
   locationDept?: string;
   latitude?: number;
   longitude?: number;
+  allowDelivery?: boolean;
   allowPickup?: boolean;
 }
 
@@ -309,6 +310,67 @@ export interface SellerPaymentMethod {
   merchantAgentCode?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type SellerPlanSlug = "free" | "pro" | "premium";
+export type SellerPlanBillingInterval = "monthly" | "yearly" | "one_time";
+export type SellerPlanRequestStatus =
+  | "draft"
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "cancelled";
+export type SellerCurrentPlanStatus = "none" | "active";
+
+export interface SellerPlanFeature {
+  key: string;
+  label: string;
+  enabled: boolean;
+  description?: string;
+}
+
+export type SellerPlanLimits = Record<string, string | number | boolean | null | undefined>;
+
+export interface SellerPlan {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  price: number;
+  promoPrice?: number;
+  currencyCode: CurrencyCode;
+  billingInterval: SellerPlanBillingInterval;
+  isActive: boolean;
+  isFeatured: boolean;
+  sortOrder: number;
+  features: SellerPlanFeature[];
+  limits: SellerPlanLimits;
+  createdAt: string;
+  updatedAt: string;
+  subscribersCount?: number;
+  activeSubscribersCount?: number;
+  pendingRequestsCount?: number;
+}
+
+export interface SellerPlanRequest {
+  id: string;
+  sellerId: string;
+  planId: string;
+  status: SellerPlanRequestStatus;
+  paymentMethod?: SellerPaymentMethodCode;
+  paymentFirstName?: string;
+  paymentLastName?: string;
+  paymentReference?: string;
+  paymentProofUrl?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+  plan?: SellerPlan;
+  sellerBusinessName?: string;
+  sellerUserId?: string;
+  sellerContactEmail?: string;
 }
 
 export interface SellerKycDocument {
@@ -347,6 +409,8 @@ export interface Seller {
   contactEmail: string;
   logo?: string;
   banner?: string;
+  storefrontThemeSlug?: string;
+  storefrontThemeConfig?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   products: string[];
@@ -364,6 +428,22 @@ export interface Seller {
   shippingSettings?: SellerShippingSettings;
   payoutDetails?: SellerPayoutDetails;
   pickupAddress?: Address;
+  currentPlanId?: string;
+  currentPlanStatus?: SellerCurrentPlanStatus;
+  currentPlanRequestId?: string;
+  requestedPlanId?: string;
+  planSelectionCompleted?: boolean;
+  planStartedAt?: string;
+  planExpiresAt?: string;
+  planPaymentMethod?: SellerPaymentMethodCode;
+  planPaymentFirstName?: string;
+  planPaymentLastName?: string;
+  planPaymentReference?: string;
+  planPaymentProofUrl?: string;
+  planReviewedAt?: string;
+  planUpdatedAt?: string;
+  currentPlan?: SellerPlan;
+  requestedPlan?: SellerPlan;
 }
 
 export interface SellerApplication {

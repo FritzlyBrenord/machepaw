@@ -8,6 +8,8 @@ export type BoutiqueStoreRecord = {
   description?: string;
   logo?: string;
   banner?: string;
+  storefrontThemeSlug?: string;
+  storefrontThemeConfig?: Record<string, unknown>;
   isVerified: boolean;
   rating: number;
   reviewCount: number;
@@ -33,6 +35,8 @@ type SellerStoreRow = {
   description?: string | null;
   logo?: string | null;
   banner?: string | null;
+  storefront_theme_slug?: string | null;
+  storefront_theme_config?: Record<string, unknown> | null;
   is_verified?: boolean | null;
   rating?: number | null;
   review_count?: number | null;
@@ -59,6 +63,8 @@ function mapSellerRow(row: SellerStoreRow): BoutiqueStoreRecord {
     description: row.description || undefined,
     logo: row.logo || undefined,
     banner: row.banner || undefined,
+    storefrontThemeSlug: row.storefront_theme_slug || undefined,
+    storefrontThemeConfig: row.storefront_theme_config || undefined,
     isVerified: Boolean(row.is_verified),
     rating: Number(row.rating || 0),
     reviewCount: Number(row.review_count || 0),
@@ -82,27 +88,7 @@ export async function getApprovedSellerBySlug(slug: string) {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("sellers")
-    .select(
-      [
-        "id",
-        "user_id",
-        "business_name",
-        "store_slug",
-        "description",
-        "logo",
-        "banner",
-        "is_verified",
-        "rating",
-        "review_count",
-        "total_sales",
-        "products_count",
-        "location_name",
-        "location_dept",
-        "shipping_settings",
-        "pickup_address",
-        "created_at",
-      ].join(", "),
-    )
+    .select("*")
     .eq("store_slug", normalizedSlug)
     .eq("status", "approved")
     .maybeSingle();

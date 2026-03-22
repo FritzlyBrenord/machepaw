@@ -1,0 +1,194 @@
+[
+  {
+    "slug": "free",
+    "name": "Gratuit",
+    "description": "Le point de depart pour lancer votre boutique et commencer a vendre avec l'essentiel.",
+    "price": 0,
+    "promoPrice": 0,
+    "currencyCode": "HTG",
+    "billingInterval": "monthly",
+    "isActive": true,
+    "isFeatured": false,
+    "sortOrder": 1,
+    "features": [
+      {
+        "key": "storefront",
+        "label": "Boutique publique",
+        "enabled": true,
+        "description": "Votre boutique est visible et partageable."
+      },
+      {
+        "key": "analytics",
+        "label": "Statistiques de base",
+        "enabled": true,
+        "description": "Suivi simple des ventes et commandes."
+      },
+      {
+        "key": "delivery",
+        "label": "Livraison et retrait",
+        "enabled": true,
+        "description": "Les deux modes de remise sont disponibles."
+      },
+      {
+        "key": "announcements",
+        "label": "Annonces",
+        "enabled": true,
+        "description": "Une publication active a la fois."
+      },
+      {
+        "key": "promotions",
+        "label": "Promotions",
+        "enabled": false,
+        "description": "Les ventes flash restent reservees aux plans payants."
+      },
+      {
+        "key": "custom_design",
+        "label": "Theme personnalise",
+        "enabled": false,
+        "description": "Personnalisation avancee reservee aux offres superieures."
+      }
+    ],
+    "limits": {
+      "products": 10,
+      "announcements": 1,
+      "promotions": 0,
+      "offers": 2,
+      "pages": 1,
+      "team_members": 1,
+      "payment_methods": 2,
+      "custom_design": false,
+      "custom_domain": false,
+      "product_images": 5
+    }
+  },
+  {
+    "slug": "pro",
+    "name": "Pro",
+    "description": "Plus de volume, plus de campagnes et plus de controle pour les boutiques actives.",
+    "price": 2500,
+    "promoPrice": 1990,
+    "currencyCode": "HTG",
+    "billingInterval": "monthly",
+    "isActive": true,
+    "isFeatured": true,
+    "sortOrder": 2,
+    "features": [
+      {
+        "key": "storefront",
+        "label": "Boutique publique",
+        "enabled": true,
+        "description": "Boutique complete et professionnelle."
+      },
+      {
+        "key": "analytics",
+        "label": "Statistiques avancees",
+        "enabled": true,
+        "description": "Analyse detaillee des ventes et performances."
+      },
+      {
+        "key": "announcements",
+        "label": "Annonces multiples",
+        "enabled": true,
+        "description": "Plusieurs campagnes de contenu."
+      },
+      {
+        "key": "promotions",
+        "label": "Promotions actives",
+        "enabled": true,
+        "description": "Lancement de ventes flash et promotions."
+      },
+      {
+        "key": "offers",
+        "label": "Offres et bundles",
+        "enabled": true,
+        "description": "Creation de packs et offres avancees."
+      },
+      {
+        "key": "custom_design",
+        "label": "Theme personnalise",
+        "enabled": true,
+        "description": "Controle sur la presentation de la boutique."
+      }
+    ],
+    "limits": {
+      "products": 50,
+      "announcements": 5,
+      "promotions": 3,
+      "offers": 10,
+      "pages": 5,
+      "team_members": 3,
+      "payment_methods": 4,
+      "custom_design": true,
+      "custom_domain": false,
+      "product_images": 8
+    }
+  },
+  {
+    "slug": "premium",
+    "name": "Premium",
+    "description": "Le plan complet pour une marque plus forte, plus de volume et plus de libertes.",
+    "price": 7500,
+    "promoPrice": 5900,
+    "currencyCode": "HTG",
+    "billingInterval": "monthly",
+    "isActive": true,
+    "isFeatured": false,
+    "sortOrder": 3,
+    "features": [
+      {
+        "key": "storefront",
+        "label": "Boutique premium",
+        "enabled": true,
+        "description": "Image de marque plus poussee."
+      },
+      {
+        "key": "analytics",
+        "label": "Analytics premium",
+        "enabled": true,
+        "description": "Lecture detaillee des performances."
+      },
+      {
+        "key": "announcements",
+        "label": "Communication complete",
+        "enabled": true,
+        "description": "Plusieurs espaces d'annonces et publications."
+      },
+      {
+        "key": "promotions",
+        "label": "Promotions avancees",
+        "enabled": true,
+        "description": "Promotions et ventes flash plus nombreuses."
+      },
+      {
+        "key": "offers",
+        "label": "Offres multiples",
+        "enabled": true,
+        "description": "Plus de bundles et campagnes commerciales."
+      },
+      {
+        "key": "custom_design",
+        "label": "Theme complet",
+        "enabled": true,
+        "description": "Personnalisation complete de la boutique."
+      },
+      {
+        "key": "custom_domain",
+        "label": "Nom de domaine perso",
+        "enabled": true,
+        "description": "Connexion d'un domaine personnalise."
+      }
+    ],
+    "limits": {
+      "products": 200,
+      "announcements": 20,
+      "promotions": 10,
+      "offers": 50,
+      "pages": 20,
+      "team_members": 10,
+      "payment_methods": 8,
+      "custom_design": true,
+      "custom_domain": true,
+      "product_images": 12
+    }
+  }
+]

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell,
+  ClipboardCheck,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -25,9 +26,12 @@ import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { useDisplayCurrency, useSetDisplayCurrency } from "@/store/adminStore";
+import type { CurrencyCode } from "@/data/types";
 
 const sidebarItems = [
-  { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
+  { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
+  { href: "/admin/plans", label: "Plans", icon: Shield, exact: true },
+  { href: "/admin/plans/demandes", label: "Demandes plans", icon: ClipboardCheck, exact: true },
   { href: "/admin/produits", label: "Produits", icon: Package },
   { href: "/admin/promotions", label: "Ventes Flash", icon: Zap },
   { href: "/admin/annonces", label: "Annonces", icon: Megaphone },
@@ -55,8 +59,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  console.log("Current account:", account);
-
   if (!account || account.role !== "admin" || account.isBlocked) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-50 p-4 text-center">
@@ -71,7 +73,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           continuer.
         </p>
         <Link href={`/admin/login?redirect=${encodeURIComponent(pathname)}`}>
-          <Button size="lg">Se connecter en tant qu'admin</Button>
+          <Button size="lg">Se connecter en tant qu&apos;admin</Button>
         </Link>
       </div>
     );
@@ -80,8 +82,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const renderNavigation = (mobile = false) => (
     <nav className="space-y-1">
       {sidebarItems.map((item) => {
-        const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const isActive = item.exact
+          ? pathname === item.href
+          : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link
@@ -211,7 +214,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Devise</span>
                 <select 
                   value={displayCurrency}
-                  onChange={(e) => setDisplayCurrency(e.target.value as any)}
+                  onChange={(e) => setDisplayCurrency(e.target.value as CurrencyCode)}
                   className="bg-transparent text-sm font-bold text-neutral-900 border-none focus:outline-none focus:ring-0 p-0 cursor-pointer"
                 >
                   <option value="HTG">HTG (G)</option>

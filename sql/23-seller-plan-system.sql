@@ -174,6 +174,7 @@ ALTER TABLE public.sellers
     ADD COLUMN IF NOT EXISTS current_plan_status TEXT NOT NULL DEFAULT 'none',
     ADD COLUMN IF NOT EXISTS current_plan_request_id UUID NULL,
     ADD COLUMN IF NOT EXISTS requested_plan_id UUID NULL,
+    ADD COLUMN IF NOT EXISTS plan_selection_completed BOOLEAN NOT NULL DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS plan_started_at TIMESTAMPTZ NULL,
     ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ NULL,
     ADD COLUMN IF NOT EXISTS plan_payment_method TEXT NULL,
@@ -183,30 +184,6 @@ ALTER TABLE public.sellers
     ADD COLUMN IF NOT EXISTS plan_payment_proof_url TEXT NULL,
     ADD COLUMN IF NOT EXISTS plan_reviewed_at TIMESTAMPTZ NULL,
     ADD COLUMN IF NOT EXISTS plan_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'sellers_current_plan_id_fkey'
-    ) THEN
-        ALTER TABLE public.sellers
-            ADD CONSTRAINT sellers_current_plan_id_fkey
-            FOREIGN KEY (current_plan_id) REFERENCES public.seller_plans (id) ON DELETE SET NULL;
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'sellers_current_plan_request_id_fkey'
-    ) THEN
-        ALTER TABLE public.sellers
-            ADD CONSTRAINT sellers_current_plan_request_id_fkey
-            FOREIGN KEY (current_plan_request_id) REFERENCES public.seller_plan_requests (id) ON DELETE SET NULL;
-    END IF;
-END;
-$$;
 
 CREATE TABLE IF NOT EXISTS public.seller_plan_requests (
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
@@ -240,6 +217,49 @@ CREATE INDEX IF NOT EXISTS idx_seller_plan_requests_seller
 CREATE INDEX IF NOT EXISTS idx_seller_plan_requests_plan
     ON public.seller_plan_requests USING btree (plan_id, status) TABLESPACE pg_default;
 
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'sellers_current_plan_id_fkey'
+    )
+    AND to_regclass('public.seller_plans') IS NOT NULL THEN
+        EXECUTE '
+            ALTER TABLE public.sellers
+                ADD CONSTRAINT sellers_current_plan_id_fkey
+                FOREIGN KEY (current_plan_id) REFERENCES public.seller_plans (id) ON DELETE SET NULL
+        ';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'sellers_current_plan_request_id_fkey'
+    )
+    AND to_regclass('public.seller_plan_requests') IS NOT NULL THEN
+        EXECUTE '
+            ALTER TABLE public.sellers
+                ADD CONSTRAINT sellers_current_plan_request_id_fkey
+                FOREIGN KEY (current_plan_request_id) REFERENCES public.seller_plan_requests (id) ON DELETE SET NULL
+        ';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'sellers_requested_plan_id_fkey'
+    )
+    AND to_regclass('public.seller_plans') IS NOT NULL THEN
+        EXECUTE '
+            ALTER TABLE public.sellers
+                ADD CONSTRAINT sellers_requested_plan_id_fkey
+                FOREIGN KEY (requested_plan_id) REFERENCES public.seller_plans (id) ON DELETE SET NULL
+        ';
+    END IF;
+END;
+$$;
+
 DROP TRIGGER IF EXISTS update_seller_plan_requests_updated_at ON public.seller_plan_requests;
 CREATE TRIGGER update_seller_plan_requests_updated_at
     BEFORE UPDATE ON public.seller_plan_requests
@@ -249,7 +269,7 @@ CREATE TRIGGER update_seller_plan_requests_updated_at
 CREATE OR REPLACE FUNCTION public.compute_seller_plan_expires_at(p_billing_interval TEXT)
 RETURNS TIMESTAMPTZ
 LANGUAGE plpgsql
-IMMUTABLE
+STABLE
 AS $$
 BEGIN
     CASE LOWER(COALESCE(TRIM(p_billing_interval), ''))
@@ -310,6 +330,7 @@ AS $$
 DECLARE
     v_plan RECORD;
     v_existing_pending BOOLEAN;
+    v_requested_status TEXT;
 BEGIN
     SELECT *
     INTO v_plan
@@ -326,12 +347,14 @@ BEGIN
         FROM public.seller_plan_requests spr
         WHERE spr.seller_id = NEW.seller_id
           AND spr.status IN ('pending_review', 'draft')
-          AND spr.id <> COALESCE(NEW.id, spr.id)
+          AND (NEW.id IS NULL OR spr.id <> NEW.id)
     ) INTO v_existing_pending;
 
     IF v_existing_pending AND NEW.status IN ('pending_review', 'draft') THEN
         RAISE EXCEPTION 'A plan request is already pending for this seller';
     END IF;
+
+    v_requested_status := LOWER(COALESCE(TRIM(NEW.status), ''));
 
     IF COALESCE(v_plan.price, 0) <= 0 THEN
         NEW.status := 'approved';
@@ -341,17 +364,31 @@ BEGIN
         NEW.payment_reference := NULL;
         NEW.payment_proof_url := NULL;
     ELSE
-        NEW.status := 'pending_review';
-
-        IF LOWER(COALESCE(TRIM(NEW.payment_method), '')) NOT IN ('moncash_manual', 'natcash_manual') THEN
-            RAISE EXCEPTION 'Paid plans require MonCash manual or NatCash manual';
+        IF TG_OP = 'INSERT' THEN
+            NEW.status := CASE
+                WHEN v_requested_status = 'draft' THEN 'draft'
+                ELSE 'pending_review'
+            END;
+        ELSE
+            NEW.status := CASE
+                WHEN v_requested_status IN ('approved', 'rejected', 'cancelled', 'draft', 'pending_review') THEN
+                    v_requested_status
+                ELSE
+                    COALESCE(NULLIF(OLD.status, ''), 'pending_review')
+            END;
         END IF;
 
-        IF COALESCE(TRIM(NEW.payment_first_name), '') = ''
-            OR COALESCE(TRIM(NEW.payment_last_name), '') = ''
-            OR COALESCE(TRIM(NEW.payment_reference), '') = ''
-            OR COALESCE(TRIM(NEW.payment_proof_url), '') = '' THEN
-            RAISE EXCEPTION 'Payment identity and proof are required for paid plans';
+        IF NEW.status IN ('pending_review', 'approved') THEN
+            IF LOWER(COALESCE(TRIM(NEW.payment_method), '')) NOT IN ('moncash_manual', 'natcash_manual') THEN
+                RAISE EXCEPTION 'Paid plans require MonCash manual or NatCash manual';
+            END IF;
+
+            IF COALESCE(TRIM(NEW.payment_first_name), '') = ''
+                OR COALESCE(TRIM(NEW.payment_last_name), '') = ''
+                OR COALESCE(TRIM(NEW.payment_reference), '') = ''
+                OR COALESCE(TRIM(NEW.payment_proof_url), '') = '' THEN
+                RAISE EXCEPTION 'Payment identity and proof are required for paid plans';
+            END IF;
         END IF;
     END IF;
 
@@ -394,7 +431,8 @@ BEGIN
             current_plan_status = 'active',
             current_plan_request_id = NULL,
             requested_plan_id = NULL,
-            plan_started_at = COALESCE(s.plan_started_at, NOW()),
+            plan_selection_completed = TRUE,
+            plan_started_at = NOW(),
             plan_expires_at = public.compute_seller_plan_expires_at(v_plan.billing_interval),
             plan_payment_method = NEW.payment_method,
             plan_payment_first_name = NEW.payment_first_name,
@@ -410,6 +448,8 @@ BEGIN
             current_plan_status = 'active',
             current_plan_request_id = NEW.id,
             requested_plan_id = NEW.plan_id,
+            plan_selection_completed = TRUE,
+            plan_started_at = COALESCE(s.plan_started_at, NOW()),
             plan_payment_method = NEW.payment_method,
             plan_payment_first_name = NEW.payment_first_name,
             plan_payment_last_name = NEW.payment_last_name,
@@ -427,6 +467,8 @@ BEGIN
             END,
             current_plan_request_id = NULL,
             requested_plan_id = NULL,
+            plan_selection_completed = TRUE,
+            plan_started_at = COALESCE(s.plan_started_at, NOW()),
             plan_payment_method = NULL,
             plan_payment_first_name = NULL,
             plan_payment_last_name = NULL,

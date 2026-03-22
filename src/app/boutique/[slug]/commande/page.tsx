@@ -12,7 +12,6 @@ import {
   Package,
   Plus,
   Store,
-  Truck,
   Upload,
   Image as ImageIcon,
 } from "lucide-react";
@@ -53,6 +52,26 @@ const steps = [
   { id: "payment", label: "Paiement" },
   { id: "confirmation", label: "Confirmation" },
 ];
+
+function buildPickupFallbackAddress(
+  customer: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+  },
+  businessName: string,
+  pickupAddressText?: string,
+): Address {
+  return {
+    firstName: customer.firstName,
+    lastName: customer.lastName,
+    address: pickupAddressText || `Retrait en magasin - ${businessName}`,
+    city: businessName,
+    postalCode: "",
+    country: "Haiti",
+    phone: customer.phone || "",
+  };
+}
 
 export default function BoutiqueCheckoutPage() {
   const store = useBoutiqueStore();
@@ -144,6 +163,19 @@ export default function BoutiqueCheckoutPage() {
       selectedAddress?.longitude,
     );
   const { data: pickupInfo } = useCartPickupInfo(boutiqueItems, settings);
+  const availableFulfillmentModes = useMemo(() => {
+    const modes: Array<"delivery" | "pickup"> = [];
+
+    if (pickupInfo?.allowDelivery ?? true) {
+      modes.push("delivery");
+    }
+
+    if (pickupInfo?.allowPickup) {
+      modes.push("pickup");
+    }
+
+    return modes;
+  }, [pickupInfo?.allowDelivery, pickupInfo?.allowPickup]);
   const availablePaymentMethods = useMemo(
     () =>
       boutiquePaymentMethods.filter((method) =>
@@ -176,10 +208,14 @@ export default function BoutiqueCheckoutPage() {
     Boolean(selectedPaymentMethodDefinition?.requiresManualEntry);
 
   useEffect(() => {
-    if (deliveryMode === "pickup" && !pickupInfo?.allowPickup) {
-      setDeliveryMode("delivery");
+    if (!availableFulfillmentModes.length) {
+      return;
     }
-  }, [deliveryMode, pickupInfo?.allowPickup]);
+
+    if (!availableFulfillmentModes.includes(deliveryMode)) {
+      setDeliveryMode(availableFulfillmentModes[0]);
+    }
+  }, [availableFulfillmentModes, deliveryMode]);
 
   useEffect(() => {
     if (availablePaymentMethods.length === 0) {
@@ -205,10 +241,22 @@ export default function BoutiqueCheckoutPage() {
 
   const freeShippingThreshold = settings?.freeShippingThreshold || 0;
   const isActuallyFree = freeShippingThreshold > 0 && boutiqueSubtotal >= freeShippingThreshold;
-  const shippingAmount = deliveryMode === "pickup" ? 0 : isActuallyFree ? 0 : dynamicShippingFee;
+  const shippingAmount =
+    deliveryMode === "pickup" || !availableFulfillmentModes.includes("delivery")
+      ? 0
+      : isActuallyFree
+        ? 0
+        : dynamicShippingFee;
   const taxRate = settings?.taxRate || 0;
   const taxAmount = (boutiqueSubtotal * taxRate) / 100;
   const finalTotal = boutiqueSubtotal + shippingAmount + taxAmount;
+  const pickupFallbackAddress = session
+    ? buildPickupFallbackAddress(
+        session.customer,
+        store.businessName,
+        pickupInfo?.pickupAddressText,
+      )
+    : null;
 
   const recommendations = boutiqueProducts
     .filter((product) => !boutiqueItems.some((item) => item.product.id === product.id))
@@ -259,7 +307,7 @@ export default function BoutiqueCheckoutPage() {
             Connectez-vous a cette boutique
           </h1>
           <p className="mt-4 text-neutral-500">
-            Pour commander chez {store.businessName}, vous devez d'abord vous connecter ou vous inscrire via le compte client de cette boutique.
+            Pour commander chez {store.businessName}, vous devez d&apos;abord vous connecter ou vous inscrire via le compte client de cette boutique.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href={clientRedirectHref}>
@@ -337,6 +385,19 @@ export default function BoutiqueCheckoutPage() {
 
         setIsProcessing(true);
         try {
+          const orderShippingAddress =
+            deliveryMode === "delivery"
+              ? selectedAddress
+              : selectedAddress || pickupFallbackAddress;
+
+          if (!orderShippingAddress) {
+            throw new Error(
+              deliveryMode === "delivery"
+                ? "Ajoutez une adresse de livraison avant de continuer."
+                : "Impossible de preparer les coordonnees de retrait pour cette commande.",
+            );
+          }
+
           let proofPath = paymentProofUrl;
 
           if (selectedPaymentMethodDefinition.requiresManualEntry && paymentFile) {
@@ -354,7 +415,7 @@ export default function BoutiqueCheckoutPage() {
             paymentProofUrl: selectedPaymentMethodDefinition.requiresManualEntry
               ? proofPath
               : undefined,
-            shippingAddress: selectedAddress,
+            shippingAddress: orderShippingAddress,
             items: boutiqueItems.map((item) => ({
               productId: item.product.id,
               quantity: item.quantity,
@@ -504,9 +565,9 @@ export default function BoutiqueCheckoutPage() {
               <section className="space-y-6 rounded-[2rem] border border-neutral-200 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-neutral-900">
-                    {deliveryMode === "pickup" ? "Coordonnees de facturation" : "Adresse de livraison"}
+                    {deliveryMode === "pickup" ? "Retrait en boutique" : "Adresse de livraison"}
                   </h2>
-                  {boutiqueAddresses.length > 0 && !isAddingAddress ? (
+                  {deliveryMode === "delivery" && boutiqueAddresses.length > 0 && !isAddingAddress ? (
                     <Button variant="outline" size="sm" onClick={() => setIsAddingAddress(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Nouvelle adresse
@@ -514,7 +575,7 @@ export default function BoutiqueCheckoutPage() {
                   ) : null}
                 </div>
 
-                {pickupInfo?.allowPickup ? (
+                {availableFulfillmentModes.length > 1 ? (
                   <div className="flex rounded-full bg-neutral-100 p-1">
                     <button
                       type="button"
@@ -537,9 +598,32 @@ export default function BoutiqueCheckoutPage() {
                       Retrait
                     </button>
                   </div>
+                ) : availableFulfillmentModes.length === 1 ? (
+                  <div className="rounded-full bg-neutral-100 px-4 py-2 text-center text-sm font-medium text-neutral-700">
+                    Mode disponible: {availableFulfillmentModes[0] === "delivery" ? "Livraison" : "Retrait en magasin"}
+                  </div>
                 ) : null}
 
-                {isAddingAddress ? (
+                {availableFulfillmentModes.length === 0 ? (
+                  <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+                    {pickupInfo?.message || "Cette boutique n'accepte pas encore les commandes."}
+                  </div>
+                ) : deliveryMode === "pickup" ? (
+                  <div className="rounded-[1.5rem] border border-neutral-200 bg-neutral-50 p-5">
+                    <div className="flex items-start gap-3">
+                      <Store className="mt-0.5 h-5 w-5 text-neutral-600" />
+                      <div className="space-y-2 text-sm">
+                        <p className="font-medium text-neutral-900">Adresse de retrait</p>
+                        <p className="rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-500">
+                          {pickupInfo?.pickupAddressText || "Adresse du point de retrait non renseignee."}
+                        </p>
+                        <p className="text-neutral-500">
+                          Votre commande sera preparee puis remise sur place par la boutique.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : isAddingAddress ? (
                   <AddressForm
                     onSubmit={handleAddAddress}
                     onCancel={() => setIsAddingAddress(false)}
@@ -805,7 +889,10 @@ export default function BoutiqueCheckoutPage() {
                   isLoading={isProcessing}
                   fullWidth
                   disabled={
-                    (currentStep === 0 && !selectedAddress) ||
+                    (currentStep === 0 &&
+                      deliveryMode === "delivery" &&
+                      !selectedAddress) ||
+                    (currentStep === 0 && availableFulfillmentModes.length === 0) ||
                     (currentStep === 1 &&
                       (paymentMethodsLoading ||
                         availablePaymentMethods.length === 0 ||
@@ -828,10 +915,10 @@ export default function BoutiqueCheckoutPage() {
                 Recapitulatif
               </h3>
 
-              {selectedAddress ? (
+              {deliveryMode === "delivery" && selectedAddress ? (
                 <div className="rounded-[1.5rem] bg-neutral-50 p-4 text-sm text-neutral-600">
                   <p className="font-medium text-neutral-900">
-                    {deliveryMode === "pickup" ? "Client" : "Livrer a"}
+                    Livrer a
                   </p>
                   <p className="mt-2">
                     {selectedAddress.firstName} {selectedAddress.lastName}
@@ -840,7 +927,7 @@ export default function BoutiqueCheckoutPage() {
                 </div>
               ) : null}
 
-              {!selectedAddress ? (
+              {deliveryMode === "delivery" && !selectedAddress ? (
                 <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800">
                   Ajoutez une adresse dans votre espace client boutique avant de confirmer cette commande.
                 </div>
@@ -848,21 +935,26 @@ export default function BoutiqueCheckoutPage() {
 
               {boutiqueItems.length > 0 ? (
                 <div className="rounded-[1.5rem] bg-neutral-50 p-4 text-sm text-neutral-600">
-                  {deliveryMode === "delivery" ? (
+                  {deliveryMode === "delivery" && availableFulfillmentModes.includes("delivery") ? (
                     <>
                       <p className="font-medium text-neutral-900">Livraison estimee</p>
                       <p className="mt-2">Prevue du {deliveryRange}</p>
                     </>
-                  ) : (
+                  ) : availableFulfillmentModes.includes("pickup") ? (
                     <>
                       <p className="font-medium text-neutral-900">Point de retrait</p>
                       <p className="mt-2">{pickupInfo?.pickupAddressText || "Adresse du point de retrait non renseignee."}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium text-neutral-900">Commande indisponible</p>
+                      <p className="mt-2">{pickupInfo?.message || "Cette boutique n'accepte pas encore les commandes."}</p>
                     </>
                   )}
                 </div>
               ) : null}
 
-              {!pickupInfo?.allowPickup && pickupInfo?.message ? (
+              {availableFulfillmentModes.length === 0 && pickupInfo?.message ? (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
                   {pickupInfo.message}
                 </div>
@@ -874,7 +966,7 @@ export default function BoutiqueCheckoutPage() {
                   <span>{formatPrice(boutiqueSubtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-600">Livraison</span>
+                  <span className="text-neutral-600">{deliveryMode === "pickup" ? "Retrait" : "Livraison"}</span>
                   <span>{isShippingLoading ? "Calcul..." : shippingAmount === 0 ? "Gratuite" : formatPrice(shippingAmount)}</span>
                 </div>
                 {taxRate > 0 ? (

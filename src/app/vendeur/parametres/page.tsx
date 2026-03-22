@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   CheckCircle2,
@@ -20,7 +21,14 @@ import {
   SELLER_PAYMENT_METHODS,
   type SellerPaymentMethodCode,
 } from "@/data/paymentMethods";
+import { SellerSetupRequiredModal } from "@/components/seller/SellerSetupRequiredModal";
 import haitiData from "@/data/haitiData.json";
+import {
+  BOUTIQUE_THEMES,
+  DEFAULT_BOUTIQUE_THEME_SLUG,
+  buildStorefrontThemeConfig,
+} from "@/data/boutiqueThemes";
+import { getSellerSetupStatus } from "@/data/sellerSetup";
 import type { SellerPaymentMethod } from "@/data/types";
 import { uploadImage } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -61,6 +69,8 @@ type ProfileFormState = {
   lastName: string;
   phone: string;
   avatar: string;
+  logo: string;
+  storefrontThemeSlug: string;
   businessName: string;
   storeSlug: string;
   description: string;
@@ -79,6 +89,7 @@ type ShippingFormState = {
   longitude?: number;
   basePrice: string;
   pricePerKm: string;
+  allowDelivery: boolean;
   allowPickup: boolean;
   pickupAddress: string;
   pickupCity: string;
@@ -106,7 +117,9 @@ const defaultNotificationSettings: SellerNotificationSettings = {
   newsletter: true,
 };
 
-function buildDefaultPaymentFormState(rows: SellerPaymentMethod[] = []): PaymentFormState {
+function buildDefaultPaymentFormState(
+  rows: SellerPaymentMethod[] = [],
+): PaymentFormState {
   return {
     confirmCorrect: false,
     methods: Object.fromEntries(
@@ -169,7 +182,9 @@ function getErrorMessage(error: unknown, fallback: string) {
 
     const parts = [
       typeof candidate.message === "string" ? candidate.message : null,
-      typeof candidate.details === "string" ? `Details: ${candidate.details}` : null,
+      typeof candidate.details === "string"
+        ? `Details: ${candidate.details}`
+        : null,
       typeof candidate.hint === "string" ? `Hint: ${candidate.hint}` : null,
       typeof candidate.code === "string" ? `Code: ${candidate.code}` : null,
     ].filter(Boolean);
@@ -213,10 +228,17 @@ function normalizeStoreSlug(value: string) {
 }
 
 export default function SellerSettingsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setupQuery = searchParams.get("setup");
+  const focusQuery = searchParams.get("focus");
+  const redirectQuery = searchParams.get("redirect");
   const { data: account, isLoading } = useCurrentAccountQuery();
   const { data: application } = useSellerApplicationQuery();
-  const { data: sellerPaymentMethods = [], isLoading: sellerPaymentMethodsLoading } =
-    useSellerPaymentMethodsQuery(account?.seller?.id);
+  const {
+    data: sellerPaymentMethods = [],
+    isLoading: sellerPaymentMethodsLoading,
+  } = useSellerPaymentMethodsQuery(account?.seller?.id);
   const updateAccountMutation = useUpdateAccountProfileMutation();
   const updateSellerMutation = useUpdateSellerProfileMutation();
   const upsertPaymentMethodsMutation = useUpsertSellerPaymentMethodsMutation();
@@ -226,13 +248,17 @@ export default function SellerSettingsPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [profileForm, setProfileForm] = useState<ProfileFormState | null>(null);
-  const [shippingForm, setShippingForm] = useState<ShippingFormState | null>(null);
+  const [shippingForm, setShippingForm] = useState<ShippingFormState | null>(
+    null,
+  );
   const [paymentForm, setPaymentForm] = useState<PaymentFormState | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showSetupModal, setShowSetupModal] = useState(false);
 
   const locationOptions = useMemo(() => {
-    const raw = (((haitiData as unknown) as { default?: HaitiLocation[] }).default ||
-      (haitiData as HaitiLocation[])) as HaitiLocation[];
+    const raw = ((haitiData as unknown as { default?: HaitiLocation[] })
+      .default || (haitiData as HaitiLocation[])) as HaitiLocation[];
 
     const seen = new Set<string>();
 
@@ -268,6 +294,9 @@ export default function SellerSettingsPage() {
       lastName: account.lastName || "",
       phone: account.phone || "",
       avatar: account.avatar || "",
+      logo: account.seller?.logo || "",
+      storefrontThemeSlug:
+        account.seller?.storefrontThemeSlug || DEFAULT_BOUTIQUE_THEME_SLUG,
       businessName: account.seller?.businessName || "",
       storeSlug:
         account.seller?.storeSlug ||
@@ -289,12 +318,15 @@ export default function SellerSettingsPage() {
       longitude: account.seller?.shippingSettings?.longitude,
       basePrice: String(account.seller?.shippingSettings?.basePrice ?? 0),
       pricePerKm: String(account.seller?.shippingSettings?.pricePerKm ?? 0),
+      allowDelivery: Boolean(account.seller?.shippingSettings?.allowDelivery),
       allowPickup: Boolean(account.seller?.shippingSettings?.allowPickup),
       pickupAddress: account.seller?.pickupAddress?.address || "",
       pickupCity: account.seller?.pickupAddress?.city || "",
       pickupCountry: account.seller?.pickupAddress?.country || "Haiti",
       pickupPhone:
-        account.seller?.pickupAddress?.phone || account.seller?.contactPhone || "",
+        account.seller?.pickupAddress?.phone ||
+        account.seller?.contactPhone ||
+        "",
     });
   }, [account]);
 
@@ -304,7 +336,51 @@ export default function SellerSettingsPage() {
     }
 
     setPaymentForm(buildDefaultPaymentFormState(sellerPaymentMethods));
-  }, [account?.seller, sellerPaymentMethods, sellerPaymentMethodsLoading, paymentForm]);
+  }, [
+    account?.seller,
+    sellerPaymentMethods,
+    sellerPaymentMethodsLoading,
+    paymentForm,
+  ]);
+
+  const setupStatus = useMemo(
+    () => getSellerSetupStatus(account?.seller, sellerPaymentMethods),
+    [account?.seller, sellerPaymentMethods],
+  );
+
+  useEffect(() => {
+    if (
+      focusQuery === "shipping" ||
+      focusQuery === "payments" ||
+      focusQuery === "profile" ||
+      focusQuery === "kyc"
+    ) {
+      setActiveTab(focusQuery as SellerTab);
+    }
+  }, [focusQuery]);
+
+  useEffect(() => {
+    if (setupStatus.isComplete) {
+      setShowSetupModal(false);
+      return;
+    }
+
+    if (setupQuery === "required") {
+      setShowSetupModal(true);
+      setActiveTab(setupStatus.shippingReady ? "payments" : "shipping");
+    }
+  }, [
+    setupQuery,
+    setupStatus.isComplete,
+    setupStatus.paymentsReady,
+    setupStatus.shippingReady,
+  ]);
+
+  useEffect(() => {
+    if (setupStatus.isComplete && redirectQuery) {
+      router.replace(redirectQuery);
+    }
+  }, [redirectQuery, router, setupStatus.isComplete]);
 
   if (isLoading || !profileForm || !shippingForm || !paymentForm) {
     return (
@@ -326,8 +402,9 @@ export default function SellerSettingsPage() {
         description="Votre espace vendeur n'est pas encore disponible."
       >
         <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-          Ce compte n'a pas encore de profil vendeur actif. Finalisez votre dossier vendeur
-          pour gerer le profil, la livraison et vos documents KYC.
+          Ce compte n&apos;a pas encore de profil vendeur actif. Finalisez votre
+          dossier vendeur pour gerer le profil, la livraison et vos documents
+          KYC.
         </div>
       </SellerWorkspaceShell>
     );
@@ -339,6 +416,10 @@ export default function SellerSettingsPage() {
   const currentShipping = shippingForm!;
   const boutiqueSlug = normalizeStoreSlug(currentProfile.storeSlug || "");
   const boutiquePath = boutiqueSlug ? `/boutique/${boutiqueSlug}` : null;
+  const selectedTheme =
+    BOUTIQUE_THEMES.find(
+      (theme) => theme.slug === currentProfile.storefrontThemeSlug,
+    ) || BOUTIQUE_THEMES[0];
 
   const selectedLocationValue = currentShipping.locationName
     ? `${currentShipping.locationName}|${currentShipping.locationType || ""}|${currentShipping.locationDept || ""}|${currentShipping.latitude ?? ""}|${currentShipping.longitude ?? ""}`
@@ -390,9 +471,52 @@ export default function SellerSettingsPage() {
       );
       setFeedback("Photo de profil mise a jour.");
     } catch (uploadError) {
-      setError(getErrorMessage(uploadError, "Impossible d'envoyer la photo de profil."));
+      setError(
+        getErrorMessage(
+          uploadError,
+          "Impossible d'envoyer la photo de profil.",
+        ),
+      );
     } finally {
       setUploadingAvatar(false);
+    }
+  }
+
+  async function handleBoutiqueLogoUpload(file?: File | null) {
+    if (!file || !account?.seller?.id) {
+      return;
+    }
+
+    setError(null);
+    setFeedback(null);
+    setUploadingLogo(true);
+
+    try {
+      const extension = file.name.split(".").pop() || "jpg";
+      const logoUrl = await uploadImage(
+        "avatars",
+        `seller-logos/${account.seller.id}/boutique-logo-${Date.now()}.${extension}`,
+        file,
+      );
+
+      if (!logoUrl) {
+        throw new Error("Le televersement du logo boutique a echoue.");
+      }
+
+      await updateSellerMutation.mutateAsync({ logo: logoUrl });
+      setProfileForm((current) =>
+        current
+          ? {
+              ...current,
+              logo: logoUrl,
+            }
+          : current,
+      );
+      setFeedback("Logo de la boutique mis a jour.");
+    } catch (uploadError) {
+      setError(getErrorMessage(uploadError, "Impossible d'envoyer le logo boutique."));
+    } finally {
+      setUploadingLogo(false);
     }
   }
 
@@ -410,6 +534,12 @@ export default function SellerSettingsPage() {
       await updateSellerMutation.mutateAsync({
         businessName: currentProfile.businessName.trim(),
         storeSlug: normalizeStoreSlug(currentProfile.storeSlug.trim()),
+        logo: currentProfile.logo.trim() || null,
+        storefrontThemeSlug: currentProfile.storefrontThemeSlug,
+        storefrontThemeConfig: buildStorefrontThemeConfig(
+          currentProfile.storefrontThemeSlug,
+          account?.seller?.storefrontThemeConfig || null,
+        ),
         description: currentProfile.description.trim(),
         contactPerson: currentProfile.contactPerson.trim(),
         contactPhone: currentProfile.contactPhone.trim(),
@@ -420,7 +550,12 @@ export default function SellerSettingsPage() {
 
       setFeedback("Profil vendeur enregistre rapidement avec succes.");
     } catch (saveError) {
-      setError(getErrorMessage(saveError, "Impossible d'enregistrer le profil vendeur."));
+      setError(
+        getErrorMessage(
+          saveError,
+          "Impossible d'enregistrer le profil vendeur.",
+        ),
+      );
     }
   }
 
@@ -428,8 +563,8 @@ export default function SellerSettingsPage() {
     setError(null);
     setFeedback(null);
 
-    if (!currentShipping.locationName.trim()) {
-      setError("Choisissez votre localisation pivot pour la livraison dynamique.");
+    if (!currentShipping.allowDelivery && !currentShipping.allowPickup) {
+      setError("Activez au moins la livraison ou le retrait en magasin.");
       setActiveTab("shipping");
       return;
     }
@@ -437,28 +572,64 @@ export default function SellerSettingsPage() {
     const basePrice = Number(currentShipping.basePrice);
     const pricePerKm = Number(currentShipping.pricePerKm);
 
-    if (!Number.isFinite(basePrice) || !Number.isFinite(pricePerKm)) {
-      setError("Les frais de base et le prix par kilometre doivent etre valides.");
-      setActiveTab("shipping");
-      return;
+    if (currentShipping.allowDelivery) {
+      if (!currentShipping.locationName.trim()) {
+        setError(
+          "Choisissez votre localisation pivot pour la livraison dynamique.",
+        );
+        setActiveTab("shipping");
+        return;
+      }
+
+      if (!Number.isFinite(basePrice) || !Number.isFinite(pricePerKm)) {
+        setError(
+          "Les frais de base et le prix par kilometre doivent etre valides.",
+        );
+        setActiveTab("shipping");
+        return;
+      }
+
+      if (
+        currentShipping.latitude === undefined ||
+        currentShipping.longitude === undefined
+      ) {
+        setError(
+          "La livraison exige une localisation complete avec latitude et longitude.",
+        );
+        setActiveTab("shipping");
+        return;
+      }
     }
 
     if (currentShipping.allowPickup && !currentShipping.pickupAddress.trim()) {
-      setError("Ajoutez l'adresse de retrait si le retrait en magasin est active.");
+      setError(
+        "Ajoutez l'adresse de retrait si le retrait en magasin est active.",
+      );
       setActiveTab("shipping");
       return;
     }
 
     const shippingSettings: SellerShippingSettings = {
       freeShipping: false,
+      allowDelivery: currentShipping.allowDelivery,
       allowPickup: currentShipping.allowPickup,
-      basePrice,
-      pricePerKm,
-      locationName: currentShipping.locationName.trim(),
-      locationType: currentShipping.locationType.trim() || undefined,
-      locationDept: currentShipping.locationDept.trim() || undefined,
-      latitude: currentShipping.latitude,
-      longitude: currentShipping.longitude,
+      basePrice: currentShipping.allowDelivery ? basePrice : 0,
+      pricePerKm: currentShipping.allowDelivery ? pricePerKm : 0,
+      locationName: currentShipping.allowDelivery
+        ? currentShipping.locationName.trim()
+        : undefined,
+      locationType: currentShipping.allowDelivery
+        ? currentShipping.locationType.trim() || undefined
+        : undefined,
+      locationDept: currentShipping.allowDelivery
+        ? currentShipping.locationDept.trim() || undefined
+        : undefined,
+      latitude: currentShipping.allowDelivery
+        ? currentShipping.latitude
+        : undefined,
+      longitude: currentShipping.allowDelivery
+        ? currentShipping.longitude
+        : undefined,
     };
 
     const pickupAddress: Address | null = currentShipping.allowPickup
@@ -466,10 +637,14 @@ export default function SellerSettingsPage() {
           firstName: currentProfile.firstName || "Retrait",
           lastName: currentProfile.lastName || "Boutique",
           address: currentShipping.pickupAddress.trim(),
-          city: currentShipping.pickupCity.trim() || currentShipping.locationName.trim(),
+          city:
+            currentShipping.pickupCity.trim() ||
+            currentShipping.locationName.trim(),
           postalCode: "",
           country: currentShipping.pickupCountry.trim() || "Haiti",
-          phone: currentShipping.pickupPhone.trim() || currentProfile.contactPhone.trim(),
+          phone:
+            currentShipping.pickupPhone.trim() ||
+            currentProfile.contactPhone.trim(),
         }
       : null;
 
@@ -480,7 +655,9 @@ export default function SellerSettingsPage() {
       });
       setFeedback("Configuration livraison vendeur enregistree.");
     } catch (saveError) {
-      setError(getErrorMessage(saveError, "Impossible d'enregistrer la livraison."));
+      setError(
+        getErrorMessage(saveError, "Impossible d'enregistrer la livraison."),
+      );
     }
   }
 
@@ -489,7 +666,9 @@ export default function SellerSettingsPage() {
     setFeedback(null);
 
     if (!paymentForm?.confirmCorrect) {
-      setError("Confirmez que toutes les informations sont correctes avant de creer.");
+      setError(
+        "Confirmez que toutes les informations sont correctes avant de creer.",
+      );
       setActiveTab("payments");
       return;
     }
@@ -499,10 +678,16 @@ export default function SellerSettingsPage() {
       return;
     }
 
+    if (!Object.values(paymentForm.methods).some((method) => method.isActive)) {
+      setError("Activez au moins un mode de paiement pour votre boutique.");
+      setActiveTab("payments");
+      return;
+    }
+
     try {
       const allowPickup = Boolean(
         currentAccount.seller?.shippingSettings?.allowPickup &&
-          currentAccount.seller?.pickupAddress,
+        currentAccount.seller?.pickupAddress,
       );
 
       const payload = SELLER_PAYMENT_METHODS.map((definition) => {
@@ -520,14 +705,19 @@ export default function SellerSettingsPage() {
         }
 
         if (isActive && definition.requiresManualEntry) {
-          if (!draft.merchantFirstName.trim() || !draft.merchantLastName.trim()) {
+          if (
+            !draft.merchantFirstName.trim() ||
+            !draft.merchantLastName.trim()
+          ) {
             throw new Error(
               `Le prenom et le nom sont obligatoires pour ${definition.label}.`,
             );
           }
 
           if (!/^[0-9]{6}$/.test(draft.merchantAgentCode.trim())) {
-            throw new Error("Le code agent doit contenir exactement 6 chiffres.");
+            throw new Error(
+              "Le code agent doit contenir exactement 6 chiffres.",
+            );
           }
         }
 
@@ -551,7 +741,12 @@ export default function SellerSettingsPage() {
       );
       setFeedback("Modes de paiement enregistres pour votre boutique.");
     } catch (saveError) {
-      setError(getErrorMessage(saveError, "Impossible d'enregistrer les modes de paiement."));
+      setError(
+        getErrorMessage(
+          saveError,
+          "Impossible d'enregistrer les modes de paiement.",
+        ),
+      );
       setActiveTab("payments");
     }
   }
@@ -577,7 +772,10 @@ export default function SellerSettingsPage() {
     );
   }
 
-  async function handleKycUpload(type: SellerKycDocumentType, file?: File | null) {
+  async function handleKycUpload(
+    type: SellerKycDocumentType,
+    file?: File | null,
+  ) {
     if (!file) {
       return;
     }
@@ -593,7 +791,9 @@ export default function SellerSettingsPage() {
       });
       setFeedback("Document KYC envoye avec succes.");
     } catch (uploadError) {
-      setError(getErrorMessage(uploadError, "Impossible d'envoyer le document KYC."));
+      setError(
+        getErrorMessage(uploadError, "Impossible d'envoyer le document KYC."),
+      );
       setActiveTab("kyc");
     }
   }
@@ -606,7 +806,9 @@ export default function SellerSettingsPage() {
         activeTab === "profile" ? (
           <Button
             onClick={handleProfileSave}
-            isLoading={updateAccountMutation.isPending || updateSellerMutation.isPending}
+            isLoading={
+              updateAccountMutation.isPending || updateSellerMutation.isPending
+            }
             className="gap-2"
           >
             <Save className="h-4 w-4" />
@@ -649,15 +851,33 @@ export default function SellerSettingsPage() {
         />
         <StatusCard
           icon={<Truck className="h-5 w-5" />}
-          label="Expedition"
+          label="Reception"
           value={
-            shippingForm.locationName
-              ? `${shippingForm.locationName} - ${shippingForm.basePrice} HTG`
+            setupStatus.availableModes.length > 0
+              ? setupStatus.availableModes
+                  .map((mode) =>
+                    mode === "delivery" ? "Livraison" : "Retrait",
+                  )
+                  .join(" + ")
               : "A configurer"
           }
           tone="bg-sky-50 text-sky-700 border-sky-200"
         />
       </div>
+
+      {!setupStatus.isComplete ? (
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertCircle className="h-4 w-4" />
+            Configuration boutique obligatoire
+          </div>
+          <p className="mt-2 leading-6 text-amber-800">
+            Avant de vendre, vous devez configurer au moins un mode de reception
+            et un mode de paiement actif. Utilisez les onglets Livraison et
+            Paiements ci-dessous pour terminer votre boutique.
+          </p>
+        </div>
+      ) : null}
 
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -670,6 +890,14 @@ export default function SellerSettingsPage() {
           {feedback}
         </div>
       ) : null}
+
+      <SellerSetupRequiredModal
+        open={showSetupModal && !setupStatus.isComplete}
+        status={setupStatus}
+        onClose={() => setShowSetupModal(false)}
+        onFocusShipping={() => setActiveTab("shipping")}
+        onFocusPayments={() => setActiveTab("payments")}
+      />
 
       <div className="flex flex-wrap gap-2 rounded-3xl border border-neutral-200 bg-white p-2">
         {[
@@ -699,23 +927,28 @@ export default function SellerSettingsPage() {
         <div className="grid gap-6 xl:grid-cols-[1.05fr_1.45fr]">
           <section className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900">Profil rapide</h2>
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Profil rapide
+              </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Modifiez votre photo profil et vos coordonnees principales sans passer
-                par l'admin.
+                Modifiez votre photo profil et vos coordonnees principales sans
+                passer par l&apos;admin.
               </p>
             </div>
 
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
                 {profileForm.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={profileForm.avatar}
                     alt="Profil vendeur"
-                    className="h-full w-full object-cover"
+                    className="block h-full w-full rounded-full object-cover object-center"
                   />
                 ) : (
-                  <UserCircle2 className="h-14 w-14 text-neutral-400" />
+                  <div className="flex h-full w-full items-center justify-center">
+                    <UserCircle2 className="h-14 w-14 text-neutral-400" />
+                  </div>
                 )}
               </div>
               <div className="space-y-2">
@@ -726,13 +959,15 @@ export default function SellerSettingsPage() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(event) => handleAvatarUpload(event.target.files?.[0])}
+                    onChange={(event) =>
+                      handleAvatarUpload(event.target.files?.[0])
+                    }
                     disabled={uploadingAvatar}
                   />
                 </label>
                 <p className="text-xs text-neutral-500">
-                  Cette photo utilise votre profil utilisateur et reste visible dans votre
-                  espace vendeur.
+                  Cette photo utilise votre profil utilisateur et reste visible
+                  dans votre espace vendeur.
                 </p>
               </div>
             </div>
@@ -742,7 +977,10 @@ export default function SellerSettingsPage() {
                 <input
                   value={profileForm.firstName}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, firstName: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      firstName: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
@@ -751,7 +989,10 @@ export default function SellerSettingsPage() {
                 <input
                   value={profileForm.lastName}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, lastName: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      lastName: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
@@ -760,23 +1001,180 @@ export default function SellerSettingsPage() {
                 <input
                   value={profileForm.phone}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, phone: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      phone: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
               </Field>
               <Field label="Email du compte">
-                <input value={account.email} disabled className={`${inputClassName} bg-neutral-50`} />
+                <input
+                  value={account.email}
+                  disabled
+                  className={`${inputClassName} bg-neutral-50`}
+                />
               </Field>
             </div>
           </section>
 
           <section className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900">Boutique et paiements</h2>
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Boutique et paiements
+              </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Gardez vos informations vendeur, votre lien boutique, vos notifications et votre paiement a jour.
+                Gardez vos informations vendeur, votre lien boutique, vos
+                notifications et votre paiement a jour.
               </p>
+            </div>
+
+            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-white">
+                    {profileForm.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={profileForm.logo}
+                        alt="Logo de la boutique"
+                        className="block h-full w-full object-cover object-center"
+                      />
+                    ) : (
+                      <Store className="h-8 w-8 text-neutral-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-neutral-900">Logo de la boutique</h3>
+                    <p className="mt-1 text-sm leading-6 text-neutral-500">
+                      Ce logo sera affiche uniquement sur votre boutique publique et dans sa
+                      navigation.
+                    </p>
+                  </div>
+                </div>
+
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100">
+                  <Upload className="h-4 w-4" />
+                  {uploadingLogo ? "Envoi..." : "Changer le logo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingLogo}
+                    onChange={(event) =>
+                      void handleBoutiqueLogoUpload(event.target.files?.[0])
+                    }
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="font-medium text-neutral-900">
+                    Theme de la boutique
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-neutral-500">
+                    Choisissez le design par defaut de votre storefront. Le hero,
+                    la navigation, les cartes produits et le footer suivront ce
+                    theme.
+                  </p>
+                </div>
+                <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600">
+                  {selectedTheme.previewLabel}
+                </div>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-3">
+                {BOUTIQUE_THEMES.map((theme) => {
+                  const isActive =
+                    profileForm.storefrontThemeSlug === theme.slug;
+
+                  return (
+                    <button
+                      key={theme.slug}
+                      type="button"
+                      onClick={() =>
+                        setProfileForm({
+                          ...profileForm,
+                          storefrontThemeSlug: theme.slug,
+                        })
+                      }
+                      className={cn(
+                        "overflow-hidden rounded-[1.75rem] border text-left transition hover:-translate-y-1",
+                        isActive
+                          ? "border-neutral-900 shadow-[0_16px_40px_rgba(15,15,15,0.12)]"
+                          : "border-neutral-200 hover:border-neutral-300",
+                      )}
+                    >
+                      <div
+                        className="relative h-40 border-b"
+                        style={{
+                          backgroundColor: theme.palette.heroBase,
+                          borderColor: theme.palette.border,
+                        }}
+                      >
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: theme.palette.heroOverlay,
+                          }}
+                        />
+                        <div className="relative flex h-full flex-col justify-between p-5 text-white">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-white/85">
+                              {theme.previewLabel}
+                            </span>
+                            {isActive ? (
+                              <span className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-900">
+                                Actif
+                              </span>
+                            ) : null}
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">
+                              {theme.hero.eyebrow}
+                            </p>
+                            <h4 className="mt-2 text-xl font-semibold">
+                              {theme.name}
+                            </h4>
+                            <p className="mt-2 max-w-xs text-xs leading-5 text-white/72">
+                              {theme.shortDescription}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 p-5">
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            theme.palette.pageBackground,
+                            theme.palette.surface,
+                            theme.palette.accent,
+                            theme.palette.footerBackground,
+                          ].map((color) => (
+                            <span
+                              key={color}
+                              className="h-4 w-10 rounded-full border border-black/5"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-neutral-900">
+                            {theme.name}
+                          </p>
+                          <p className="text-sm leading-6 text-neutral-500">
+                            {theme.description}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -784,7 +1182,10 @@ export default function SellerSettingsPage() {
                 <input
                   value={profileForm.businessName}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, businessName: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      businessName: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
@@ -804,9 +1205,7 @@ export default function SellerSettingsPage() {
                   />
                   <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
                     <span>
-                      URL publique:
-                      {" "}
-                      {boutiquePath || "/boutique/ma-boutique"}
+                      URL publique: {boutiquePath || "/boutique/ma-boutique"}
                     </span>
                     {boutiquePath ? (
                       <Link
@@ -824,7 +1223,10 @@ export default function SellerSettingsPage() {
                 <input
                   value={profileForm.contactPerson}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, contactPerson: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      contactPerson: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
@@ -833,7 +1235,10 @@ export default function SellerSettingsPage() {
                 <input
                   value={profileForm.contactPhone}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, contactPhone: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      contactPhone: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
@@ -843,7 +1248,10 @@ export default function SellerSettingsPage() {
                   type="email"
                   value={profileForm.contactEmail}
                   onChange={(event) =>
-                    setProfileForm({ ...profileForm, contactEmail: event.target.value })
+                    setProfileForm({
+                      ...profileForm,
+                      contactEmail: event.target.value,
+                    })
                   }
                   className={inputClassName}
                 />
@@ -900,7 +1308,10 @@ export default function SellerSettingsPage() {
                 rows={4}
                 value={profileForm.description}
                 onChange={(event) =>
-                  setProfileForm({ ...profileForm, description: event.target.value })
+                  setProfileForm({
+                    ...profileForm,
+                    description: event.target.value,
+                  })
                 }
                 className={textareaClassName}
               />
@@ -959,85 +1370,183 @@ export default function SellerSettingsPage() {
         <div className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
           <div>
             <h2 className="text-lg font-semibold text-neutral-900">
-              Livraison dynamique par distance (Vos propres produits)
+              Modes de reception de la boutique
             </h2>
             <p className="mt-1 text-sm text-neutral-500">
-              Meme logique que l'admin, mais appliquee a votre boutique vendeur.
+              Choisissez si votre boutique accepte la livraison, le retrait en
+              magasin, ou les deux. Au moins un mode est obligatoire.
             </p>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field label="Votre localisation pivot (Point de depart)" className="md:col-span-2">
-              <SearchableSelect
-                options={locationOptions}
-                value={selectedLocationValue}
-                onChange={(value) => {
-                  const [name, type, dept, lat, lng] = value.split("|");
-                  setShippingForm({
-                    ...shippingForm,
-                    locationName: name || "",
-                    locationType: type || "",
-                    locationDept: dept || "",
-                    latitude: lat ? Number(lat) : undefined,
-                    longitude: lng ? Number(lng) : undefined,
-                  });
-                }}
-                placeholder="Rechercher une commune..."
-              />
-            </Field>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <button
+              type="button"
+              onClick={() =>
+                setShippingForm({
+                  ...shippingForm,
+                  allowDelivery: !shippingForm.allowDelivery,
+                })
+              }
+              className={cn(
+                "rounded-3xl border p-5 text-left transition-colors",
+                shippingForm.allowDelivery
+                  ? "border-sky-200 bg-sky-50"
+                  : "border-neutral-200 bg-white hover:bg-neutral-50",
+              )}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-5 w-5 text-sky-700" />
+                    <h3 className="font-semibold text-neutral-900">
+                      Livraison
+                    </h3>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-neutral-600">
+                    Le client choisit la livraison et les frais sont calcules
+                    depuis votre point de depart.
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
+                    shippingForm.allowDelivery
+                      ? "bg-sky-100 text-sky-700"
+                      : "bg-neutral-100 text-neutral-500",
+                  )}
+                >
+                  {shippingForm.allowDelivery ? "Activee" : "Desactivee"}
+                </span>
+              </div>
+            </button>
 
-            <Field label="Frais de base de deplacement (HTG)">
-              <input
-                type="number"
-                value={shippingForm.basePrice}
-                onChange={(event) =>
-                  setShippingForm({ ...shippingForm, basePrice: event.target.value })
-                }
-                className={inputClassName}
-              />
-            </Field>
-            <Field label="Prix par kilometre supplementaire (HTG)">
-              <input
-                type="number"
-                value={shippingForm.pricePerKm}
-                onChange={(event) =>
-                  setShippingForm({ ...shippingForm, pricePerKm: event.target.value })
-                }
-                className={inputClassName}
-              />
-            </Field>
+            <button
+              type="button"
+              onClick={() =>
+                setShippingForm({
+                  ...shippingForm,
+                  allowPickup: !shippingForm.allowPickup,
+                })
+              }
+              className={cn(
+                "rounded-3xl border p-5 text-left transition-colors",
+                shippingForm.allowPickup
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-neutral-200 bg-white hover:bg-neutral-50",
+              )}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Store className="h-5 w-5 text-emerald-700" />
+                    <h3 className="font-semibold text-neutral-900">
+                      Retrait en magasin
+                    </h3>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-neutral-600">
+                    Le client recupere sa commande sur place a l&apos;adresse de
+                    retrait que vous renseignez.
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
+                    shippingForm.allowPickup
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-neutral-100 text-neutral-500",
+                  )}
+                >
+                  {shippingForm.allowPickup ? "Active" : "Desactive"}
+                </span>
+              </div>
+            </button>
           </div>
 
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">
-            Remarque : assurez-vous que votre point de depart soit correct. Il sera
-            utilise pour calculer automatiquement la distance et les frais client.
-          </div>
-
-          <div className="space-y-4 rounded-3xl border border-neutral-200 p-5">
-            <div className="flex items-start justify-between gap-4">
+          {shippingForm.allowDelivery ? (
+            <div className="space-y-5 rounded-3xl border border-neutral-200 p-5">
               <div>
-                <h3 className="font-medium text-neutral-900">Retrait en magasin</h3>
+                <h3 className="font-medium text-neutral-900">
+                  Configuration de la livraison dynamique
+                </h3>
                 <p className="mt-1 text-sm text-neutral-500">
-                  Permettre aux clients de recuperer leur commande sur place.
+                  Choisissez votre localisation pivot et vos tarifs. Cette base
+                  servira au calcul de la livraison cote client.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setShippingForm({
-                    ...shippingForm,
-                    allowPickup: !shippingForm.allowPickup,
-                  })
-                }
-                className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  shippingForm.allowPickup
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-neutral-100 text-neutral-600",
-                )}
-              >
-                {shippingForm.allowPickup ? "Autorise" : "Desactive"}
-              </button>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field
+                  label="Votre localisation pivot (Point de depart)"
+                  className="md:col-span-2"
+                >
+                  <SearchableSelect
+                    options={locationOptions}
+                    value={selectedLocationValue}
+                    onChange={(value) => {
+                      const [name, type, dept, lat, lng] = value.split("|");
+                      setShippingForm({
+                        ...shippingForm,
+                        locationName: name || "",
+                        locationType: type || "",
+                        locationDept: dept || "",
+                        latitude: lat ? Number(lat) : undefined,
+                        longitude: lng ? Number(lng) : undefined,
+                      });
+                    }}
+                    placeholder="Rechercher une commune..."
+                  />
+                </Field>
+
+                <Field label="Frais de base de deplacement (HTG)">
+                  <input
+                    type="number"
+                    value={shippingForm.basePrice}
+                    onChange={(event) =>
+                      setShippingForm({
+                        ...shippingForm,
+                        basePrice: event.target.value,
+                      })
+                    }
+                    className={inputClassName}
+                  />
+                </Field>
+                <Field label="Prix par kilometre supplementaire (HTG)">
+                  <input
+                    type="number"
+                    value={shippingForm.pricePerKm}
+                    onChange={(event) =>
+                      setShippingForm({
+                        ...shippingForm,
+                        pricePerKm: event.target.value,
+                      })
+                    }
+                    className={inputClassName}
+                  />
+                </Field>
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">
+                Assurez-vous que votre point de depart soit exact. Il sera
+                utilise pour calculer automatiquement la distance et les frais
+                client.
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-neutral-300 bg-neutral-50 p-5 text-sm text-neutral-600">
+              La livraison est desactivee. Les clients ne verront pas
+              l&apos;option livraison tant que vous ne l&apos;activez pas ici.
+            </div>
+          )}
+
+          <div className="space-y-4 rounded-3xl border border-neutral-200 p-5">
+            <div>
+              <h3 className="font-medium text-neutral-900">
+                Adresse de retrait
+              </h3>
+              <p className="mt-1 text-sm text-neutral-500">
+                Completez cette section si vous voulez autoriser le retrait en
+                magasin.
+              </p>
             </div>
 
             {shippingForm.allowPickup ? (
@@ -1059,7 +1568,10 @@ export default function SellerSettingsPage() {
                   <input
                     value={shippingForm.pickupCity}
                     onChange={(event) =>
-                      setShippingForm({ ...shippingForm, pickupCity: event.target.value })
+                      setShippingForm({
+                        ...shippingForm,
+                        pickupCity: event.target.value,
+                      })
                     }
                     className={inputClassName}
                   />
@@ -1080,13 +1592,21 @@ export default function SellerSettingsPage() {
                   <input
                     value={shippingForm.pickupPhone}
                     onChange={(event) =>
-                      setShippingForm({ ...shippingForm, pickupPhone: event.target.value })
+                      setShippingForm({
+                        ...shippingForm,
+                        pickupPhone: event.target.value,
+                      })
                     }
                     className={inputClassName}
                   />
                 </Field>
               </div>
-            ) : null}
+            ) : (
+              <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">
+                Le retrait en magasin est desactive. Activez-le ci-dessus pour
+                renseigner le point de retrait.
+              </div>
+            )}
           </div>
         </div>
       ) : null}
@@ -1095,10 +1615,12 @@ export default function SellerSettingsPage() {
         <div className="space-y-6 rounded-3xl border border-neutral-200 bg-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900">Modes de paiement de la boutique</h2>
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Modes de paiement de la boutique
+              </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Configurez les moyens de paiement propres à cette boutique. Seuls
-                MonCash manuel, NatCash manuel et Paiement au magasin sont
+                Configurez les moyens de paiement propres à cette boutique.
+                Seuls MonCash manuel, NatCash manuel et Paiement au magasin sont
                 activables aujourd&apos;hui.
               </p>
             </div>
@@ -1113,17 +1635,36 @@ export default function SellerSettingsPage() {
 
           <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
             Le paiement au magasin est reserve au retrait en boutique. Si vous
-            activez ce mode, assurez-vous que le retrait soit deja disponible dans
-            l&apos;onglet Livraison.
+            activez ce mode, assurez-vous que le retrait soit deja disponible
+            dans l&apos;onglet Livraison.
           </div>
-
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+            <input
+              type="checkbox"
+              checked={paymentForm.confirmCorrect}
+              onChange={(event) =>
+                setPaymentForm((current) =>
+                  current
+                    ? {
+                        ...current,
+                        confirmCorrect: event.target.checked,
+                      }
+                    : current,
+                )
+              }
+              className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+            />
+            <span className="text-sm text-neutral-700">
+              Oui, je confirme que toutes ces informations sont correctes.
+            </span>
+          </label>
           <div className="grid gap-4">
             {SELLER_PAYMENT_METHODS.map((definition) => {
               const draft = paymentForm.methods[definition.code];
               const isPickupMethod = definition.code === "store_pickup";
               const canUsePickupMode = Boolean(
                 currentAccount.seller?.shippingSettings?.allowPickup &&
-                  currentAccount.seller?.pickupAddress,
+                currentAccount.seller?.pickupAddress,
               );
               const isRestricted = isPickupMethod && !canUsePickupMode;
 
@@ -1166,8 +1707,8 @@ export default function SellerSettingsPage() {
                       </p>
                       {isRestricted ? (
                         <p className="mt-3 text-sm font-medium text-amber-700">
-                          Le retrait en boutique doit etre active dans l&apos;onglet
-                          Livraison avant d&apos;activer ce mode.
+                          Le retrait en boutique doit etre active dans
+                          l&apos;onglet Livraison avant d&apos;activer ce mode.
                         </p>
                       ) : null}
                     </div>
@@ -1176,7 +1717,9 @@ export default function SellerSettingsPage() {
                       type="button"
                       onClick={() => {
                         if (!definition.operational) {
-                          setError(`${definition.label} n'est pas encore operationnel.`);
+                          setError(
+                            `${definition.label} n'est pas encore operationnel.`,
+                          );
                           return;
                         }
 
@@ -1240,7 +1783,9 @@ export default function SellerSettingsPage() {
                           value={draft.merchantAgentCode}
                           onChange={(event) =>
                             updatePaymentMethodDraft(definition.code, {
-                              merchantAgentCode: event.target.value.replace(/\D/g, "").slice(0, 6),
+                              merchantAgentCode: event.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 6),
                             })
                           }
                           inputMode="numeric"
@@ -1255,11 +1800,12 @@ export default function SellerSettingsPage() {
                   {definition.requiresManualEntry ? (
                     <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600">
                       <p className="font-medium text-neutral-900">
-                        Ces informations seront affichees au client lors du checkout.
+                        Ces informations seront affichees au client lors du
+                        checkout.
                       </p>
                       <p className="mt-1">
-                        Le client verra les instructions exactes de paiement, le nom
-                        du titulaire et le code agent avant de cliquer sur
+                        Le client verra les instructions exactes de paiement, le
+                        nom du titulaire et le code agent avant de cliquer sur
                         Commander.
                       </p>
                     </div>
@@ -1267,11 +1813,13 @@ export default function SellerSettingsPage() {
 
                   {isPickupMethod ? (
                     <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600">
-                      <p className="font-medium text-neutral-900">Paiement au magasin</p>
+                      <p className="font-medium text-neutral-900">
+                        Paiement au magasin
+                      </p>
                       <p className="mt-1">
-                        Aucun numero de transaction n&apos;est requis. Ce mode est
-                        autorise uniquement quand le client choisit le retrait en
-                        boutique.
+                        Aucun numero de transaction n&apos;est requis. Ce mode
+                        est autorise uniquement quand le client choisit le
+                        retrait en boutique.
                       </p>
                     </div>
                   ) : null}
@@ -1279,27 +1827,6 @@ export default function SellerSettingsPage() {
               );
             })}
           </div>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-            <input
-              type="checkbox"
-              checked={paymentForm.confirmCorrect}
-              onChange={(event) =>
-                setPaymentForm((current) =>
-                  current
-                    ? {
-                        ...current,
-                        confirmCorrect: event.target.checked,
-                      }
-                    : current,
-                )
-              }
-              className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
-            />
-            <span className="text-sm text-neutral-700">
-              Oui, je confirme que toutes ces informations sont correctes.
-            </span>
-          </label>
         </div>
       ) : null}
 
@@ -1307,16 +1834,23 @@ export default function SellerSettingsPage() {
         <div className="grid gap-6 xl:grid-cols-[1fr_1.15fr]">
           <section className="space-y-5 rounded-3xl border border-neutral-200 bg-white p-6">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900">Etat du dossier KYC</h2>
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Etat du dossier KYC
+              </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Suivez vos documents et ajoutez rapidement les pieces manquantes.
+                Suivez vos documents et ajoutez rapidement les pieces
+                manquantes.
               </p>
             </div>
 
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <div className="text-sm text-neutral-500">Derniere soumission</div>
+              <div className="text-sm text-neutral-500">
+                Derniere soumission
+              </div>
               <div className="mt-1 font-medium text-neutral-900">
-                {formatDocumentDate(application?.submittedAt || account.seller.kycSubmittedAt)}
+                {formatDocumentDate(
+                  application?.submittedAt || account.seller.kycSubmittedAt,
+                )}
               </div>
             </div>
 
@@ -1335,9 +1869,12 @@ export default function SellerSettingsPage() {
                     className="flex items-center justify-between rounded-2xl border border-neutral-200 p-4"
                   >
                     <div>
-                      <div className="font-medium text-neutral-900">{document.fileName || document.documentType}</div>
+                      <div className="font-medium text-neutral-900">
+                        {document.fileName || document.documentType}
+                      </div>
                       <div className="mt-1 text-xs text-neutral-500">
-                        {document.documentType} · {formatDocumentDate(document.createdAt)}
+                        {document.documentType} ·{" "}
+                        {formatDocumentDate(document.createdAt)}
                       </div>
                     </div>
                     <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">
@@ -1355,7 +1892,9 @@ export default function SellerSettingsPage() {
 
           <section className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6">
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900">Ajouter des documents</h2>
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Ajouter des documents
+              </h2>
               <p className="mt-1 text-sm text-neutral-500">
                 Chaque envoi sera rattache a votre dossier vendeur actuel.
               </p>
@@ -1367,8 +1906,12 @@ export default function SellerSettingsPage() {
                 className="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50"
               >
                 <div>
-                  <div className="font-medium text-neutral-900">{document.label}</div>
-                  <div className="mt-1 text-sm text-neutral-500">{document.description}</div>
+                  <div className="font-medium text-neutral-900">
+                    {document.label}
+                  </div>
+                  <div className="mt-1 text-sm text-neutral-500">
+                    {document.description}
+                  </div>
                 </div>
                 <span className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-3 py-2 text-xs font-medium text-white">
                   <Upload className="h-3.5 w-3.5" />
@@ -1378,7 +1921,9 @@ export default function SellerSettingsPage() {
                   type="file"
                   accept="image/*,.pdf"
                   className="hidden"
-                  onChange={(event) => handleKycUpload(document.type, event.target.files?.[0])}
+                  onChange={(event) =>
+                    handleKycUpload(document.type, event.target.files?.[0])
+                  }
                 />
               </label>
             ))}
@@ -1406,7 +1951,9 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label className="mb-2 block text-sm font-medium text-neutral-700">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-neutral-700">
+        {label}
+      </label>
       {children}
     </div>
   );
@@ -1455,7 +2002,11 @@ function ToggleCard({
       )}
     >
       <span className="text-sm font-medium">{label}</span>
-      {checked ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+      {checked ? (
+        <CheckCircle2 className="h-4 w-4" />
+      ) : (
+        <AlertCircle className="h-4 w-4" />
+      )}
     </button>
   );
 }

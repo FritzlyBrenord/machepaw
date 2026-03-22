@@ -2,12 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import type { CartItem } from "@/data/types";
 
 type MinimalStorefrontSettings = {
+  allowDelivery?: boolean;
   allowPickup?: boolean;
   pickupAddress?: string;
 };
 
 export type CartPickupInfo = {
+  allowDelivery: boolean;
   allowPickup: boolean;
+  deliveryConfigured: boolean;
+  pickupConfigured: boolean;
   pickupAddressText: string;
   sourceType: "admin" | "seller" | null;
   sourceLabel?: string;
@@ -27,6 +31,7 @@ export function useCartPickupInfo(
     queryKey: [
       "cart-pickup-info",
       productIds,
+      settings?.allowDelivery,
       settings?.allowPickup,
       settings?.pickupAddress,
     ],
@@ -37,7 +42,8 @@ export function useCartPickupInfo(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productIds,
-          adminPickup: {
+          adminSettings: {
+            allowDelivery: settings?.allowDelivery ?? true,
             allowPickup: Boolean(settings?.allowPickup),
             pickupAddress: settings?.pickupAddress || "",
           },

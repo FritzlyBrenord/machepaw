@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ import {
   Shield,
   ShoppingBag,
   Trash2,
-  Truck,
 } from "lucide-react";
 import { useStorefront } from "@/components/StorefrontProvider";
 import { useBoutiqueStore } from "@/components/boutique/BoutiqueStoreProvider";
@@ -79,19 +78,34 @@ export default function BoutiqueCartPage() {
     );
   const { data: pickupInfo } = useCartPickupInfo(boutiqueItems, settings);
   const [deliveryMode, setDeliveryMode] = useState<"delivery" | "pickup">("delivery");
-  const boutiqueClientHref = `${basePath}/client`;
-  const checkoutHref = `${basePath}/commande?mode=${deliveryMode}`;
-  const clientRedirectHref = `${boutiqueClientHref}?redirect=${encodeURIComponent(checkoutHref)}`;
+  const availableFulfillmentModes = useMemo(() => {
+    const modes: Array<"delivery" | "pickup"> = [];
 
-  useEffect(() => {
-    if (deliveryMode === "pickup" && !pickupInfo?.allowPickup) {
-      setDeliveryMode("delivery");
+    if (pickupInfo?.allowDelivery ?? true) {
+      modes.push("delivery");
     }
-  }, [deliveryMode, pickupInfo?.allowPickup]);
+
+    if (pickupInfo?.allowPickup) {
+      modes.push("pickup");
+    }
+
+    return modes;
+  }, [pickupInfo?.allowDelivery, pickupInfo?.allowPickup]);
+  const activeDeliveryMode = availableFulfillmentModes.includes(deliveryMode)
+    ? deliveryMode
+    : availableFulfillmentModes[0] || "delivery";
+  const boutiqueClientHref = `${basePath}/client`;
+  const checkoutHref = `${basePath}/commande?mode=${activeDeliveryMode}`;
+  const clientRedirectHref = `${boutiqueClientHref}?redirect=${encodeURIComponent(checkoutHref)}`;
 
   const freeShippingThreshold = settings?.freeShippingThreshold || 0;
   const isActuallyFree = freeShippingThreshold > 0 && boutiqueSubtotal >= freeShippingThreshold;
-  const shippingAmount = deliveryMode === "pickup" ? 0 : isActuallyFree ? 0 : dynamicShippingFee;
+  const shippingAmount =
+    activeDeliveryMode === "pickup" || !availableFulfillmentModes.includes("delivery")
+      ? 0
+      : isActuallyFree
+        ? 0
+        : dynamicShippingFee;
   const taxRate = settings?.taxRate || 0;
   const taxAmount = (boutiqueSubtotal * taxRate) / 100;
   const finalTotal = boutiqueSubtotal + shippingAmount + taxAmount;
@@ -237,32 +251,36 @@ export default function BoutiqueCartPage() {
             <div className="sticky top-28 space-y-6 rounded-[2rem] border border-neutral-200 bg-white p-6">
               <h2 className="text-xl font-semibold text-neutral-900">Recapitulatif boutique</h2>
 
-              {pickupInfo?.allowPickup ? (
+              {availableFulfillmentModes.length > 1 ? (
                 <div className="flex rounded-full bg-neutral-100 p-1">
                   <button
-                    type="button"
-                    onClick={() => setDeliveryMode("delivery")}
-                    className={cn(
-                      "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                      deliveryMode === "delivery"
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-500",
-                    )}
+                      type="button"
+                      onClick={() => setDeliveryMode("delivery")}
+                      className={cn(
+                        "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                        activeDeliveryMode === "delivery"
+                          ? "bg-white text-neutral-900 shadow-sm"
+                          : "text-neutral-500",
+                      )}
                   >
                     Livraison
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setDeliveryMode("pickup")}
-                    className={cn(
-                      "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                      deliveryMode === "pickup"
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-500",
-                    )}
+                      type="button"
+                      onClick={() => setDeliveryMode("pickup")}
+                      className={cn(
+                        "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                        activeDeliveryMode === "pickup"
+                          ? "bg-white text-neutral-900 shadow-sm"
+                          : "text-neutral-500",
+                      )}
                   >
                     Retrait
                   </button>
+                </div>
+              ) : availableFulfillmentModes.length === 1 ? (
+                <div className="rounded-full bg-neutral-100 px-4 py-2 text-center text-sm font-medium text-neutral-700">
+                  Mode disponible: {availableFulfillmentModes[0] === "delivery" ? "Livraison" : "Retrait en magasin"}
                 </div>
               ) : null}
 
@@ -270,7 +288,7 @@ export default function BoutiqueCartPage() {
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-1 h-5 w-5 text-neutral-500" />
                   <div className="space-y-2 text-sm">
-                    {deliveryMode === "delivery" ? (
+                    {activeDeliveryMode === "delivery" && availableFulfillmentModes.includes("delivery") ? (
                       <>
                         <p className="font-medium text-neutral-900">Estimation de livraison</p>
                         <p className="text-neutral-500">Prevue du {deliveryRange}</p>
@@ -306,14 +324,14 @@ export default function BoutiqueCartPage() {
                           </div>
                         ) : (
                           <div className="rounded-2xl border border-blue-200 bg-blue-50 p-3 text-blue-800">
-                            <p>Aucune adresse n'est encore enregistree pour cette boutique.</p>
+                            <p>Aucune adresse n&apos;est encore enregistree pour cette boutique.</p>
                             <Link href={boutiqueClientHref} className="mt-3 inline-flex text-sm font-medium underline underline-offset-4">
                               Ajouter une adresse boutique
                             </Link>
                           </div>
                         )}
                       </>
-                    ) : (
+                    ) : availableFulfillmentModes.includes("pickup") ? (
                       <>
                         <p className="font-medium text-neutral-900">Point de retrait</p>
                         <p className="rounded-2xl border border-neutral-200 bg-white p-3 text-neutral-500">
@@ -325,6 +343,10 @@ export default function BoutiqueCartPage() {
                           </p>
                         ) : null}
                       </>
+                    ) : (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-amber-800">
+                        {pickupInfo?.message || "Cette boutique n'accepte pas encore les commandes."}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -336,7 +358,7 @@ export default function BoutiqueCartPage() {
                   <span>{formatPrice(boutiqueSubtotal)}</span>
                 </div>
                 <div className="flex justify-between text-neutral-600">
-                  <span>Livraison</span>
+                  <span>{activeDeliveryMode === "pickup" ? "Retrait" : "Livraison"}</span>
                   <span>
                     {isShippingLoading ? "Calcul..." : shippingAmount === 0 ? "Gratuite" : formatPrice(shippingAmount)}
                   </span>
@@ -356,7 +378,7 @@ export default function BoutiqueCartPage() {
                 ) : null}
               </div>
 
-              {!pickupInfo?.allowPickup && pickupInfo?.message ? (
+              {availableFulfillmentModes.length === 0 && pickupInfo?.message ? (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
                   {pickupInfo.message}
                 </div>
@@ -370,7 +392,12 @@ export default function BoutiqueCartPage() {
               <Button
                 fullWidth
                 size="lg"
+                disabled={availableFulfillmentModes.length === 0}
                 onClick={() => {
+                  if (availableFulfillmentModes.length === 0) {
+                    return;
+                  }
+
                   if (!session || !hasActiveBoutiqueCustomer) {
                     router.push(clientRedirectHref);
                   } else {

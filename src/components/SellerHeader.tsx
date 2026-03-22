@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/vendeur", label: "Tableau de bord" },
+  { href: "/vendeur/plan", label: "Mon plan" },
   { href: "/vendeur/produits", label: "Produits" },
   { href: "/vendeur/clients", label: "Clients" },
   { href: "/vendeur/promotions", label: "Ventes flash" },
@@ -52,18 +53,6 @@ export function SellerHeader() {
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-5">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-sm text-neutral-600 transition-colors hover:text-neutral-900"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
           <div className="flex items-center gap-3">
             <Link
               href="/vendeur/parametres"
@@ -88,7 +77,7 @@ export function SellerHeader() {
 
             <button
               onClick={() => setIsMobileMenuOpen((current) => !current)}
-              className="rounded-full p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 md:hidden"
+              className="rounded-full p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 lg:hidden"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -98,7 +87,7 @@ export function SellerHeader() {
 
       <div
         className={cn(
-          "border-t border-neutral-200 bg-white md:hidden",
+          "border-t border-neutral-200 bg-white lg:hidden",
           isMobileMenuOpen ? "block" : "hidden",
         )}
       >

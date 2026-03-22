@@ -7,9 +7,18 @@ import { Grid3X3, LayoutList, SlidersHorizontal, X } from "lucide-react";
 import { PRODUCT_ONTOLOGY } from "@/data/productOntology";
 import { BoutiqueProductCard } from "@/components/boutique/BoutiqueProductCard";
 import { Button } from "@/components/ui/Button";
-import { useBoutiqueStore } from "@/components/boutique/BoutiqueStoreProvider";
+import {
+  useBoutiqueStore,
+  useBoutiqueTheme,
+} from "@/components/boutique/BoutiqueStoreProvider";
 import { useBoutiqueProductsQuery } from "@/hooks/useBoutiqueStorefront";
 import { useStorefront } from "@/components/StorefrontProvider";
+import {
+  getBoutiqueHeadingClass,
+  getBoutiquePageStyle,
+  getBoutiqueRadiusClass,
+  getBoutiqueSurfaceStyle,
+} from "@/lib/boutiqueTheme";
 import { cn } from "@/lib/utils";
 
 const sortOptions = [
@@ -23,6 +32,9 @@ const sortOptions = [
 export default function BoutiqueCollectionPage() {
   const searchParams = useSearchParams();
   const store = useBoutiqueStore();
+  const theme = useBoutiqueTheme();
+  const headingClass = getBoutiqueHeadingClass(theme);
+  const radiusClass = getBoutiqueRadiusClass(theme);
   const { data: products = [], isLoading } = useBoutiqueProductsQuery();
   const { formatPrice } = useStorefront();
 
@@ -141,12 +153,28 @@ export default function BoutiqueCollectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbf8f3] pb-20">
-      <div className="border-b border-neutral-200 bg-white">
+    <div className="min-h-screen pb-20" style={getBoutiquePageStyle(theme)}>
+      <div
+        className="border-b"
+        style={{
+          borderColor: theme.palette.border,
+          backgroundColor: theme.palette.surface,
+        }}
+      >
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 xl:px-12">
-          <p className="text-xs uppercase tracking-[0.28em] text-neutral-400">Boutique collection</p>
-          <h1 className="mt-3 text-4xl font-semibold text-neutral-900">{pageTitle}</h1>
-          <p className="mt-3 text-neutral-500">
+          <p
+            className="text-xs uppercase tracking-[0.28em]"
+            style={{ color: theme.palette.muted }}
+          >
+            Boutique collection
+          </p>
+          <h1
+            className={`mt-3 text-4xl ${headingClass}`}
+            style={{ color: theme.palette.text }}
+          >
+            {pageTitle}
+          </h1>
+          <p className="mt-3" style={{ color: theme.palette.muted }}>
             {filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""} dans {store.businessName}
           </p>
         </div>
@@ -155,7 +183,10 @@ export default function BoutiqueCollectionPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 xl:px-12">
         <div className="flex gap-8">
           <aside className="hidden w-72 shrink-0 lg:block">
-            <div className="sticky top-28 space-y-8 rounded-[1.75rem] border border-neutral-200 bg-white p-6">
+            <div
+              className={`sticky top-28 space-y-8 border p-6 ${radiusClass}`}
+              style={getBoutiqueSurfaceStyle(theme)}
+            >
               <div>
                 <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-500">Categories</h3>
                 <div className="space-y-2">
@@ -244,7 +275,10 @@ export default function BoutiqueCollectionPage() {
           </aside>
 
           <div className="flex-1">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-neutral-200 bg-white p-4">
+            <div
+              className={`mb-6 flex flex-wrap items-center justify-between gap-4 border p-4 ${radiusClass}`}
+              style={getBoutiqueSurfaceStyle(theme)}
+            >
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -291,7 +325,10 @@ export default function BoutiqueCollectionPage() {
             </div>
 
             {showFilters ? (
-              <div className="mb-6 space-y-4 rounded-[1.5rem] border border-neutral-200 bg-white p-4 lg:hidden">
+              <div
+                className={`mb-6 space-y-4 border p-4 lg:hidden ${radiusClass}`}
+                style={getBoutiqueSurfaceStyle(theme)}
+              >
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-neutral-500">Filtres boutique</h2>
                   <button type="button" onClick={() => setShowFilters(false)}>
@@ -375,8 +412,13 @@ export default function BoutiqueCollectionPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-[1.75rem] border border-dashed border-neutral-300 bg-white p-10 text-center">
-                <p className="text-lg text-neutral-500">Aucun produit ne correspond a vos criteres.</p>
+              <div
+                className={`${radiusClass} border border-dashed p-10 text-center`}
+                style={getBoutiqueSurfaceStyle(theme)}
+              >
+                <p className="text-lg" style={{ color: theme.palette.muted }}>
+                  Aucun produit ne correspond a vos criteres.
+                </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   <Button onClick={resetFilters}>Reinitialiser les filtres</Button>
                   <Link href={`/boutique/${store.storeSlug}`}>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Address } from "@/data/types";
 
 function createServerSupabaseClient() {
@@ -23,12 +23,21 @@ type SellerPickupRow = {
   business_name?: string | null;
   pickup_address?: Address | null;
   shipping_settings?: {
+    allowDelivery?: boolean;
     allowPickup?: boolean;
+    basePrice?: number;
+    pricePerKm?: number;
+    locationName?: string;
+    latitude?: number;
+    longitude?: number;
   } | null;
 };
 
 type PickupResponse = {
+  allowDelivery: boolean;
   allowPickup: boolean;
+  deliveryConfigured: boolean;
+  pickupConfigured: boolean;
   pickupAddressText: string;
   sourceType: "admin" | "seller" | null;
   sourceLabel?: string;
@@ -46,8 +55,12 @@ function formatPickupAddress(address?: Partial<Address> | null) {
     .join(", ");
 }
 
+function hasFiniteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 async function resolveOwnerToSellerId(
-  supabase: any,
+  supabase: SupabaseClient,
   ownerIds: string[],
 ) {
   const uniqueOwnerIds = Array.from(new Set(ownerIds.filter(Boolean)));
@@ -84,14 +97,18 @@ export async function POST(req: Request) {
           .filter(Boolean),
       ),
     );
-    const adminPickup = (body.adminPickup || {}) as {
+    const adminPickup = (body.adminSettings || {}) as {
+      allowDelivery?: boolean;
       allowPickup?: boolean;
       pickupAddress?: string;
     };
 
     if (productIds.length === 0) {
       return NextResponse.json({
+        allowDelivery: true,
         allowPickup: false,
+        deliveryConfigured: true,
+        pickupConfigured: false,
         pickupAddressText: "",
         sourceType: null,
         isMixedOrigins: false,
@@ -148,7 +165,10 @@ export async function POST(req: Request) {
 
     if (originMap.size > 1) {
       return NextResponse.json({
+        allowDelivery: true,
         allowPickup: false,
+        deliveryConfigured: true,
+        pickupConfigured: false,
         pickupAddressText: "",
         sourceType: null,
         isMixedOrigins: true,
@@ -160,13 +180,17 @@ export async function POST(req: Request) {
     const onlyOrigin = Array.from(originMap.values())[0];
 
     if (!onlyOrigin || onlyOrigin.owner_type !== "seller" || !onlyOrigin.seller_id) {
+      const adminPickupConfigured = Boolean(adminPickup.allowPickup && adminPickup.pickupAddress);
       return NextResponse.json({
-        allowPickup: Boolean(adminPickup.allowPickup),
+        allowDelivery: adminPickup.allowDelivery ?? true,
+        allowPickup: Boolean(adminPickup.allowPickup && adminPickup.pickupAddress),
+        deliveryConfigured: adminPickup.allowDelivery ?? true,
+        pickupConfigured: adminPickupConfigured,
         pickupAddressText: adminPickup.pickupAddress || "",
         sourceType: "admin",
         sourceLabel: "Administration",
         isMixedOrigins: false,
-        message: adminPickup.allowPickup
+        message: adminPickupConfigured
           ? undefined
           : "Le retrait admin n'est pas active pour le moment.",
       } satisfies PickupResponse);
@@ -184,20 +208,45 @@ export async function POST(req: Request) {
 
     const sellerRow = seller as SellerPickupRow;
     const pickupAddressText = formatPickupAddress(sellerRow.pickup_address);
+    const pickupConfigured = Boolean(
+      sellerRow.pickup_address?.address &&
+        sellerRow.pickup_address?.city &&
+        sellerRow.pickup_address?.country,
+    );
     const allowPickup =
       typeof sellerRow.shipping_settings?.allowPickup === "boolean"
-        ? sellerRow.shipping_settings.allowPickup
-        : Boolean(sellerRow.pickup_address);
+        ? sellerRow.shipping_settings.allowPickup && pickupConfigured
+        : pickupConfigured;
+    const deliveryConfigured = Boolean(
+      sellerRow.shipping_settings?.locationName &&
+        hasFiniteNumber(sellerRow.shipping_settings?.basePrice) &&
+        hasFiniteNumber(sellerRow.shipping_settings?.pricePerKm) &&
+        hasFiniteNumber(sellerRow.shipping_settings?.latitude) &&
+        hasFiniteNumber(sellerRow.shipping_settings?.longitude),
+    );
+    const allowDelivery =
+      typeof sellerRow.shipping_settings?.allowDelivery === "boolean"
+        ? sellerRow.shipping_settings.allowDelivery && deliveryConfigured
+        : deliveryConfigured;
+    const message =
+      !allowDelivery && !allowPickup
+        ? "Cette boutique n'a pas encore configure de livraison ni de retrait."
+        : !allowDelivery
+          ? "Cette boutique vendeur n'autorise pas encore la livraison."
+          : !allowPickup
+            ? "Cette boutique vendeur n'autorise pas encore le retrait sur place."
+            : undefined;
 
     return NextResponse.json({
+      allowDelivery,
       allowPickup,
+      deliveryConfigured,
+      pickupConfigured,
       pickupAddressText,
       sourceType: "seller",
       sourceLabel: sellerRow.business_name || onlyOrigin.owner_name || "Boutique vendeur",
       isMixedOrigins: false,
-      message: allowPickup
-        ? undefined
-        : "Cette boutique vendeur n'autorise pas encore le retrait sur place.",
+      message,
     } satisfies PickupResponse);
   } catch (error: unknown) {
     console.error("Erreur API pickup-info:", error);

@@ -14,13 +14,14 @@ import {
   Zap,
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { getPlanNumericLimit, getSellerActivePlan, isPlanFeatureEnabled } from "@/data/sellerPlans";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import {
   useSellerApplicationQuery,
   useSellerOrderItemsQuery,
   useSellerProductsQuery,
 } from "@/hooks/useSellerWorkspace";
+import { SellerStoreLinkCard } from "@/components/seller/SellerStoreLinkCard";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 const statusLabels: Record<string, string> = {
@@ -67,36 +68,29 @@ export default function SellerDashboardPage() {
     .slice(0, 5);
   const recentOrders = orderItems.slice(0, 5);
   const seller = account?.seller;
+  const activePlan = getSellerActivePlan(seller);
+  const canUseAnnouncements = Boolean(
+    activePlan &&
+      (getPlanNumericLimit(activePlan, "announcements") > 0 ||
+        isPlanFeatureEnabled(activePlan, "announcements")),
+  );
+  const canUsePromotions = Boolean(
+    activePlan &&
+      (getPlanNumericLimit(activePlan, "promotions") > 0 ||
+        isPlanFeatureEnabled(activePlan, "promotions")),
+  );
+  const canUseAnalytics = Boolean(activePlan && isPlanFeatureEnabled(activePlan, "analytics"));
 
   return (
     <SellerWorkspaceShell
       title="Tableau de bord vendeur"
       description="Suivez vos ventes, vos produits publies et les elements qui demandent une action."
-      actions={
-        <>
-          {seller?.storeSlug ? (
-            <Link href={`/boutique/${seller.storeSlug}`} target="_blank">
-              <Button variant="outline">Voir ma boutique</Button>
-            </Link>
-          ) : null}
-          <Link href="/vendeur/produits/nouveau">
-            <Button>Ajouter un produit</Button>
-          </Link>
-          <Link href="/vendeur/clients">
-            <Button variant="outline">Clients</Button>
-          </Link>
-          <Link href="/vendeur/promotions">
-            <Button variant="outline">Ventes flash</Button>
-          </Link>
-          <Link href="/vendeur/annonces">
-            <Button variant="outline">Annonces</Button>
-          </Link>
-          <Link href="/vendeur/commandes">
-            <Button variant="outline">Voir les commandes</Button>
-          </Link>
-        </>
-      }
     >
+      <SellerStoreLinkCard
+        businessName={seller?.businessName}
+        storeSlug={seller?.storeSlug}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-neutral-200 bg-white p-5">
           <div className="flex items-center justify-between">
@@ -280,6 +274,24 @@ export default function SellerDashboardPage() {
               </div>
 
               <div className="rounded-2xl bg-neutral-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">Plan actif</p>
+                <p className="mt-2 font-semibold text-neutral-900">
+                  {activePlan?.name || "Aucun plan"}
+                </p>
+                <p className="mt-1 text-sm text-neutral-500">
+                  {seller?.requestedPlan
+                    ? `Upgrade demande vers ${seller.requestedPlan.name}.`
+                    : "Le plan actuel pilote vos limites et fonctionnalites."}
+                </p>
+                <Link
+                  href="/vendeur/plan"
+                  className="mt-3 inline-flex text-sm font-medium text-neutral-900 underline underline-offset-4"
+                >
+                  Gerer mon plan
+                </Link>
+              </div>
+
+              <div className="rounded-2xl bg-neutral-50 p-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">KYC</p>
                 <p className="mt-2 font-semibold text-neutral-900">{seller?.kycStatus}</p>
                 <p className="mt-1 text-sm text-neutral-500">
@@ -332,51 +344,57 @@ export default function SellerDashboardPage() {
                 <ArrowRight className="w-4 h-4 text-neutral-400" />
               </Link>
 
-              <Link
-                href="/vendeur/annonces"
-                className="flex items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
-              >
-                <div className="flex items-center gap-3">
-                  <Megaphone className="w-4 h-4 text-blue-600" />
-                  <div>
-                    <p className="font-medium text-neutral-900">Publier une annonce</p>
-                    <p className="text-sm text-neutral-500">
-                      Creez vos messages top bar, popup ou hero avec quota controle.
-                    </p>
+              {canUseAnnouncements ? (
+                <Link
+                  href="/vendeur/annonces"
+                  className="flex items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Megaphone className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-neutral-900">Publier une annonce</p>
+                      <p className="text-sm text-neutral-500">
+                        Creez vos messages top bar, popup ou hero avec quota controle.
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-neutral-400" />
-              </Link>
+                  <ArrowRight className="w-4 h-4 text-neutral-400" />
+                </Link>
+              ) : null}
 
-              <Link
-                href="/vendeur/promotions"
-                className="flex items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
-              >
-                <div className="flex items-center gap-3">
-                  <Zap className="w-4 h-4 text-amber-600" />
-                  <div>
-                    <p className="font-medium text-neutral-900">Lancer une vente flash</p>
-                    <p className="text-sm text-neutral-500">
-                      Mettez en avant vos produits actifs avec un compte a rebours.
-                    </p>
+              {canUsePromotions ? (
+                <Link
+                  href="/vendeur/promotions"
+                  className="flex items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Zap className="w-4 h-4 text-amber-600" />
+                    <div>
+                      <p className="font-medium text-neutral-900">Lancer une vente flash</p>
+                      <p className="text-sm text-neutral-500">
+                        Mettez en avant vos produits actifs avec un compte a rebours.
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-neutral-400" />
-              </Link>
+                  <ArrowRight className="w-4 h-4 text-neutral-400" />
+                </Link>
+              ) : null}
 
-              <Link
-                href="/vendeur/statistiques"
-                className="flex items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
-              >
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="w-4 h-4 text-neutral-900" />
-                  <div>
-                    <p className="font-medium text-neutral-900">Analyser les performances</p>
-                    <p className="text-sm text-neutral-500">Suivez ventes, vues et produits forts.</p>
+              {canUseAnalytics ? (
+                <Link
+                  href="/vendeur/statistiques"
+                  className="flex items-center justify-between rounded-2xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="w-4 h-4 text-neutral-900" />
+                    <div>
+                      <p className="font-medium text-neutral-900">Analyser les performances</p>
+                      <p className="text-sm text-neutral-500">Suivez ventes, vues et produits forts.</p>
+                    </div>
                   </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-neutral-400" />
-              </Link>
+                  <ArrowRight className="w-4 h-4 text-neutral-400" />
+                </Link>
+              ) : null}
             </div>
           </section>
         </div>

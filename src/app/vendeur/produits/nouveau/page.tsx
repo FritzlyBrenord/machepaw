@@ -23,8 +23,13 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { getPlanNumericLimit, getSellerActivePlan } from "@/data/sellerPlans";
 import { useAdminSettingsQuery } from "@/hooks/useAdminSettings";
-import { useCreateSellerProductMutation } from "@/hooks/useSellerWorkspace";
+import { useCurrentAccountQuery } from "@/hooks/useAccount";
+import {
+  useCreateSellerProductMutation,
+  useSellerProductsQuery,
+} from "@/hooks/useSellerWorkspace";
 import {
   PRODUCT_ONTOLOGY,
   getSubcategories,
@@ -138,8 +143,13 @@ function hasAttributeValue(value: ProductAttributeValue["value"] | undefined) {
 
 export default function SellerAddProductPage() {
   const router = useRouter();
+  const { data: account } = useCurrentAccountQuery();
   const createProduct = useCreateSellerProductMutation();
+  const { data: sellerProducts = [] } = useSellerProductsQuery();
   const { data: adminSettings } = useAdminSettingsQuery();
+  const activePlan = getSellerActivePlan(account?.seller);
+  const productLimit = getPlanNumericLimit(activePlan, "products");
+  const hasReachedProductLimit = productLimit > 0 && sellerProducts.length >= productLimit;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -269,6 +279,13 @@ export default function SellerAddProductPage() {
   };
 
   const handleSubmit = async () => {
+    if (hasReachedProductLimit) {
+      setError(
+        `Votre plan actuel autorise ${productLimit} produit(s). Changez de plan pour en ajouter d'autres.`,
+      );
+      return;
+    }
+
     const parsedPrice = parseFloat(formData.price);
     const parsedOriginalPrice = formData.originalPrice
       ? parseFloat(formData.originalPrice)
@@ -432,6 +449,18 @@ export default function SellerAddProductPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="space-y-6">
+        {hasReachedProductLimit ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+            Vous avez atteint la limite de <strong>{productLimit}</strong> produit(s) de votre plan
+            actuel.
+            <div className="mt-4">
+              <Link href="/vendeur/plan">
+                <Button variant="outline">Voir les plans</Button>
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link href="/vendeur/produits">
@@ -1146,7 +1175,7 @@ export default function SellerAddProductPage() {
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={createProduct.isPending}
+                disabled={createProduct.isPending || hasReachedProductLimit}
                 className="bg-green-600 hover:bg-green-700"
               >
                 {createProduct.isPending ? (

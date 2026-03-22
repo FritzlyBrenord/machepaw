@@ -18,7 +18,10 @@ import {
 import { BoutiqueProductCard } from "@/components/boutique/BoutiqueProductCard";
 import { Button } from "@/components/ui/Button";
 import { useStorefront } from "@/components/StorefrontProvider";
-import { useBoutiqueStore } from "@/components/boutique/BoutiqueStoreProvider";
+import {
+  useBoutiqueStore,
+  useBoutiqueTheme,
+} from "@/components/boutique/BoutiqueStoreProvider";
 import {
   useBoutiqueProductQuery,
   useBoutiqueProductsQuery,
@@ -30,12 +33,22 @@ import {
   getDiscountedPrice,
   getDisplayAttributes,
 } from "@/lib/storefront";
+import {
+  getBoutiqueHeadingClass,
+  getBoutiquePageStyle,
+  getBoutiquePrimaryButtonStyle,
+  getBoutiqueRadiusClass,
+  getBoutiqueSurfaceStyle,
+} from "@/lib/boutiqueTheme";
 import { cn, getEstimatedDeliveryRange } from "@/lib/utils";
 
 export default function BoutiqueProductPage() {
   const params = useParams();
   const productId = params.id as string;
   const store = useBoutiqueStore();
+  const theme = useBoutiqueTheme();
+  const headingClass = getBoutiqueHeadingClass(theme);
+  const radiusClass = getBoutiqueRadiusClass(theme);
   const { data: product, isLoading } = useBoutiqueProductQuery(productId);
   const { data: products = [] } = useBoutiqueProductsQuery();
   const { addToCart } = useCart();
@@ -117,7 +130,7 @@ export default function BoutiqueProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbf8f3] pb-20">
+    <div className="min-h-screen pb-20" style={getBoutiquePageStyle(theme)}>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 xl:px-12">
         <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
           <Link href={`/boutique/${store.storeSlug}`} className="hover:text-neutral-900">
@@ -140,7 +153,10 @@ export default function BoutiqueProductPage() {
 
         <div className="grid gap-10 lg:grid-cols-2">
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-white">
+            <div
+              className={`relative aspect-square overflow-hidden ${radiusClass}`}
+              style={getBoutiqueSurfaceStyle(theme)}
+            >
               <Image
                 src={product.images[selectedImage]}
                 alt={product.name}
@@ -197,12 +213,20 @@ export default function BoutiqueProductPage() {
             ) : null}
           </div>
 
-          <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 lg:p-8">
+          <div
+            className={`${radiusClass} border p-6 lg:p-8`}
+            style={getBoutiqueSurfaceStyle(theme)}
+          >
             <p className="text-xs uppercase tracking-[0.24em] text-neutral-400">{product.category}</p>
             <p className="mt-2 text-sm uppercase tracking-[0.24em] text-neutral-500">
               Boutique {store.businessName}
             </p>
-            <h1 className="mt-4 text-4xl font-semibold text-neutral-900">{product.name}</h1>
+            <h1
+              className={`mt-4 text-4xl ${headingClass}`}
+              style={{ color: theme.palette.text }}
+            >
+              {product.name}
+            </h1>
 
             <div className="mt-5 flex items-center gap-4">
               <div className="flex items-center gap-1">
@@ -316,7 +340,12 @@ export default function BoutiqueProductPage() {
                 </button>
               </div>
 
-              <Button onClick={handleAddToCart} disabled={!canAddToCart} className="flex-1">
+              <Button
+                onClick={handleAddToCart}
+                disabled={!canAddToCart}
+                className="flex-1 rounded-full"
+                style={getBoutiquePrimaryButtonStyle(theme)}
+              >
                 Ajouter au panier
               </Button>
               <button
@@ -340,7 +369,13 @@ export default function BoutiqueProductPage() {
               </div>
             ) : null}
 
-            <div className="mt-8 grid gap-4 rounded-[1.5rem] bg-neutral-50 p-5 sm:grid-cols-2">
+            <div
+              className={`mt-8 grid gap-4 p-5 sm:grid-cols-2 ${radiusClass}`}
+              style={{
+                backgroundColor: theme.palette.surfaceAlt,
+                color: theme.palette.text,
+              }}
+            >
               <div className="flex gap-3">
                 <Truck className="mt-1 h-5 w-5 text-neutral-700" />
                 <div>
@@ -423,7 +458,12 @@ export default function BoutiqueProductPage() {
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-neutral-400">Meme boutique</p>
-              <h2 className="mt-2 text-3xl font-semibold text-neutral-900">Produits similaires</h2>
+              <h2
+                className={`mt-2 text-3xl ${headingClass}`}
+                style={{ color: theme.palette.text }}
+              >
+                Produits similaires
+              </h2>
             </div>
             <Link
               href={`/boutique/${store.storeSlug}/collection`}

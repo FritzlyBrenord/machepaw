@@ -11,12 +11,25 @@ import {
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { useBoutiqueStore } from "@/components/boutique/BoutiqueStoreProvider";
+import {
+  useBoutiqueStore,
+  useBoutiqueTheme,
+} from "@/components/boutique/BoutiqueStoreProvider";
 import { getBoutiqueBasePath } from "@/lib/boutique";
+import {
+  getBoutiqueHeadingClass,
+  getBoutiquePageStyle,
+  getBoutiquePrimaryButtonStyle,
+  getBoutiqueRadiusClass,
+  getBoutiqueSurfaceStyle,
+} from "@/lib/boutiqueTheme";
 import { formatDate } from "@/lib/utils";
 
 export default function BoutiqueAboutPage() {
   const store = useBoutiqueStore();
+  const theme = useBoutiqueTheme();
+  const headingClass = getBoutiqueHeadingClass(theme);
+  const radiusClass = getBoutiqueRadiusClass(theme);
   const basePath = getBoutiqueBasePath(store.storeSlug);
   const pickupAddress = [
     store.pickupAddress?.address,
@@ -27,19 +40,31 @@ export default function BoutiqueAboutPage() {
     .join(", ");
 
   return (
-    <div className="min-h-screen bg-[#fbf8f3] py-12">
+    <div className="min-h-screen py-12" style={getBoutiquePageStyle(theme)}>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 xl:px-12">
-        <div className="overflow-hidden rounded-[2rem] border border-neutral-200 bg-white">
-          <div className="border-b border-neutral-200 bg-[#171411] px-6 py-12 text-white sm:px-10">
+        <div
+          className={`overflow-hidden border ${radiusClass}`}
+          style={getBoutiqueSurfaceStyle(theme)}
+        >
+          <div
+            className="border-b px-6 py-12 text-white sm:px-10"
+            style={{
+              borderColor: theme.palette.border,
+              backgroundColor: theme.palette.heroBase,
+            }}
+          >
             <p className="text-xs uppercase tracking-[0.32em] text-white/55">A propos</p>
-            <h1 className="mt-4 text-4xl font-semibold">{store.businessName}</h1>
+            <h1 className={`mt-4 text-4xl ${headingClass}`}>{store.businessName}</h1>
             <p className="mt-4 max-w-3xl text-sm leading-8 text-white/72">
               {store.description ||
                 "Cette page regroupe les informations generales de la boutique, separees de l'accueil commercial et du catalogue."}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href={basePath}>
-                <Button className="bg-white text-neutral-900 hover:bg-neutral-100">
+                <Button
+                  className="rounded-full"
+                  style={getBoutiquePrimaryButtonStyle(theme)}
+                >
                   Retour a l'accueil
                 </Button>
               </Link>
@@ -120,13 +145,33 @@ function InfoCard({
   title: string;
   content: string[];
 }) {
+  const theme = useBoutiqueTheme();
+  const headingClass = getBoutiqueHeadingClass(theme);
+
   return (
-    <article className="rounded-[1.6rem] border border-neutral-200 bg-neutral-50 p-5">
-      <div className="inline-flex rounded-full bg-white p-3 text-neutral-900 shadow-sm">
+    <article
+      className={`border p-5 ${getBoutiqueRadiusClass(theme)}`}
+      style={getBoutiqueSurfaceStyle(theme)}
+    >
+      <div
+        className="inline-flex rounded-full p-3 shadow-sm"
+        style={{
+          backgroundColor: theme.palette.accentSoft,
+          color: theme.palette.accent,
+        }}
+      >
         {icon}
       </div>
-      <h2 className="mt-4 text-lg font-semibold text-neutral-900">{title}</h2>
-      <div className="mt-3 space-y-2 text-sm leading-7 text-neutral-600">
+      <h2
+        className={`mt-4 text-lg ${headingClass}`}
+        style={{ color: theme.palette.text }}
+      >
+        {title}
+      </h2>
+      <div
+        className="mt-3 space-y-2 text-sm leading-7"
+        style={{ color: theme.palette.muted }}
+      >
         {content.map((line) => (
           <p key={line}>{line}</p>
         ))}
