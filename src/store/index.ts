@@ -19,7 +19,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import {
   getDiscountedPrice,
   serializeAttributeSelections,
-} from "@/lib/storefront";
+} from "@/lib/commerce";
 
 interface CartState {
   items: CartItem[];

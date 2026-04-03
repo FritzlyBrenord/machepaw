@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
 import { ProductDetailModal } from "@/components/admin/ProductDetailModal";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { PRODUCT_ONTOLOGY } from "@/data/productOntology";
 import type { SupabaseProduct } from "@/data/types";
 import {
@@ -66,9 +66,8 @@ export default function SellerProductsPage() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(
-    null,
-  );
+  const [selectedProduct, setSelectedProduct] =
+    useState<SupabaseProduct | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -206,13 +205,19 @@ export default function SellerProductsPage() {
             <tbody className="divide-y divide-neutral-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-sm text-neutral-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-10 text-sm text-neutral-500"
+                  >
                     Chargement du catalogue vendeur...
                   </td>
                 </tr>
               ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-sm text-neutral-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-10 text-sm text-neutral-500"
+                  >
                     Aucun produit vendeur pour ce filtre.
                   </td>
                 </tr>
@@ -247,7 +252,8 @@ export default function SellerProductsPage() {
                             </p>
                             <p className="mt-1 text-sm text-neutral-500">
                               {PRODUCT_ONTOLOGY.find(
-                                (category) => category.id === product.category_id,
+                                (category) =>
+                                  category.id === product.category_id,
                               )?.name || product.category_id}
                             </p>
                             <p className="mt-1 text-xs text-neutral-400">

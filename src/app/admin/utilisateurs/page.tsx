@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import {
   useAdminUsersQuery,
   useToggleUserBlockMutation,
@@ -24,9 +24,21 @@ import type { AdminUser } from "@/data/types";
 import { cn, formatPrice } from "@/lib/utils";
 
 const roleConfig = {
-  admin: { label: "Admin", icon: Shield, className: "bg-rose-100 text-rose-700" },
-  seller: { label: "Vendeur", icon: Store, className: "bg-violet-100 text-violet-700" },
-  customer: { label: "Client", icon: User, className: "bg-blue-100 text-blue-700" },
+  admin: {
+    label: "Admin",
+    icon: Shield,
+    className: "bg-rose-100 text-rose-700",
+  },
+  seller: {
+    label: "Vendeur",
+    icon: Store,
+    className: "bg-violet-100 text-violet-700",
+  },
+  customer: {
+    label: "Client",
+    icon: User,
+    className: "bg-blue-100 text-blue-700",
+  },
 } as const;
 
 export default function AdminUsersPage() {
@@ -42,7 +54,9 @@ export default function AdminUsersPage() {
     () =>
       users.filter((user) => {
         const matchesSearch =
-          `${user.firstName} ${user.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
+          `${user.firstName} ${user.lastName}`
+            .toLowerCase()
+            .includes(search.toLowerCase()) ||
           user.email.toLowerCase().includes(search.toLowerCase());
         const matchesRole = roleFilter ? user.role === roleFilter : true;
         return matchesSearch && matchesRole;
@@ -72,7 +86,9 @@ export default function AdminUsersPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">Annuaire utilisateurs</h1>
+          <h1 className="text-2xl font-semibold text-neutral-900">
+            Annuaire utilisateurs
+          </h1>
           <p className="mt-2 text-sm text-neutral-500">
             Donnees reelles du repertoire clients, vendeurs et administrateurs.
           </p>
@@ -81,7 +97,9 @@ export default function AdminUsersPage() {
         <div className="grid gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <p className="text-sm text-neutral-500">Total</p>
-            <p className="mt-2 text-2xl font-semibold text-neutral-900">{users.length}</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {users.length}
+            </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <p className="text-sm text-neutral-500">Clients</p>
@@ -144,13 +162,19 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-neutral-200">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-10 text-sm text-neutral-500">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-10 text-sm text-neutral-500"
+                    >
                       Chargement des utilisateurs...
                     </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-10 text-sm text-neutral-500">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-10 text-sm text-neutral-500"
+                    >
                       Aucun utilisateur ne correspond aux filtres.
                     </td>
                   </tr>
@@ -159,7 +183,13 @@ export default function AdminUsersPage() {
                     const RoleIcon = roleConfig[user.role].icon;
 
                     return (
-                      <tr key={user.id} className={cn("hover:bg-neutral-50/80", user.isBlocked && "opacity-70")}>
+                      <tr
+                        key={user.id}
+                        className={cn(
+                          "hover:bg-neutral-50/80",
+                          user.isBlocked && "opacity-70",
+                        )}
+                      >
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-sm font-medium text-neutral-700">
@@ -170,7 +200,9 @@ export default function AdminUsersPage() {
                               <p className="font-medium text-neutral-900">
                                 {user.firstName} {user.lastName}
                               </p>
-                              <p className="mt-1 text-xs text-neutral-500">{user.id.slice(0, 8)}</p>
+                              <p className="mt-1 text-xs text-neutral-500">
+                                {user.id.slice(0, 8)}
+                              </p>
                             </div>
                           </div>
                         </td>
@@ -209,7 +241,9 @@ export default function AdminUsersPage() {
                           <span
                             className={cn(
                               "inline-flex rounded-full px-3 py-1 text-xs font-medium",
-                              user.isBlocked ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700",
+                              user.isBlocked
+                                ? "bg-rose-100 text-rose-700"
+                                : "bg-emerald-100 text-emerald-700",
                             )}
                           >
                             {user.isBlocked ? "Bloque" : "Actif"}
@@ -232,7 +266,11 @@ export default function AdminUsersPage() {
                                   : "border-rose-200 text-rose-700 hover:bg-rose-50",
                               )}
                             >
-                              {user.isBlocked ? <Unlock className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                              {user.isBlocked ? (
+                                <Unlock className="w-4 h-4" />
+                              ) : (
+                                <Ban className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </td>
@@ -251,8 +289,12 @@ export default function AdminUsersPage() {
           <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-5">
               <div>
-                <h2 className="text-xl font-semibold text-neutral-900">Detail utilisateur</h2>
-                <p className="mt-1 text-sm text-neutral-500">{selectedUser.email}</p>
+                <h2 className="text-xl font-semibold text-neutral-900">
+                  Detail utilisateur
+                </h2>
+                <p className="mt-1 text-sm text-neutral-500">
+                  {selectedUser.email}
+                </p>
               </div>
               <button
                 onClick={() => setSelectedUser(null)}
@@ -279,12 +321,16 @@ export default function AdminUsersPage() {
               </div>
 
               <div>
-                <p className="text-sm font-medium text-neutral-700">Changer le role</p>
+                <p className="text-sm font-medium text-neutral-700">
+                  Changer le role
+                </p>
                 <div className="mt-3 flex flex-wrap gap-3">
                   {(["customer", "seller", "admin"] as const).map((role) => (
                     <Button
                       key={role}
-                      variant={selectedUser.role === role ? "primary" : "outline"}
+                      variant={
+                        selectedUser.role === role ? "primary" : "outline"
+                      }
                       onClick={() => void changeRole(selectedUser, role)}
                       disabled={updateRoleMutation.isPending}
                     >
@@ -300,7 +346,11 @@ export default function AdminUsersPage() {
                 </Button>
                 <Button
                   onClick={() => void toggleBlock(selectedUser)}
-                  className={selectedUser.isBlocked ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}
+                  className={
+                    selectedUser.isBlocked
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-rose-600 hover:bg-rose-700"
+                  }
                   disabled={toggleBlockMutation.isPending}
                 >
                   {selectedUser.isBlocked ? "Debloquer" : "Bloquer"}

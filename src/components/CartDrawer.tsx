@@ -4,15 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { X, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
-import { useStorefront } from "@/components/StorefrontProvider";
+import { useCommerce } from "@/components/CommerceProvider";
 import { useCart, useUI } from "@/store";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 export function CartDrawer() {
   const { items, removeFromCart, updateQuantity, getCartTotal, getCartCount } =
     useCart();
   const { isCartOpen, toggleCart } = useUI();
-  const { formatPrice } = useStorefront();
+  const { formatPrice } = useCommerce();
 
   const cartTotal = getCartTotal();
   const cartCount = getCartCount();
@@ -159,7 +159,9 @@ export function CartDrawer() {
                             </p>
                             {!!item.product.discount && (
                               <p className="text-sm text-neutral-400 line-through">
-                                {formatPrice(item.product.price * item.quantity)}
+                                {formatPrice(
+                                  item.product.price * item.quantity,
+                                )}
                               </p>
                             )}
                           </div>
@@ -184,8 +186,8 @@ export function CartDrawer() {
                   suivante
                 </p>
 
-                <Link href="/panier" onClick={toggleCart}>
-                  <Button fullWidth size="lg" className="group">
+                <Link href="/cart" onClick={toggleCart}>
+                  <Button size="lg" className="group w-full">
                     Voir le panier
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>

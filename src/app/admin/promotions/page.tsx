@@ -21,7 +21,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import {
   useFlashSales,
   useUpdateFlashSale,
@@ -69,7 +69,7 @@ function Countdown({ endsAt, status }: { endsAt: string; status: string }) {
         "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono font-bold text-sm",
         isUrgent
           ? "bg-red-50 text-red-600 animate-pulse"
-          : "bg-green-50 text-green-700"
+          : "bg-green-50 text-green-700",
       )}
     >
       <Clock className="w-4 h-4" />
@@ -91,8 +91,15 @@ function StockBar({ sold, limit }: { sold: number; limit: number }) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
-        <span className="text-neutral-700 font-medium">{sold} / {limit} vendus</span>
-        <span className={cn("font-bold", pct >= 80 ? "text-red-600" : "text-neutral-600")}>
+        <span className="text-neutral-700 font-medium">
+          {sold} / {limit} vendus
+        </span>
+        <span
+          className={cn(
+            "font-bold",
+            pct >= 80 ? "text-red-600" : "text-neutral-600",
+          )}
+        >
           {pct}%
         </span>
       </div>
@@ -100,7 +107,11 @@ function StockBar({ sold, limit }: { sold: number; limit: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            pct >= 80 ? "bg-red-500" : pct >= 50 ? "bg-amber-500" : "bg-green-500"
+            pct >= 80
+              ? "bg-red-500"
+              : pct >= 50
+                ? "bg-amber-500"
+                : "bg-green-500",
           )}
           style={{ width: `${pct}%` }}
         />
@@ -122,7 +133,7 @@ function ExtendModal({
   const [newDate, setNewDate] = useState(
     new Date(new Date(sale.ends_at).getTime() + 3600000)
       .toISOString()
-      .slice(0, 16)
+      .slice(0, 16),
   );
 
   return (
@@ -143,7 +154,10 @@ function ExtendModal({
             <CalendarClock className="w-5 h-5 text-blue-600" />
             Prolonger l&apos;offre
           </h3>
-          <button onClick={onClose} className="p-1 hover:bg-neutral-100 rounded-lg">
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-neutral-100 rounded-lg"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -181,7 +195,9 @@ export default function AdminPromotionsPage() {
   const updateSale = useUpdateFlashSale();
   const deleteSale = useDeleteFlashSale();
 
-  const [filter, setFilter] = useState<"all" | "active" | "paused" | "ended">("all");
+  const [filter, setFilter] = useState<"all" | "active" | "paused" | "ended">(
+    "all",
+  );
   const [extendingSale, setExtendingSale] = useState<FlashSale | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -246,7 +262,9 @@ export default function AdminPromotionsPage() {
               </div>
               <div>
                 <p className="text-sm text-neutral-500">Offres actives</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.active}</p>
+                <p className="text-2xl font-bold text-neutral-900">
+                  {stats.active}
+                </p>
               </div>
             </div>
           </div>
@@ -257,7 +275,9 @@ export default function AdminPromotionsPage() {
               </div>
               <div>
                 <p className="text-sm text-neutral-500">Total vendu en flash</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.totalSold}</p>
+                <p className="text-2xl font-bold text-neutral-900">
+                  {stats.totalSold}
+                </p>
               </div>
             </div>
           </div>
@@ -268,7 +288,9 @@ export default function AdminPromotionsPage() {
               </div>
               <div>
                 <p className="text-sm text-neutral-500">Terminées</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.ended}</p>
+                <p className="text-2xl font-bold text-neutral-900">
+                  {stats.ended}
+                </p>
               </div>
             </div>
           </div>
@@ -284,10 +306,16 @@ export default function AdminPromotionsPage() {
                 "px-4 py-2 text-sm font-medium rounded-md transition-colors capitalize",
                 filter === f
                   ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-700"
+                  : "text-neutral-500 hover:text-neutral-700",
               )}
             >
-              {f === "all" ? "Toutes" : f === "active" ? "Actives" : f === "paused" ? "En pause" : "Terminées"}
+              {f === "all"
+                ? "Toutes"
+                : f === "active"
+                  ? "Actives"
+                  : f === "paused"
+                    ? "En pause"
+                    : "Terminées"}
             </button>
           ))}
         </div>
@@ -338,7 +366,9 @@ export default function AdminPromotionsPage() {
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-semibold text-neutral-900 truncate">{sale.title}</p>
+                          <p className="font-semibold text-neutral-900 truncate">
+                            {sale.title}
+                          </p>
                           <p className="text-sm text-neutral-500 truncate">
                             {sale.products?.name} · SKU: {sale.products?.sku}
                           </p>
@@ -355,11 +385,18 @@ export default function AdminPromotionsPage() {
                           {sale.original_price.toLocaleString()} HTG
                         </span>
                         <span className="text-xs font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                          -{Math.round((1 - sale.sale_price / sale.original_price) * 100)}%
+                          -
+                          {Math.round(
+                            (1 - sale.sale_price / sale.original_price) * 100,
+                          )}
+                          %
                         </span>
                       </div>
 
-                      <StockBar sold={sale.quantity_sold} limit={sale.quantity_limit} />
+                      <StockBar
+                        sold={sale.quantity_sold}
+                        limit={sale.quantity_limit}
+                      />
                     </div>
 
                     {/* Actions */}
@@ -368,7 +405,11 @@ export default function AdminPromotionsPage() {
                         <button
                           onClick={() => handleTogglePause(sale)}
                           className="p-2 rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors"
-                          title={sale.status === "active" ? "Mettre en pause" : "Reprendre"}
+                          title={
+                            sale.status === "active"
+                              ? "Mettre en pause"
+                              : "Reprendre"
+                          }
                         >
                           {sale.status === "active" ? (
                             <Pause className="w-4 h-4 text-amber-600" />

@@ -22,7 +22,7 @@ import {
   ToggleRight,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import {
   useAnnouncements,
   useDeleteAnnouncement,
@@ -71,7 +71,8 @@ function AnnouncementCard({
 }) {
   const config = PLACEMENT_CONFIG[announcement.placement];
   const PlacmentIcon = config.icon;
-  const isExpired = announcement.ends_at && new Date(announcement.ends_at) < new Date();
+  const isExpired =
+    announcement.ends_at && new Date(announcement.ends_at) < new Date();
 
   return (
     <motion.div
@@ -82,7 +83,7 @@ function AnnouncementCard({
         "bg-white rounded-xl border p-5 transition-colors",
         announcement.is_active && !isExpired
           ? "border-neutral-200"
-          : "border-neutral-100 opacity-60"
+          : "border-neutral-100 opacity-60",
       )}
     >
       <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -101,9 +102,13 @@ function AnnouncementCard({
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="font-semibold text-neutral-900 truncate">{announcement.title}</p>
+              <p className="font-semibold text-neutral-900 truncate">
+                {announcement.title}
+              </p>
               {announcement.content && (
-                <p className="text-sm text-neutral-500 line-clamp-1">{announcement.content}</p>
+                <p className="text-sm text-neutral-500 line-clamp-1">
+                  {announcement.content}
+                </p>
               )}
             </div>
             <div className="flex items-center gap-1">
@@ -112,7 +117,12 @@ function AnnouncementCard({
                   Expirée
                 </span>
               )}
-              <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", config.color)}>
+              <span
+                className={cn(
+                  "text-xs px-2 py-0.5 rounded-full font-medium",
+                  config.color,
+                )}
+              >
                 {config.label}
               </span>
             </div>
@@ -144,7 +154,8 @@ function AnnouncementCard({
             {announcement.ends_at && (
               <span className="flex items-center gap-1 text-amber-600">
                 <Clock className="w-3.5 h-3.5" />
-                Expire: {new Date(announcement.ends_at).toLocaleDateString("fr-FR")}
+                Expire:{" "}
+                {new Date(announcement.ends_at).toLocaleDateString("fr-FR")}
               </span>
             )}
           </div>
@@ -171,7 +182,10 @@ function AnnouncementCard({
             )}
           </button>
           <Link href={`/admin/annonces/${announcement.id}/edit`}>
-            <button className="p-2 rounded-lg border hover:bg-neutral-50 transition-colors" title="Modifier">
+            <button
+              className="p-2 rounded-lg border hover:bg-neutral-50 transition-colors"
+              title="Modifier"
+            >
               <Edit className="w-4 h-4 text-blue-600" />
             </button>
           </Link>
@@ -199,7 +213,9 @@ export default function AdminAnnouncesPage() {
   const deleteAnnouncement = useDeleteAnnouncement();
   const toggleAnnouncement = useToggleAnnouncement();
 
-  const [activeTab, setActiveTab] = useState<"all" | Announcement["placement"]>("all");
+  const [activeTab, setActiveTab] = useState<"all" | Announcement["placement"]>(
+    "all",
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filtered =
@@ -260,14 +276,37 @@ export default function AdminAnnouncesPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: "Total", value: stats.total, color: "bg-neutral-100 text-neutral-700" },
-            { label: "Actives", value: stats.active, color: "bg-green-100 text-green-700" },
-            { label: "Hero Slides", value: stats.hero, color: "bg-purple-100 text-purple-700" },
-            { label: "Popups", value: stats.popup, color: "bg-amber-100 text-amber-700" },
+            {
+              label: "Total",
+              value: stats.total,
+              color: "bg-neutral-100 text-neutral-700",
+            },
+            {
+              label: "Actives",
+              value: stats.active,
+              color: "bg-green-100 text-green-700",
+            },
+            {
+              label: "Hero Slides",
+              value: stats.hero,
+              color: "bg-purple-100 text-purple-700",
+            },
+            {
+              label: "Popups",
+              value: stats.popup,
+              color: "bg-amber-100 text-amber-700",
+            },
           ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl border border-neutral-200 p-4">
+            <div
+              key={s.label}
+              className="bg-white rounded-xl border border-neutral-200 p-4"
+            >
               <p className="text-sm text-neutral-500">{s.label}</p>
-              <p className={cn("text-2xl font-bold mt-1", s.color.split(" ")[1])}>{s.value}</p>
+              <p
+                className={cn("text-2xl font-bold mt-1", s.color.split(" ")[1])}
+              >
+                {s.value}
+              </p>
             </div>
           ))}
         </div>
@@ -282,14 +321,18 @@ export default function AdminAnnouncesPage() {
                 "px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap flex items-center gap-2",
                 activeTab === tab.key
                   ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-700"
+                  : "text-neutral-500 hover:text-neutral-700",
               )}
             >
               {tab.label}
-              <span className={cn(
-                "px-1.5 py-0.5 text-xs rounded-full",
-                activeTab === tab.key ? "bg-neutral-100 text-neutral-700" : "bg-neutral-200 text-neutral-500"
-              )}>
+              <span
+                className={cn(
+                  "px-1.5 py-0.5 text-xs rounded-full",
+                  activeTab === tab.key
+                    ? "bg-neutral-100 text-neutral-700"
+                    : "bg-neutral-200 text-neutral-500",
+                )}
+              >
                 {tab.count}
               </span>
             </button>

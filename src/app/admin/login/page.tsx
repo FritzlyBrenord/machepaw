@@ -4,9 +4,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchCurrentAccount, useCurrentAccountQuery } from "@/hooks/useAccount";
+import {
+  fetchCurrentAccount,
+  useCurrentAccountQuery,
+} from "@/hooks/useAccount";
 import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
 
@@ -24,7 +27,8 @@ export default function AdminLoginPage() {
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const redirectTo = searchParams.get("redirect") || "/admin";
-  const { data: account, isLoading: isAccountLoading } = useCurrentAccountQuery();
+  const { data: account, isLoading: isAccountLoading } =
+    useCurrentAccountQuery();
 
   useEffect(() => {
     if (!isAccountLoading && account?.role === "admin") {
@@ -43,7 +47,9 @@ export default function AdminLoginPage() {
 
       if (account?.role !== "admin" || account.isBlocked) {
         await supabase.auth.signOut();
-        throw new Error("Ce compte ne dispose pas d'un acces administrateur valide.");
+        throw new Error(
+          "Ce compte ne dispose pas d'un acces administrateur valide.",
+        );
       }
 
       router.push(redirectTo);
@@ -64,7 +70,9 @@ export default function AdminLoginPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-900 text-white">
             <Shield className="w-8 h-8" />
           </div>
-          <h1 className="mt-5 text-2xl font-semibold text-neutral-900">Connexion admin</h1>
+          <h1 className="mt-5 text-2xl font-semibold text-neutral-900">
+            Connexion admin
+          </h1>
           <p className="mt-2 text-sm text-neutral-500">
             Authentification reservee aux comptes admin verifies.
           </p>
@@ -78,7 +86,9 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-medium text-neutral-700">Email admin</label>
+            <label className="mb-2 block text-sm font-medium text-neutral-700">
+              Email admin
+            </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 w-5 h-5 -translate-y-1/2 text-neutral-400" />
               <input
@@ -93,7 +103,9 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-neutral-700">Mot de passe</label>
+            <label className="mb-2 block text-sm font-medium text-neutral-700">
+              Mot de passe
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 w-5 h-5 -translate-y-1/2 text-neutral-400" />
               <input
@@ -109,7 +121,11 @@ export default function AdminLoginPage() {
                 onClick={() => setShowPassword((current) => !current)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
@@ -120,8 +136,8 @@ export default function AdminLoginPage() {
         </form>
 
         <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs leading-5 text-neutral-500">
-          Aucun identifiant de demonstration n&apos;est accepte ici. Le compte doit exister dans
-          Supabase avec le role `admin`.
+          Aucun identifiant de demonstration n&apos;est accepte ici. Le compte
+          doit exister dans Supabase avec le role `admin`.
         </div>
       </motion.div>
     </div>

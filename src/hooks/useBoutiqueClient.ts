@@ -28,6 +28,22 @@ const sessionKey = (slug: string) => ["boutique-client-session", slug];
 const addressesKey = (slug: string) => ["boutique-client-addresses", slug];
 const ordersKey = (slug: string) => ["boutique-client-orders", slug];
 
+class BoutiqueClientError extends Error {
+  status?: number;
+  code?: string;
+}
+
+function isRateLimitedError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  return (
+    ("status" in error && error.status === 429) ||
+    ("code" in error && error.code === "over_request_rate_limit")
+  );
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({}));
 
@@ -36,19 +52,38 @@ async function parseResponse<T>(response: Response): Promise<T> {
       typeof payload?.error === "string"
         ? payload.error
         : "Une erreur est survenue.";
-    throw new Error(message);
+    const error = new BoutiqueClientError(message);
+    error.status = response.status;
+    error.code =
+      typeof payload?.code === "string"
+        ? payload.code
+        : undefined;
+    throw error;
   }
 
   return payload as T;
 }
 
 async function fetchBoutiqueClientSession(slug: string) {
-  const response = await fetch(`/api/boutique-auth/${slug}/session`, {
-    credentials: "include",
-    cache: "no-store",
-  });
-  const payload = await parseResponse<{ session: BoutiqueClientSession | null }>(response);
-  return payload.session;
+  try {
+    const response = await fetch(`/api/boutique-auth/${slug}/session`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (response.status === 401 || response.status === 429) {
+      return null;
+    }
+
+    const payload = await parseResponse<{ session: BoutiqueClientSession | null }>(response);
+    return payload.session;
+  } catch (error) {
+    if (isRateLimitedError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 export function useBoutiqueClientSessionQuery(slug: string) {
@@ -56,8 +91,11 @@ export function useBoutiqueClientSessionQuery(slug: string) {
     queryKey: sessionKey(slug),
     queryFn: () => fetchBoutiqueClientSession(slug),
     enabled: Boolean(slug),
-    staleTime: 0,
-    refetchOnMount: "always",
+    staleTime: 60_000,
+    retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -150,6 +188,7 @@ export function useBoutiqueClientProfileMutation(slug: string) {
     mutationFn: async (input: {
       firstName: string;
       lastName: string;
+      email: string;
       phone?: string;
       avatar?: string;
     }) => {
@@ -190,6 +229,30 @@ export function useBoutiqueClientAvatarUploadMutation(slug: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: sessionKey(slug) });
+      await queryClient.refetchQueries({
+        queryKey: sessionKey(slug),
+        type: "active",
+      });
+    },
+  });
+}
+
+export function useDeleteBoutiqueClientAccountMutation(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/boutique-auth/${slug}/profile`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      return parseResponse<{ success: boolean }>(response);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: sessionKey(slug) });
+      await queryClient.invalidateQueries({ queryKey: addressesKey(slug) });
+      await queryClient.invalidateQueries({ queryKey: ordersKey(slug) });
       await queryClient.refetchQueries({
         queryKey: sessionKey(slug),
         type: "active",

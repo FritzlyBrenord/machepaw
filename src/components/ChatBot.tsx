@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Bot, User, Sparkles } from "lucide-react";
 import { useUI } from "@/store";
 import { products, categories } from "@/data";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 interface Message {
   id: string;
@@ -48,7 +48,10 @@ export function ChatBot() {
     const lowerMessage = userMessage.toLowerCase();
 
     // Best sellers
-    if (lowerMessage.includes("best-seller") || lowerMessage.includes("populaire")) {
+    if (
+      lowerMessage.includes("best-seller") ||
+      lowerMessage.includes("populaire")
+    ) {
       const bestsellers = products.filter((p) => p.isBestseller).slice(0, 3);
       return `Nos best-sellers actuels sont :
 ${bestsellers.map((p) => `• ${p.name} - ${p.price}€`).join("\n")}
@@ -57,7 +60,11 @@ Voulez-vous en savoir plus sur l'un d'eux ?`;
     }
 
     // Promotions
-    if (lowerMessage.includes("promo") || lowerMessage.includes("réduction") || lowerMessage.includes("solde")) {
+    if (
+      lowerMessage.includes("promo") ||
+      lowerMessage.includes("réduction") ||
+      lowerMessage.includes("solde")
+    ) {
       const discounted = products.filter((p) => p.discount && p.discount > 0);
       if (discounted.length > 0) {
         return `Nous avons actuellement ${discounted.length} produits en promotion :
@@ -79,7 +86,11 @@ Livraison gratuite à partir de 500€ d'achat !`;
     }
 
     // Order tracking
-    if (lowerMessage.includes("suivi") || lowerMessage.includes("commande") || lowerMessage.includes("colis")) {
+    if (
+      lowerMessage.includes("suivi") ||
+      lowerMessage.includes("commande") ||
+      lowerMessage.includes("colis")
+    ) {
       return `Pour suivre votre commande :
 1. Connectez-vous à votre compte
 2. Allez dans "Mes commandes"
@@ -91,7 +102,10 @@ Avez-vous déjà un compte chez nous ?`;
     }
 
     // Returns
-    if (lowerMessage.includes("retour") || lowerMessage.includes("remboursement")) {
+    if (
+      lowerMessage.includes("retour") ||
+      lowerMessage.includes("remboursement")
+    ) {
       return `Notre politique de retour :
 • Retours acceptés sous 30 jours
 • Produits non portés avec étiquettes
@@ -101,7 +115,10 @@ Pour initier un retour, allez dans votre espace client > Mes commandes.`;
     }
 
     // Categories
-    if (lowerMessage.includes("catégorie") || lowerMessage.includes("produit")) {
+    if (
+      lowerMessage.includes("catégorie") ||
+      lowerMessage.includes("produit")
+    ) {
       return `Nous proposons les catégories suivantes :
 ${categories.map((c) => `• ${c.name} (${c.productCount} produits)`).join("\n")}
 
@@ -112,14 +129,18 @@ Quelle catégorie vous intéresse ?`;
     if (lowerMessage.includes("montre")) {
       const watches = products.filter((p) => p.category === "Montres");
       return `Nous avons ${watches.length} montres de luxe en stock, de ${Math.min(
-        ...watches.map((w) => w.price)
+        ...watches.map((w) => w.price),
       )}€ à ${Math.max(...watches.map((w) => w.price))}€.
 
 Nos montres sont certifiées authentiques avec garantie internationale de 2 ans.`;
     }
 
     // Jewelry
-    if (lowerMessage.includes("bijou") || lowerMessage.includes("bague") || lowerMessage.includes("collier")) {
+    if (
+      lowerMessage.includes("bijou") ||
+      lowerMessage.includes("bague") ||
+      lowerMessage.includes("collier")
+    ) {
       return `Notre collection de bijoux comprend :
 • Bagues solitaires et alliances
 • Colliers et pendentifs
@@ -141,7 +162,11 @@ Quel est votre budget approximatif ?`;
     }
 
     // Greeting
-    if (lowerMessage.includes("bonjour") || lowerMessage.includes("salut") || lowerMessage.includes("hello")) {
+    if (
+      lowerMessage.includes("bonjour") ||
+      lowerMessage.includes("salut") ||
+      lowerMessage.includes("hello")
+    ) {
       return "Bonjour ! Ravie de vous accueillir sur LUXE. Je peux vous aider à trouver un produit, suivre une commande, ou répondre à vos questions. Que souhaitez-vous faire ?";
     }
 
@@ -176,16 +201,19 @@ Vous pouvez aussi utiliser les suggestions rapides ci-dessous !`;
     setIsTyping(true);
 
     // Simulate typing delay
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "bot",
-        content: generateResponse(content),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+    setTimeout(
+      () => {
+        const botResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "bot",
+          content: generateResponse(content),
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botResponse]);
+        setIsTyping(false);
+      },
+      1000 + Math.random() * 1000,
+    );
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -303,7 +331,9 @@ Vous pouvez aussi utiliser les suggestions rapides ci-dessous !`;
             {/* Quick Questions */}
             {messages.length < 3 && (
               <div className="px-4 py-3 bg-white border-t border-neutral-100">
-                <p className="text-xs text-neutral-500 mb-2">Questions fréquentes :</p>
+                <p className="text-xs text-neutral-500 mb-2">
+                  Questions fréquentes :
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {quickQuestions.map((question) => (
                     <button

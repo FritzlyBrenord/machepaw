@@ -409,8 +409,6 @@ export interface Seller {
   contactEmail: string;
   logo?: string;
   banner?: string;
-  storefrontThemeSlug?: string;
-  storefrontThemeConfig?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   products: string[];

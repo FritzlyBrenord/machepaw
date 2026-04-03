@@ -17,9 +17,12 @@ import {
   User,
   UserCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchCurrentAccount, useCurrentAccountQuery } from "@/hooks/useAccount";
+import {
+  fetchCurrentAccount,
+  useCurrentAccountQuery,
+} from "@/hooks/useAccount";
 import {
   isSellerFlowRedirect,
   resolvePostAuthRedirect,
@@ -59,7 +62,8 @@ export default function SignupPage() {
     [searchParams],
   );
   const sellerFlow = isSellerFlowRedirect(redirectTo);
-  const { data: account, isLoading: isAccountLoading } = useCurrentAccountQuery();
+  const { data: account, isLoading: isAccountLoading } =
+    useCurrentAccountQuery();
 
   useEffect(() => {
     const queryError = searchParams.get("error");
@@ -126,28 +130,41 @@ export default function SignupPage() {
       <div className="min-h-screen overflow-hidden bg-[#050816] text-white flex items-center justify-center px-4 py-12">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.18),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(59,130,246,0.16),_transparent_34%),linear-gradient(180deg,_#08111f_0%,_#04070d_100%)]" />
         <div className="relative z-10 w-full max-w-2xl rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 sm:p-10 shadow-2xl shadow-black/30 backdrop-blur-xl">
-          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-300/25 bg-emerald-300/12 text-emerald-200">
               <CheckCircle2 className="h-10 w-10" />
             </div>
-            <p className="mt-6 text-xs uppercase tracking-[0.45em] text-emerald-200/80">Compte cree</p>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>
+            <p className="mt-6 text-xs uppercase tracking-[0.45em] text-emerald-200/80">
+              Compte cree
+            </p>
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-semibold"
+              style={{ fontFamily: "var(--font-playfair)" }}
+            >
               Verifiez votre email
             </h2>
             <p className="mt-4 text-base leading-8 text-white/66">
               Nous avons envoye un lien de confirmation a{" "}
-              <span className="font-semibold text-white">{email}</span>. Confirmez
-              votre email, puis reconnectez-vous pour continuer.
+              <span className="font-semibold text-white">{email}</span>.
+              Confirmez votre email, puis reconnectez-vous pour continuer.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3 text-left">
               <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
                 <Mail className="h-5 w-5 text-amber-300" />
-                <p className="mt-3 text-sm text-white/60">1. Ouvrez le message de confirmation.</p>
+                <p className="mt-3 text-sm text-white/60">
+                  1. Ouvrez le message de confirmation.
+                </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
                 <ShieldCheck className="h-5 w-5 text-sky-300" />
-                <p className="mt-3 text-sm text-white/60">2. Validez votre email et securisez votre compte.</p>
+                <p className="mt-3 text-sm text-white/60">
+                  2. Validez votre email et securisez votre compte.
+                </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
                 <Store className="h-5 w-5 text-emerald-300" />
@@ -159,9 +176,11 @@ export default function SignupPage() {
 
             {sellerFlow ? (
               <div className="mt-8 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-7 text-amber-50">
-                Votre parcours vise l&apos;espace vendeur. Si votre compte seller
-                n&apos;est pas encore approuve, le systeme vous orientera vers
-                <span className="font-semibold"> Devenir vendeur</span> apres connexion.
+                Votre parcours vise l&apos;espace vendeur. Si votre compte
+                seller n&apos;est pas encore approuve, le systeme vous orientera
+                vers
+                <span className="font-semibold"> Devenir vendeur</span> apres
+                connexion.
               </div>
             ) : null}
 
@@ -197,13 +216,19 @@ export default function SignupPage() {
               L
             </span>
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/45">LUXE</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/45">
+                LUXE
+              </p>
               <p className="text-sm text-white/60">Creer ma boutique</p>
             </div>
           </Link>
 
           <div className="max-w-xl pt-10">
-            <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="text-xs uppercase tracking-[0.45em] text-amber-200/80">
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs uppercase tracking-[0.45em] text-amber-200/80"
+            >
               Inscription
             </motion.p>
             <motion.h1
@@ -233,12 +258,17 @@ export default function SignupPage() {
               className="mt-10 grid gap-4 sm:grid-cols-3"
             >
               {highlights.map((item) => (
-                <div key={item.title} className="rounded-3xl border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
+                <div
+                  key={item.title}
+                  className="rounded-3xl border border-white/10 bg-white/6 p-5 backdrop-blur-sm"
+                >
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-amber-300" />
                     <h2 className="text-sm font-semibold">{item.title}</h2>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-white/60">{item.text}</p>
+                  <p className="mt-3 text-sm leading-6 text-white/60">
+                    {item.text}
+                  </p>
                 </div>
               ))}
             </motion.div>
@@ -247,27 +277,41 @@ export default function SignupPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-3xl border border-white/10 bg-white/6 p-5">
               <ShieldCheck className="h-5 w-5 text-emerald-300" />
-              <p className="mt-4 text-sm text-white/60">Vos acces sont verifies avant toute entree dans l&apos;espace vendeur.</p>
+              <p className="mt-4 text-sm text-white/60">
+                Vos acces sont verifies avant toute entree dans l&apos;espace
+                vendeur.
+              </p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/6 p-5">
               <Store className="h-5 w-5 text-sky-300" />
-              <p className="mt-4 text-sm text-white/60">Si votre seller est approuve, vous serez redirige vers votre boutique.</p>
+              <p className="mt-4 text-sm text-white/60">
+                Si votre seller est approuve, vous serez redirige vers votre
+                boutique.
+              </p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/6 p-5">
               <Sparkles className="h-5 w-5 text-amber-300" />
-              <p className="mt-4 text-sm text-white/60">Une inscription plus claire pour un lancement plus serin.</p>
+              <p className="mt-4 text-sm text-white/60">
+                Une inscription plus claire pour un lancement plus serin.
+              </p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-10 overflow-y-auto">
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-xl py-4 lg:py-10">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-xl py-4 lg:py-10"
+          >
             <div className="lg:hidden mb-8 flex items-center gap-3">
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-sm font-semibold tracking-[0.35em]">
                 L
               </span>
               <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-white/45">LUXE</p>
+                <p className="text-xs uppercase tracking-[0.35em] text-white/45">
+                  LUXE
+                </p>
                 <p className="text-sm text-white/55">Inscription premium</p>
               </div>
             </div>
@@ -279,7 +323,9 @@ export default function SignupPage() {
                     {sellerFlow ? "Parcours vendeur" : "Nouveau compte"}
                   </p>
                   <h2 className="mt-3 text-3xl sm:text-4xl font-semibold text-white">
-                    {sellerFlow ? "Creez votre acces boutique" : "Creer un compte"}
+                    {sellerFlow
+                      ? "Creez votre acces boutique"
+                      : "Creer un compte"}
                   </h2>
                   <p className="mt-3 text-sm sm:text-base text-white/62 leading-7">
                     {sellerFlow
@@ -294,9 +340,11 @@ export default function SignupPage() {
 
               {sellerFlow ? (
                 <div className="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm leading-7 text-amber-50">
-                  Apres inscription et connexion, le site verifiera si votre compte
-                  seller existe deja et est approuve. Sinon, vous passerez par
-                  <span className="font-semibold"> Devenir vendeur</span> pour finaliser la demande.
+                  Apres inscription et connexion, le site verifiera si votre
+                  compte seller existe deja et est approuve. Sinon, vous
+                  passerez par
+                  <span className="font-semibold"> Devenir vendeur</span> pour
+                  finaliser la demande.
                 </div>
               ) : null}
 
@@ -309,7 +357,9 @@ export default function SignupPage() {
               <form onSubmit={handleSignup} className="mt-6 space-y-5">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-white/82">Prenom</label>
+                    <label className="text-sm font-medium text-white/82">
+                      Prenom
+                    </label>
                     <div className="relative">
                       <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
                       <input
@@ -323,7 +373,9 @@ export default function SignupPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-white/82">Nom</label>
+                    <label className="text-sm font-medium text-white/82">
+                      Nom
+                    </label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
                       <input
@@ -339,7 +391,9 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/82">Email</label>
+                  <label className="text-sm font-medium text-white/82">
+                    Email
+                  </label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
                     <input
@@ -354,7 +408,9 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/82">Mot de passe</label>
+                  <label className="text-sm font-medium text-white/82">
+                    Mot de passe
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
                     <input
@@ -370,16 +426,28 @@ export default function SignupPage() {
                       onClick={() => setShowPassword((value) => !value)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-white"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-white/6 p-4 text-xs leading-6 text-white/52">
-                  En creant votre compte, vous acceptez nos conditions d&apos;utilisation et notre politique de confidentialite.
+                  En creant votre compte, vous acceptez nos conditions
+                  d&apos;utilisation et notre politique de confidentialite.
                 </div>
 
-                <Button type="submit" variant="white" fullWidth size="lg" isLoading={busy} className="mt-2 gap-2">
+                <Button
+                  type="submit"
+                  variant="white"
+                  fullWidth
+                  size="lg"
+                  isLoading={busy}
+                  className="mt-2 gap-2"
+                >
                   Creer mon compte
                   {!busy ? <ArrowRight className="h-5 w-5" /> : null}
                 </Button>
@@ -387,7 +455,9 @@ export default function SignupPage() {
 
               <div className="my-7 flex items-center gap-4">
                 <div className="h-px flex-1 bg-white/10" />
-                <span className="text-xs uppercase tracking-[0.35em] text-white/32">Ou s'inscrire avec</span>
+                <span className="text-xs uppercase tracking-[0.35em] text-white/32">
+                  Ou s'inscrire avec
+                </span>
                 <div className="h-px flex-1 bg-white/10" />
               </div>
 
@@ -398,10 +468,22 @@ export default function SignupPage() {
                 className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/6 px-5 py-3.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#EA4335" d="M12 5.04c1.73 0 3.28.6 4.5 1.76l3.33-3.33C17.81 1.53 15.09.5 12 .5 7.42.5 3.5 3.1 1.5 6.94l3.88 3.01C6.27 7.04 8.91 5.04 12 5.04z" />
-                  <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58l3.88 3c2.26-2.09 3.54-5.17 3.54-8.82z" />
-                  <path fill="#FBBC05" d="M5.38 14.95c-.24-.73-.38-1.5-.38-2.31s.14-1.58.38-2.31L1.5 7.32c-.81 1.62-1.27 3.44-1.27 5.3s.46 3.68 1.27 5.3l3.88-3.02z" />
-                  <path fill="#34A853" d="M12 23.5c3.15 0 5.79-1.04 7.72-2.82l-3.88-3c-1.06.71-2.41 1.13-3.84 1.13-3 0-5.54-2.03-6.44-4.76L1.5 16.96c2 3.84 5.92 6.54 10.5 6.54z" />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.04c1.73 0 3.28.6 4.5 1.76l3.33-3.33C17.81 1.53 15.09.5 12 .5 7.42.5 3.5 3.1 1.5 6.94l3.88 3.01C6.27 7.04 8.91 5.04 12 5.04z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58l3.88 3c2.26-2.09 3.54-5.17 3.54-8.82z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.38 14.95c-.24-.73-.38-1.5-.38-2.31s.14-1.58.38-2.31L1.5 7.32c-.81 1.62-1.27 3.44-1.27 5.3s.46 3.68 1.27 5.3l3.88-3.02z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23.5c3.15 0 5.79-1.04 7.72-2.82l-3.88-3c-1.06.71-2.41 1.13-3.84 1.13-3 0-5.54-2.03-6.44-4.76L1.5 16.96c2 3.84 5.92 6.54 10.5 6.54z"
+                  />
                 </svg>
                 Continuer avec Google
               </button>

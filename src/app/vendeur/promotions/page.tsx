@@ -18,7 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import {
   useSellerFlashSales,
   useUpdateSellerFlashSale,
@@ -92,7 +92,10 @@ function StockBar({ sold, limit }: { sold: number; limit: number }) {
           {sold} / {limit} vendus
         </span>
         <span
-          className={cn("font-bold", pct >= 80 ? "text-red-600" : "text-neutral-600")}
+          className={cn(
+            "font-bold",
+            pct >= 80 ? "text-red-600" : "text-neutral-600",
+          )}
         >
           {pct}%
         </span>
@@ -101,7 +104,11 @@ function StockBar({ sold, limit }: { sold: number; limit: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            pct >= 80 ? "bg-red-500" : pct >= 50 ? "bg-amber-500" : "bg-green-500",
+            pct >= 80
+              ? "bg-red-500"
+              : pct >= 50
+                ? "bg-amber-500"
+                : "bg-green-500",
           )}
           style={{ width: `${pct}%` }}
         />
@@ -143,7 +150,10 @@ function ExtendModal({
             <CalendarClock className="h-5 w-5 text-blue-600" />
             Prolonger l'offre
           </h3>
-          <button onClick={onClose} className="rounded-lg p-1 hover:bg-neutral-100">
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 hover:bg-neutral-100"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -186,7 +196,9 @@ export default function SellerPromotionsPage() {
   const [extendingSale, setExtendingSale] = useState<FlashSale | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filtered = sales.filter((sale) => filter === "all" || sale.status === filter);
+  const filtered = sales.filter(
+    (sale) => filter === "all" || sale.status === filter,
+  );
 
   const stats = {
     active: sales.filter((sale) => sale.status === "active").length,
@@ -237,7 +249,9 @@ export default function SellerPromotionsPage() {
             </div>
             <div>
               <p className="text-sm text-neutral-500">Offres actives</p>
-              <p className="text-2xl font-bold text-neutral-900">{stats.active}</p>
+              <p className="text-2xl font-bold text-neutral-900">
+                {stats.active}
+              </p>
             </div>
           </div>
         </div>
@@ -248,7 +262,9 @@ export default function SellerPromotionsPage() {
             </div>
             <div>
               <p className="text-sm text-neutral-500">Total vendu en flash</p>
-              <p className="text-2xl font-bold text-neutral-900">{stats.totalSold}</p>
+              <p className="text-2xl font-bold text-neutral-900">
+                {stats.totalSold}
+              </p>
             </div>
           </div>
         </div>
@@ -259,7 +275,9 @@ export default function SellerPromotionsPage() {
             </div>
             <div>
               <p className="text-sm text-neutral-500">Terminées</p>
-              <p className="text-2xl font-bold text-neutral-900">{stats.ended}</p>
+              <p className="text-2xl font-bold text-neutral-900">
+                {stats.ended}
+              </p>
             </div>
           </div>
         </div>
@@ -297,7 +315,9 @@ export default function SellerPromotionsPage() {
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center">
           <Zap className="mx-auto mb-3 h-10 w-10 text-neutral-300" />
-          <p className="text-neutral-500">Aucune vente flash pour votre boutique</p>
+          <p className="text-neutral-500">
+            Aucune vente flash pour votre boutique
+          </p>
           <Link href="/vendeur/promotions/nouveau">
             <Button className="mt-4">Créer une offre</Button>
           </Link>
@@ -359,7 +379,10 @@ export default function SellerPromotionsPage() {
                       </span>
                     </div>
 
-                    <StockBar sold={sale.quantity_sold} limit={sale.quantity_limit} />
+                    <StockBar
+                      sold={sale.quantity_sold}
+                      limit={sale.quantity_limit}
+                    />
                   </div>
 
                   <div className="flex flex-shrink-0 items-center gap-2">
@@ -367,7 +390,11 @@ export default function SellerPromotionsPage() {
                       <button
                         onClick={() => void handleTogglePause(sale)}
                         className="rounded-lg border border-neutral-200 p-2 transition-colors hover:bg-neutral-50"
-                        title={sale.status === "active" ? "Mettre en pause" : "Reprendre"}
+                        title={
+                          sale.status === "active"
+                            ? "Mettre en pause"
+                            : "Reprendre"
+                        }
                       >
                         {sale.status === "active" ? (
                           <Pause className="h-4 w-4 text-amber-600" />

@@ -24,14 +24,24 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useDisplayCurrency, useSetDisplayCurrency } from "@/store/adminStore";
 import type { CurrencyCode } from "@/data/types";
 
 const sidebarItems = [
-  { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
+  {
+    href: "/admin",
+    label: "Tableau de bord",
+    icon: LayoutDashboard,
+    exact: true,
+  },
   { href: "/admin/plans", label: "Plans", icon: Shield, exact: true },
-  { href: "/admin/plans/demandes", label: "Demandes plans", icon: ClipboardCheck, exact: true },
+  {
+    href: "/admin/plans/demandes",
+    label: "Demandes plans",
+    icon: ClipboardCheck,
+    exact: true,
+  },
   { href: "/admin/produits", label: "Produits", icon: Package },
   { href: "/admin/promotions", label: "Ventes Flash", icon: Zap },
   { href: "/admin/annonces", label: "Annonces", icon: Megaphone },
@@ -211,10 +221,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-4">
               {/* Currency Selector */}
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-neutral-100 rounded-full border border-neutral-200">
-                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Devise</span>
-                <select 
+                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                  Devise
+                </span>
+                <select
                   value={displayCurrency}
-                  onChange={(e) => setDisplayCurrency(e.target.value as CurrencyCode)}
+                  onChange={(e) =>
+                    setDisplayCurrency(e.target.value as CurrencyCode)
+                  }
                   className="bg-transparent text-sm font-bold text-neutral-900 border-none focus:outline-none focus:ring-0 p-0 cursor-pointer"
                 >
                   <option value="HTG">HTG (G)</option>

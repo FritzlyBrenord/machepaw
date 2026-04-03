@@ -8,7 +8,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { heroSlides } from "@/data";
 import { useActiveAnnouncements } from "@/hooks/useAnnouncements";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 import "swiper/css";
 import "swiper/css/effect-fade";
@@ -23,8 +23,13 @@ export function HeroSlider() {
           id: announcement.id,
           title: announcement.title,
           subtitle: "Annonce du moment",
-          description: announcement.content || "Decouvrez cette mise en avant selectionnee pour l'accueil.",
-          image: announcement.image_url || heroSlides[index % heroSlides.length]?.image || "",
+          description:
+            announcement.content ||
+            "Decouvrez cette mise en avant selectionnee pour l'accueil.",
+          image:
+            announcement.image_url ||
+            heroSlides[index % heroSlides.length]?.image ||
+            "",
           cta: announcement.link_text || "Voir",
           link: announcement.link_url || "/collection",
         }))

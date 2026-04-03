@@ -15,7 +15,7 @@ import {
   Upload,
   User,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/useCategories";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import { useAuth } from "@/hooks/useAuth";
@@ -115,9 +115,8 @@ export default function BecomeSellerPage() {
   const [form, setForm] =
     useState<SellerApplicationFormState>(initialFormState);
   const [identityFile, setIdentityFile] = useState<File | null>(null);
-  const [selfieVerificationFile, setSelfieVerificationFile] = useState<File | null>(
-    null,
-  );
+  const [selfieVerificationFile, setSelfieVerificationFile] =
+    useState<File | null>(null);
   const [proofOfAddressFile, setProofOfAddressFile] = useState<File | null>(
     null,
   );

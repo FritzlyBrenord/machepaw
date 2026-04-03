@@ -14,7 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import { useSellerCustomersQuery } from "@/hooks/useSellerWorkspace";
 import { cn, formatDate } from "@/lib/utils";
@@ -33,7 +33,9 @@ export default function SellerCustomersPage() {
   const { data: account } = useCurrentAccountQuery();
   const { data: customers = [], isLoading } = useSellerCustomersQuery();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"" | "active" | "blocked">("");
+  const [statusFilter, setStatusFilter] = useState<"" | "active" | "blocked">(
+    "",
+  );
 
   const filteredCustomers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -52,15 +54,23 @@ export default function SellerCustomersPage() {
         .toLowerCase();
 
       const matchesSearch = !query || haystack.includes(query);
-      const matchesStatus = statusFilter ? customer.status === statusFilter : true;
+      const matchesStatus = statusFilter
+        ? customer.status === statusFilter
+        : true;
 
       return matchesSearch && matchesStatus;
     });
   }, [customers, search, statusFilter]);
 
-  const activeCustomers = customers.filter((customer) => customer.status === "active").length;
-  const blockedCustomers = customers.filter((customer) => customer.status === "blocked").length;
-  const withOrders = customers.filter((customer) => customer.orderCount > 0).length;
+  const activeCustomers = customers.filter(
+    (customer) => customer.status === "active",
+  ).length;
+  const blockedCustomers = customers.filter(
+    (customer) => customer.status === "blocked",
+  ).length;
+  const withOrders = customers.filter(
+    (customer) => customer.orderCount > 0,
+  ).length;
   const recentCustomers = customers.filter((customer) => {
     const createdAt = new Date(customer.createdAt);
     const daysSinceCreated =
@@ -75,11 +85,6 @@ export default function SellerCustomersPage() {
       description="Toutes les personnes inscrites dans votre boutique, avec leurs statuts, adresses et historique utile."
       actions={
         <>
-          {seller?.storeSlug ? (
-            <Link href={`/boutique/${seller.storeSlug}`} target="_blank">
-              <Button variant="outline">Voir ma boutique</Button>
-            </Link>
-          ) : null}
           <Link href="/vendeur/commandes">
             <Button variant="outline">Voir les commandes</Button>
           </Link>
@@ -87,10 +92,30 @@ export default function SellerCustomersPage() {
       }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Clients inscrits" value={customers.length} icon={Users} tone="bg-neutral-900 text-white" />
-        <StatCard label="Clients actifs" value={activeCustomers} icon={Store} tone="bg-emerald-100 text-emerald-700" />
-        <StatCard label="Clients commandes" value={withOrders} icon={Package} tone="bg-sky-100 text-sky-700" />
-        <StatCard label="Nouveaux 30j" value={recentCustomers} icon={Clock3} tone="bg-amber-100 text-amber-700" />
+        <StatCard
+          label="Clients inscrits"
+          value={customers.length}
+          icon={Users}
+          tone="bg-neutral-900 text-white"
+        />
+        <StatCard
+          label="Clients actifs"
+          value={activeCustomers}
+          icon={Store}
+          tone="bg-emerald-100 text-emerald-700"
+        />
+        <StatCard
+          label="Clients commandes"
+          value={withOrders}
+          icon={Package}
+          tone="bg-sky-100 text-sky-700"
+        />
+        <StatCard
+          label="Nouveaux 30j"
+          value={recentCustomers}
+          icon={Clock3}
+          tone="bg-amber-100 text-amber-700"
+        />
       </div>
 
       <section className="rounded-2xl border border-neutral-200 bg-white p-5">
@@ -123,16 +148,23 @@ export default function SellerCustomersPage() {
       <section className="rounded-2xl border border-neutral-200 bg-white">
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
           <div>
-            <h2 className="font-semibold text-neutral-900">Annuaire boutique</h2>
+            <h2 className="font-semibold text-neutral-900">
+              Annuaire boutique
+            </h2>
             <p className="text-sm text-neutral-500">
-              Le seller voit ici uniquement les comptes clients lies a sa boutique.
+              Le seller voit ici uniquement les comptes clients lies a sa
+              boutique.
             </p>
           </div>
-          <p className="text-sm text-neutral-500">{filteredCustomers.length} resultat(s)</p>
+          <p className="text-sm text-neutral-500">
+            {filteredCustomers.length} resultat(s)
+          </p>
         </div>
 
         {isLoading ? (
-          <div className="px-6 py-10 text-sm text-neutral-500">Chargement des clients...</div>
+          <div className="px-6 py-10 text-sm text-neutral-500">
+            Chargement des clients...
+          </div>
         ) : filteredCustomers.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <Users className="mx-auto h-12 w-12 text-neutral-300" />
@@ -151,7 +183,9 @@ export default function SellerCustomersPage() {
                         <p className="text-lg font-semibold text-neutral-900">
                           {customer.firstName} {customer.lastName}
                         </p>
-                        <p className="text-sm text-neutral-500">{customer.email}</p>
+                        <p className="text-sm text-neutral-500">
+                          {customer.email}
+                        </p>
                       </div>
                       <span
                         className={cn(
@@ -164,17 +198,37 @@ export default function SellerCustomersPage() {
                     </div>
 
                     <div className="grid gap-3 text-sm text-neutral-600 sm:grid-cols-2 xl:grid-cols-4">
-                      <InfoItem icon={Mail} label="Email" value={customer.email} />
-                      <InfoItem icon={Phone} label="Telephone" value={customer.phone || "Non renseigne"} />
-                      <InfoItem icon={Package} label="Commandes" value={`${customer.orderCount} commande(s)`} />
-                      <InfoItem icon={MapPin} label="Adresses" value={`${customer.addressCount} adresse(s)`} />
+                      <InfoItem
+                        icon={Mail}
+                        label="Email"
+                        value={customer.email}
+                      />
+                      <InfoItem
+                        icon={Phone}
+                        label="Telephone"
+                        value={customer.phone || "Non renseigne"}
+                      />
+                      <InfoItem
+                        icon={Package}
+                        label="Commandes"
+                        value={`${customer.orderCount} commande(s)`}
+                      />
+                      <InfoItem
+                        icon={MapPin}
+                        label="Adresses"
+                        value={`${customer.addressCount} adresse(s)`}
+                      />
                     </div>
 
                     <div className="grid gap-3 text-sm text-neutral-600 sm:grid-cols-2">
                       <InfoItem
                         icon={Clock3}
                         label="Derniere connexion"
-                        value={customer.lastLoginAt ? formatDate(customer.lastLoginAt) : "Aucune"}
+                        value={
+                          customer.lastLoginAt
+                            ? formatDate(customer.lastLoginAt)
+                            : "Aucune"
+                        }
                       />
                       <InfoItem
                         icon={Package}
@@ -188,7 +242,10 @@ export default function SellerCustomersPage() {
                       <InfoItem
                         icon={MapPin}
                         label="Adresse principale"
-                        value={customer.defaultAddressSummary || "Aucune adresse principale"}
+                        value={
+                          customer.defaultAddressSummary ||
+                          "Aucune adresse principale"
+                        }
                       />
                       <InfoItem
                         icon={Store}
@@ -199,21 +256,34 @@ export default function SellerCustomersPage() {
                   </div>
 
                   <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 xl:w-72">
-                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">Resume boutique</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+                      Resume boutique
+                    </p>
                     <div className="mt-3 space-y-2 text-sm text-neutral-600">
                       <p>
-                        Statut: <span className="font-medium text-neutral-900">{statusLabels[customer.status]}</span>
+                        Statut:{" "}
+                        <span className="font-medium text-neutral-900">
+                          {statusLabels[customer.status]}
+                        </span>
                       </p>
                       <p>
-                        Commandes: <span className="font-medium text-neutral-900">{customer.orderCount}</span>
+                        Commandes:{" "}
+                        <span className="font-medium text-neutral-900">
+                          {customer.orderCount}
+                        </span>
                       </p>
                       <p>
-                        Adresses: <span className="font-medium text-neutral-900">{customer.addressCount}</span>
+                        Adresses:{" "}
+                        <span className="font-medium text-neutral-900">
+                          {customer.addressCount}
+                        </span>
                       </p>
                       <p>
                         Derniere activite:{" "}
                         <span className="font-medium text-neutral-900">
-                          {customer.lastLoginAt ? formatDate(customer.lastLoginAt) : "Aucune"}
+                          {customer.lastLoginAt
+                            ? formatDate(customer.lastLoginAt)
+                            : "Aucune"}
                         </span>
                       </p>
                     </div>

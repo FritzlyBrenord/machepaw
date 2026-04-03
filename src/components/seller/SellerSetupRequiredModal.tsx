@@ -1,8 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AlertCircle, CheckCircle2, CreditCard, Store, Truck } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import {
+  AlertCircle,
+  CheckCircle2,
+  CreditCard,
+  Store,
+  Truck,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { SellerSetupStatus } from "@/data/sellerSetup";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +41,9 @@ function ChecklistCard({
     <div
       className={cn(
         "rounded-3xl border p-5",
-        complete ? "border-emerald-200 bg-emerald-50" : "border-neutral-200 bg-white",
+        complete
+          ? "border-emerald-200 bg-emerald-50"
+          : "border-neutral-200 bg-white",
       )}
     >
       <div className="flex items-start justify-between gap-4">
@@ -43,7 +51,9 @@ function ChecklistCard({
           <div
             className={cn(
               "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
-              complete ? "bg-emerald-100 text-emerald-700" : "bg-neutral-100 text-neutral-700",
+              complete
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-neutral-100 text-neutral-700",
             )}
           >
             {icon}
@@ -61,7 +71,9 @@ function ChecklistCard({
                 </span>
               )}
             </div>
-            <p className="mt-2 text-sm leading-6 text-neutral-600">{description}</p>
+            <p className="mt-2 text-sm leading-6 text-neutral-600">
+              {description}
+            </p>
           </div>
         </div>
       </div>
@@ -117,8 +129,9 @@ export function SellerSetupRequiredModal({
               Finalisez votre boutique avant de continuer
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-600">
-              Votre plan est bien en place. Il reste maintenant a configurer au moins un mode de
-              reception et un mode de paiement actif pour ouvrir completement l&apos;espace vendeur.
+              Votre plan est bien en place. Il reste maintenant a configurer au
+              moins un mode de reception et un mode de paiement actif pour
+              ouvrir completement l&apos;espace vendeur.
             </p>
           </div>
         </div>
@@ -152,22 +165,28 @@ export function SellerSetupRequiredModal({
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 bg-white px-5 py-4">
           <p className="text-sm text-neutral-600">
-            Une fois ces deux etapes valides, votre boutique pourra accepter les commandes.
+            Une fois ces deux etapes valides, votre boutique pourra accepter les
+            commandes.
           </p>
           <div className="flex flex-wrap gap-3">
             {!status.shippingReady ? (
-              <Button variant="outline" onClick={() => {
-                onFocusShipping();
-                onClose();
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onFocusShipping();
+                  onClose();
+                }}
+              >
                 Aller a Livraison
               </Button>
             ) : null}
             {!status.paymentsReady ? (
-              <Button onClick={() => {
-                onFocusPayments();
-                onClose();
-              }}>
+              <Button
+                onClick={() => {
+                  onFocusPayments();
+                  onClose();
+                }}
+              >
                 Aller a Paiements
               </Button>
             ) : null}

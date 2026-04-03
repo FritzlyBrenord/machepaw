@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useSellerProductsQuery } from "@/hooks/useSellerWorkspace";
 import { useCreateSellerFlashSale } from "@/hooks/usePromotions";
 import type { SupabaseProduct } from "@/data/types";
@@ -30,7 +30,8 @@ export default function SellerNewFlashSalePage() {
     .slice(0, 16);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<SupabaseProduct | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -40,7 +41,9 @@ export default function SellerNewFlashSalePage() {
   });
   const [error, setError] = useState<string | null>(null);
 
-  const activeProducts = products.filter((product) => product.status === "active");
+  const activeProducts = products.filter(
+    (product) => product.status === "active",
+  );
 
   const searchResults = activeProducts
     .filter(
@@ -73,7 +76,10 @@ export default function SellerNewFlashSalePage() {
     Boolean(formData.title.trim()) &&
     Boolean(formData.sale_price) &&
     parseFloat(formData.sale_price) > 0 &&
-    Boolean(selectedProduct && parseFloat(formData.sale_price) < selectedProduct.price) &&
+    Boolean(
+      selectedProduct &&
+      parseFloat(formData.sale_price) < selectedProduct.price,
+    ) &&
     Boolean(formData.ends_at);
 
   const handleSubmit = async () => {
@@ -88,7 +94,9 @@ export default function SellerNewFlashSalePage() {
         sale_price: parseFloat(formData.sale_price),
         original_price: selectedProduct.price,
         ends_at: new Date(formData.ends_at).toISOString(),
-        quantity_limit: formData.quantity_limit ? parseInt(formData.quantity_limit, 10) : 0,
+        quantity_limit: formData.quantity_limit
+          ? parseInt(formData.quantity_limit, 10)
+          : 0,
       });
       router.push("/vendeur/promotions");
     } catch (submissionError) {
@@ -202,7 +210,10 @@ export default function SellerNewFlashSalePage() {
                     {selectedProduct.name}
                   </p>
                   <p className="text-xs text-green-700">
-                    Prix original: <strong>{selectedProduct.price.toLocaleString()} HTG</strong>
+                    Prix original:{" "}
+                    <strong>
+                      {selectedProduct.price.toLocaleString()} HTG
+                    </strong>
                     {" · "}Stock: <strong>{selectedProduct.stock}</strong>
                   </p>
                 </div>
@@ -264,7 +275,10 @@ export default function SellerNewFlashSalePage() {
                 type="number"
                 value={formData.quantity_limit}
                 onChange={(event) =>
-                  setFormData({ ...formData, quantity_limit: event.target.value })
+                  setFormData({
+                    ...formData,
+                    quantity_limit: event.target.value,
+                  })
                 }
                 placeholder="0 = sans limite"
                 min="0"
@@ -303,7 +317,10 @@ export default function SellerNewFlashSalePage() {
         </motion.div>
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => router.push("/vendeur/promotions")}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/vendeur/promotions")}
+          >
             Annuler
           </Button>
           <Button

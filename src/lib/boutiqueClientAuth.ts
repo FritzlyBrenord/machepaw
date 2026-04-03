@@ -118,7 +118,7 @@ export function getLegacyBoutiqueSessionCookieOptions(slug: string, expiresAt: D
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
-    path: `/boutique/${slug}`,
+    path: `/store/${slug}`,
     expires: expiresAt,
   };
 }

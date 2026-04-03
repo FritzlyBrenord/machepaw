@@ -21,7 +21,6 @@ import {
   useSellerOrderItemsQuery,
   useSellerProductsQuery,
 } from "@/hooks/useSellerWorkspace";
-import { SellerStoreLinkCard } from "@/components/seller/SellerStoreLinkCard";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 const statusLabels: Record<string, string> = {
@@ -86,11 +85,6 @@ export default function SellerDashboardPage() {
       title="Tableau de bord vendeur"
       description="Suivez vos ventes, vos produits publies et les elements qui demandent une action."
     >
-      <SellerStoreLinkCard
-        businessName={seller?.businessName}
-        storeSlug={seller?.storeSlug}
-      />
-
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-neutral-200 bg-white p-5">
           <div className="flex items-center justify-between">
@@ -262,15 +256,9 @@ export default function SellerDashboardPage() {
                 <p className="mt-1 text-sm text-neutral-500">
                   {seller?.isVerified ? "Vendeur verifie par l'administration." : "Verification admin en attente."}
                 </p>
-                {seller?.storeSlug ? (
-                  <Link
-                    href={`/boutique/${seller.storeSlug}`}
-                    target="_blank"
-                    className="mt-3 inline-flex text-sm font-medium text-neutral-900 underline underline-offset-4"
-                  >
-                    /boutique/{seller.storeSlug}
-                  </Link>
-                ) : null}
+                <p className="mt-3 text-sm text-neutral-500">
+                  Votre boutique publique reste accessible et vous pouvez ouvrir le builder depuis le menu vendeur pour modifier votre site.
+                </p>
               </div>
 
               <div className="rounded-2xl bg-neutral-50 p-4">

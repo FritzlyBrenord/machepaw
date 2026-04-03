@@ -2,15 +2,36 @@
 
 import { type SetStateAction, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CopyPlus, Layers3, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  CopyPlus,
+  Layers3,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { useAdminSellerPlansQuery, useUpdateSellerPlanMutation } from "@/hooks/useSellerPlans";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  useAdminSellerPlansQuery,
+  useUpdateSellerPlanMutation,
+} from "@/hooks/useSellerPlans";
 import { cn, formatPrice } from "@/lib/utils";
-import type { SellerPlan, SellerPlanBillingInterval, SellerPlanFeature, SellerPlanLimits } from "@/data/types";
+import type {
+  SellerPlan,
+  SellerPlanBillingInterval,
+  SellerPlanFeature,
+  SellerPlanLimits,
+} from "@/data/types";
 
-type EditableFeature = { id: string; key: string; label: string; description: string; enabled: boolean };
+type EditableFeature = {
+  id: string;
+  key: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+};
 type EditableLimitType = "number" | "boolean" | "text";
 type EditableLimit = {
   id: string;
@@ -43,11 +64,17 @@ function createLocalId(prefix: string, index: number) {
 }
 
 function slugifyKey(value: string) {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 function formatKeyLabel(value: string) {
-  return value.replace(/_/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function buildPlanEditorState(plan: SellerPlan): PlanEditorState {
@@ -55,7 +82,10 @@ function buildPlanEditorState(plan: SellerPlan): PlanEditorState {
     name: plan.name,
     description: plan.description,
     price: String(plan.price ?? 0),
-    promoPrice: plan.promoPrice === undefined || plan.promoPrice === null ? "" : String(plan.promoPrice),
+    promoPrice:
+      plan.promoPrice === undefined || plan.promoPrice === null
+        ? ""
+        : String(plan.promoPrice),
     currencyCode: plan.currencyCode,
     billingInterval: plan.billingInterval,
     isActive: plan.isActive,
@@ -72,10 +102,20 @@ function buildPlanEditorState(plan: SellerPlan): PlanEditorState {
       id: createLocalId("limit", index),
       key,
       label: formatKeyLabel(key),
-      type: typeof value === "boolean" ? "boolean" : typeof value === "number" ? "number" : "text",
+      type:
+        typeof value === "boolean"
+          ? "boolean"
+          : typeof value === "number"
+            ? "number"
+            : "text",
       numberValue: typeof value === "number" ? String(value) : "",
       booleanValue: typeof value === "boolean" ? value : false,
-      textValue: typeof value === "string" ? value : value === null || value === undefined ? "" : String(value),
+      textValue:
+        typeof value === "string"
+          ? value
+          : value === null || value === undefined
+            ? ""
+            : String(value),
     })),
   };
 }
@@ -88,7 +128,12 @@ function serializeFeatures(features: EditableFeature[]) {
       if (!label || !key) {
         return null;
       }
-      return { key, label, description: feature.description.trim() || undefined, enabled: feature.enabled };
+      return {
+        key,
+        label,
+        description: feature.description.trim() || undefined,
+        enabled: feature.enabled,
+      };
     })
     .filter(Boolean) as SellerPlanFeature[];
 }
@@ -122,7 +167,10 @@ export default function AdminPlansPage() {
   const updatePlanMutation = useUpdateSellerPlanMutation();
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [editorDraft, setEditorDraft] = useState<PlanEditorState | null>(null);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const selectedPlan = useMemo(
     () => plans.find((plan) => plan.id === selectedPlanId) || plans[0] || null,
@@ -147,7 +195,9 @@ export default function AdminPlansPage() {
     setEditorDraft((current) => {
       const baseState = current ?? buildPlanEditorState(selectedPlan);
       return typeof value === "function"
-        ? (value as (state: PlanEditorState | null) => PlanEditorState | null)(baseState)
+        ? (value as (state: PlanEditorState | null) => PlanEditorState | null)(
+            baseState,
+          )
         : value;
     });
   };
@@ -163,7 +213,9 @@ export default function AdminPlansPage() {
         name: editorState.name.trim(),
         description: editorState.description.trim(),
         price: Number(editorState.price || 0),
-        promoPrice: editorState.promoPrice.trim() ? Number(editorState.promoPrice) : null,
+        promoPrice: editorState.promoPrice.trim()
+          ? Number(editorState.promoPrice)
+          : null,
         currencyCode: editorState.currencyCode,
         billingInterval: editorState.billingInterval,
         isActive: editorState.isActive,
@@ -174,7 +226,10 @@ export default function AdminPlansPage() {
       });
       setFeedback({ type: "success", message: "Le plan a ete mis a jour." });
     } catch (error) {
-      setFeedback({ type: "error", message: getErrorMessage(error, "Impossible d'enregistrer ce plan.") });
+      setFeedback({
+        type: "error",
+        message: getErrorMessage(error, "Impossible d'enregistrer ce plan."),
+      });
     }
   };
 
@@ -185,9 +240,12 @@ export default function AdminPlansPage() {
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
               <Badge variant="outline">Catalogue SaaS</Badge>
-              <h1 className="mt-4 text-3xl font-semibold text-neutral-900">Plans vendeur</h1>
+              <h1 className="mt-4 text-3xl font-semibold text-neutral-900">
+                Plans vendeur
+              </h1>
               <p className="mt-3 text-sm leading-7 text-neutral-500">
-                Gere les plans sans JSON brut: prix, promo, activation, fonctionnalites et limites.
+                Gere les plans sans JSON brut: prix, promo, activation,
+                fonctionnalites et limites.
               </p>
             </div>
             <Link
@@ -204,8 +262,12 @@ export default function AdminPlansPage() {
           <section className="rounded-[2rem] border border-neutral-200 bg-white p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-neutral-900">Plans disponibles</p>
-                <p className="mt-1 text-sm text-neutral-500">Selectionne un plan pour l&apos;editer.</p>
+                <p className="text-sm font-semibold text-neutral-900">
+                  Plans disponibles
+                </p>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Selectionne un plan pour l&apos;editer.
+                </p>
               </div>
               <Badge variant="outline">{plans.length}</Badge>
             </div>
@@ -223,37 +285,111 @@ export default function AdminPlansPage() {
                     }}
                     className={cn(
                       "w-full rounded-3xl border p-5 text-left transition-all",
-                      isSelected ? "border-neutral-900 bg-neutral-900 text-white shadow-xl" : "border-neutral-200 bg-neutral-50 hover:border-neutral-300 hover:bg-white",
+                      isSelected
+                        ? "border-neutral-900 bg-neutral-900 text-white shadow-xl"
+                        : "border-neutral-200 bg-neutral-50 hover:border-neutral-300 hover:bg-white",
                     )}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-lg font-semibold">{plan.name}</p>
-                          {plan.isFeatured ? <Badge className={isSelected ? "bg-white text-neutral-900" : ""}>Mis en avant</Badge> : null}
+                          {plan.isFeatured ? (
+                            <Badge
+                              className={
+                                isSelected ? "bg-white text-neutral-900" : ""
+                              }
+                            >
+                              Mis en avant
+                            </Badge>
+                          ) : null}
                         </div>
-                        <p className={cn("mt-2 text-sm", isSelected ? "text-neutral-300" : "text-neutral-500")}>
+                        <p
+                          className={cn(
+                            "mt-2 text-sm",
+                            isSelected
+                              ? "text-neutral-300"
+                              : "text-neutral-500",
+                          )}
+                        >
                           {plan.description}
                         </p>
                       </div>
-                      <Badge className={isSelected ? "border-white bg-white text-neutral-900" : plan.isActive ? "bg-emerald-100 text-emerald-700" : "bg-neutral-200 text-neutral-700"}>
+                      <Badge
+                        className={
+                          isSelected
+                            ? "border-white bg-white text-neutral-900"
+                            : plan.isActive
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-neutral-200 text-neutral-700"
+                        }
+                      >
                         {plan.isActive ? "Actif" : "Inactif"}
                       </Badge>
                     </div>
                     <div className="mt-5 grid grid-cols-3 gap-3">
-                      <div className={cn("rounded-2xl p-3", isSelected ? "bg-white/10" : "bg-white")}>
-                        <p className={cn("text-xs uppercase tracking-[0.18em]", isSelected ? "text-neutral-300" : "text-neutral-400")}>Prix</p>
+                      <div
+                        className={cn(
+                          "rounded-2xl p-3",
+                          isSelected ? "bg-white/10" : "bg-white",
+                        )}
+                      >
+                        <p
+                          className={cn(
+                            "text-xs uppercase tracking-[0.18em]",
+                            isSelected
+                              ? "text-neutral-300"
+                              : "text-neutral-400",
+                          )}
+                        >
+                          Prix
+                        </p>
                         <p className="mt-1 text-sm font-semibold">
-                          {formatPrice(Number(plan.promoPrice ?? plan.price), plan.currencyCode)}
+                          {formatPrice(
+                            Number(plan.promoPrice ?? plan.price),
+                            plan.currencyCode,
+                          )}
                         </p>
                       </div>
-                      <div className={cn("rounded-2xl p-3", isSelected ? "bg-white/10" : "bg-white")}>
-                        <p className={cn("text-xs uppercase tracking-[0.18em]", isSelected ? "text-neutral-300" : "text-neutral-400")}>Inscrits</p>
-                        <p className="mt-1 text-lg font-semibold">{plan.subscribersCount || 0}</p>
+                      <div
+                        className={cn(
+                          "rounded-2xl p-3",
+                          isSelected ? "bg-white/10" : "bg-white",
+                        )}
+                      >
+                        <p
+                          className={cn(
+                            "text-xs uppercase tracking-[0.18em]",
+                            isSelected
+                              ? "text-neutral-300"
+                              : "text-neutral-400",
+                          )}
+                        >
+                          Inscrits
+                        </p>
+                        <p className="mt-1 text-lg font-semibold">
+                          {plan.subscribersCount || 0}
+                        </p>
                       </div>
-                      <div className={cn("rounded-2xl p-3", isSelected ? "bg-white/10" : "bg-white")}>
-                        <p className={cn("text-xs uppercase tracking-[0.18em]", isSelected ? "text-neutral-300" : "text-neutral-400")}>Attente</p>
-                        <p className="mt-1 text-lg font-semibold">{plan.pendingRequestsCount || 0}</p>
+                      <div
+                        className={cn(
+                          "rounded-2xl p-3",
+                          isSelected ? "bg-white/10" : "bg-white",
+                        )}
+                      >
+                        <p
+                          className={cn(
+                            "text-xs uppercase tracking-[0.18em]",
+                            isSelected
+                              ? "text-neutral-300"
+                              : "text-neutral-400",
+                          )}
+                        >
+                          Attente
+                        </p>
+                        <p className="mt-1 text-lg font-semibold">
+                          {plan.pendingRequestsCount || 0}
+                        </p>
                       </div>
                     </div>
                   </button>
@@ -265,7 +401,9 @@ export default function AdminPlansPage() {
           <section className="rounded-[2rem] border border-neutral-200 bg-white p-6 lg:p-7">
             {!selectedPlan || !editorState ? (
               <div className="rounded-3xl border border-dashed border-neutral-300 bg-neutral-50 p-10 text-center text-sm text-neutral-500">
-                {isLoading ? "Chargement des plans..." : "Selectionne un plan pour commencer."}
+                {isLoading
+                  ? "Chargement des plans..."
+                  : "Selectionne un plan pour commencer."}
               </div>
             ) : (
               <div className="space-y-6">
@@ -275,12 +413,15 @@ export default function AdminPlansPage() {
                       <h2 className="text-2xl font-semibold text-neutral-900">
                         Edition du plan {selectedPlan.name}
                       </h2>
-                      <Badge variant={editorState.isActive ? "primary" : "outline"}>
+                      <Badge
+                        variant={editorState.isActive ? "primary" : "outline"}
+                      >
                         {editorState.isActive ? "Visible" : "Masque"}
                       </Badge>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-neutral-500">
-                      Une interface admin plus simple pour gerer un vrai catalogue SaaS.
+                      Une interface admin plus simple pour gerer un vrai
+                      catalogue SaaS.
                     </p>
                   </div>
 
@@ -290,7 +431,11 @@ export default function AdminPlansPage() {
                         Features actives
                       </p>
                       <p className="mt-1 text-xl font-semibold text-neutral-900">
-                        {editorState.features.filter((feature) => feature.enabled).length}
+                        {
+                          editorState.features.filter(
+                            (feature) => feature.enabled,
+                          ).length
+                        }
                       </p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 px-4 py-3">
@@ -307,7 +452,9 @@ export default function AdminPlansPage() {
                       </p>
                       <p className="mt-1 text-xl font-semibold text-neutral-900">
                         {formatPrice(
-                          Number(editorState.promoPrice || editorState.price || 0),
+                          Number(
+                            editorState.promoPrice || editorState.price || 0,
+                          ),
                           editorState.currencyCode,
                         )}
                       </p>
@@ -334,7 +481,9 @@ export default function AdminPlansPage() {
                       <div className="flex items-center gap-3">
                         <ShieldCheck className="h-5 w-5 text-neutral-900" />
                         <div>
-                          <h3 className="font-semibold text-neutral-900">Informations du plan</h3>
+                          <h3 className="font-semibold text-neutral-900">
+                            Informations du plan
+                          </h3>
                           <p className="text-sm text-neutral-500">
                             Nom, description et ordre d&apos;affichage.
                           </p>
@@ -348,7 +497,9 @@ export default function AdminPlansPage() {
                             value={editorState.name}
                             onChange={(event) =>
                               setEditorState((current) =>
-                                current ? { ...current, name: event.target.value } : current,
+                                current
+                                  ? { ...current, name: event.target.value }
+                                  : current,
                               )
                             }
                             className={inputClassName}
@@ -357,13 +508,20 @@ export default function AdminPlansPage() {
                         </label>
 
                         <label className="space-y-2 text-sm text-neutral-700">
-                          <span className="font-medium">Ordre d&apos;affichage</span>
+                          <span className="font-medium">
+                            Ordre d&apos;affichage
+                          </span>
                           <input
                             type="number"
                             value={editorState.sortOrder}
                             onChange={(event) =>
                               setEditorState((current) =>
-                                current ? { ...current, sortOrder: event.target.value } : current,
+                                current
+                                  ? {
+                                      ...current,
+                                      sortOrder: event.target.value,
+                                    }
+                                  : current,
                               )
                             }
                             className={inputClassName}
@@ -377,7 +535,12 @@ export default function AdminPlansPage() {
                           value={editorState.description}
                           onChange={(event) =>
                             setEditorState((current) =>
-                              current ? { ...current, description: event.target.value } : current,
+                              current
+                                ? {
+                                    ...current,
+                                    description: event.target.value,
+                                  }
+                                : current,
                             )
                           }
                           rows={4}
@@ -391,9 +554,12 @@ export default function AdminPlansPage() {
                       <div className="flex items-center gap-3">
                         <Sparkles className="h-5 w-5 text-neutral-900" />
                         <div>
-                          <h3 className="font-semibold text-neutral-900">Tarification</h3>
+                          <h3 className="font-semibold text-neutral-900">
+                            Tarification
+                          </h3>
                           <p className="text-sm text-neutral-500">
-                            Prix principal, promo, devise, facturation et visibilite.
+                            Prix principal, promo, devise, facturation et
+                            visibilite.
                           </p>
                         </div>
                       </div>
@@ -407,7 +573,9 @@ export default function AdminPlansPage() {
                             value={editorState.price}
                             onChange={(event) =>
                               setEditorState((current) =>
-                                current ? { ...current, price: event.target.value } : current,
+                                current
+                                  ? { ...current, price: event.target.value }
+                                  : current,
                               )
                             }
                             className={inputClassName}
@@ -422,7 +590,12 @@ export default function AdminPlansPage() {
                             value={editorState.promoPrice}
                             onChange={(event) =>
                               setEditorState((current) =>
-                                current ? { ...current, promoPrice: event.target.value } : current,
+                                current
+                                  ? {
+                                      ...current,
+                                      promoPrice: event.target.value,
+                                    }
+                                  : current,
                               )
                             }
                             className={inputClassName}
@@ -439,7 +612,8 @@ export default function AdminPlansPage() {
                                 current
                                   ? {
                                       ...current,
-                                      currencyCode: event.target.value as SellerPlan["currencyCode"],
+                                      currencyCode: event.target
+                                        .value as SellerPlan["currencyCode"],
                                     }
                                   : current,
                               )
@@ -462,7 +636,8 @@ export default function AdminPlansPage() {
                                 current
                                   ? {
                                       ...current,
-                                      billingInterval: event.target.value as SellerPlanBillingInterval,
+                                      billingInterval: event.target
+                                        .value as SellerPlanBillingInterval,
                                     }
                                   : current,
                               )
@@ -481,7 +656,9 @@ export default function AdminPlansPage() {
                           type="button"
                           onClick={() =>
                             setEditorState((current) =>
-                              current ? { ...current, isActive: !current.isActive } : current,
+                              current
+                                ? { ...current, isActive: !current.isActive }
+                                : current,
                             )
                           }
                           className={cn(
@@ -492,12 +669,18 @@ export default function AdminPlansPage() {
                           )}
                         >
                           <div>
-                            <p className="font-medium text-neutral-900">Plan disponible</p>
+                            <p className="font-medium text-neutral-900">
+                              Plan disponible
+                            </p>
                             <p className="mt-1 text-sm text-neutral-500">
                               Visible et selectable par les vendeurs.
                             </p>
                           </div>
-                          <Badge variant={editorState.isActive ? "primary" : "outline"}>
+                          <Badge
+                            variant={
+                              editorState.isActive ? "primary" : "outline"
+                            }
+                          >
                             {editorState.isActive ? "Actif" : "Inactif"}
                           </Badge>
                         </button>
@@ -506,7 +689,12 @@ export default function AdminPlansPage() {
                           type="button"
                           onClick={() =>
                             setEditorState((current) =>
-                              current ? { ...current, isFeatured: !current.isFeatured } : current,
+                              current
+                                ? {
+                                    ...current,
+                                    isFeatured: !current.isFeatured,
+                                  }
+                                : current,
                             )
                           }
                           className={cn(
@@ -517,12 +705,18 @@ export default function AdminPlansPage() {
                           )}
                         >
                           <div>
-                            <p className="font-medium text-neutral-900">Plan mis en avant</p>
+                            <p className="font-medium text-neutral-900">
+                              Plan mis en avant
+                            </p>
                             <p className="mt-1 text-sm text-neutral-500">
                               Badge recommande sur la page vendeur.
                             </p>
                           </div>
-                          <Badge variant={editorState.isFeatured ? "primary" : "outline"}>
+                          <Badge
+                            variant={
+                              editorState.isFeatured ? "primary" : "outline"
+                            }
+                          >
                             {editorState.isFeatured ? "Oui" : "Non"}
                           </Badge>
                         </button>
@@ -534,9 +728,12 @@ export default function AdminPlansPage() {
                         <div className="flex items-center gap-3">
                           <ShieldCheck className="h-5 w-5 text-neutral-900" />
                           <div>
-                            <h3 className="font-semibold text-neutral-900">Fonctionnalites</h3>
+                            <h3 className="font-semibold text-neutral-900">
+                              Fonctionnalites
+                            </h3>
                             <p className="text-sm text-neutral-500">
-                              Chaque ligne active ou desactive un avantage du plan.
+                              Chaque ligne active ou desactive un avantage du
+                              plan.
                             </p>
                           </div>
                         </div>
@@ -552,7 +749,10 @@ export default function AdminPlansPage() {
                                     features: [
                                       ...current.features,
                                       {
-                                        id: createLocalId("feature", current.features.length),
+                                        id: createLocalId(
+                                          "feature",
+                                          current.features.length,
+                                        ),
                                         key: "",
                                         label: "",
                                         description: "",
@@ -571,11 +771,16 @@ export default function AdminPlansPage() {
 
                       <div className="mt-5 space-y-4">
                         {editorState.features.map((feature) => (
-                          <div key={feature.id} className="rounded-3xl border border-neutral-200 bg-white p-4">
+                          <div
+                            key={feature.id}
+                            className="rounded-3xl border border-neutral-200 bg-white p-4"
+                          >
                             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),180px]">
                               <div className="grid gap-4 md:grid-cols-2">
                                 <label className="space-y-2 text-sm text-neutral-700">
-                                  <span className="font-medium">Nom visible</span>
+                                  <span className="font-medium">
+                                    Nom visible
+                                  </span>
                                   <input
                                     value={feature.label}
                                     onChange={(event) =>
@@ -583,10 +788,15 @@ export default function AdminPlansPage() {
                                         current
                                           ? {
                                               ...current,
-                                              features: current.features.map((item) =>
-                                                item.id === feature.id
-                                                  ? { ...item, label: event.target.value }
-                                                  : item,
+                                              features: current.features.map(
+                                                (item) =>
+                                                  item.id === feature.id
+                                                    ? {
+                                                        ...item,
+                                                        label:
+                                                          event.target.value,
+                                                      }
+                                                    : item,
                                               ),
                                             }
                                           : current,
@@ -598,7 +808,9 @@ export default function AdminPlansPage() {
                                 </label>
 
                                 <label className="space-y-2 text-sm text-neutral-700">
-                                  <span className="font-medium">Code interne</span>
+                                  <span className="font-medium">
+                                    Code interne
+                                  </span>
                                   <input
                                     value={feature.key}
                                     onChange={(event) =>
@@ -606,10 +818,14 @@ export default function AdminPlansPage() {
                                         current
                                           ? {
                                               ...current,
-                                              features: current.features.map((item) =>
-                                                item.id === feature.id
-                                                  ? { ...item, key: event.target.value }
-                                                  : item,
+                                              features: current.features.map(
+                                                (item) =>
+                                                  item.id === feature.id
+                                                    ? {
+                                                        ...item,
+                                                        key: event.target.value,
+                                                      }
+                                                    : item,
                                               ),
                                             }
                                           : current,
@@ -629,10 +845,14 @@ export default function AdminPlansPage() {
                                       current
                                         ? {
                                             ...current,
-                                            features: current.features.map((item) =>
-                                              item.id === feature.id
-                                                ? { ...item, enabled: !item.enabled }
-                                                : item,
+                                            features: current.features.map(
+                                              (item) =>
+                                                item.id === feature.id
+                                                  ? {
+                                                      ...item,
+                                                      enabled: !item.enabled,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : current,
@@ -677,10 +897,15 @@ export default function AdminPlansPage() {
                                     current
                                       ? {
                                           ...current,
-                                          features: current.features.map((item) =>
-                                            item.id === feature.id
-                                              ? { ...item, description: event.target.value }
-                                              : item,
+                                          features: current.features.map(
+                                            (item) =>
+                                              item.id === feature.id
+                                                ? {
+                                                    ...item,
+                                                    description:
+                                                      event.target.value,
+                                                  }
+                                                : item,
                                           ),
                                         }
                                       : current,
@@ -688,7 +913,7 @@ export default function AdminPlansPage() {
                                 }
                                 rows={3}
                                 className={cn(inputClassName, "resize-none")}
-                                placeholder="Explique simplement l&apos;avantage."
+                                placeholder="Explique simplement l'avantage."
                               />
                             </label>
                           </div>
@@ -701,7 +926,9 @@ export default function AdminPlansPage() {
                         <div className="flex items-center gap-3">
                           <Layers3 className="h-5 w-5 text-neutral-900" />
                           <div>
-                            <h3 className="font-semibold text-neutral-900">Limites du plan</h3>
+                            <h3 className="font-semibold text-neutral-900">
+                              Limites du plan
+                            </h3>
                             <p className="text-sm text-neutral-500">
                               Gerer les quotas sans toucher a du JSON.
                             </p>
@@ -719,7 +946,10 @@ export default function AdminPlansPage() {
                                     limits: [
                                       ...current.limits,
                                       {
-                                        id: createLocalId("limit", current.limits.length),
+                                        id: createLocalId(
+                                          "limit",
+                                          current.limits.length,
+                                        ),
                                         key: "",
                                         label: "",
                                         type: "number",
@@ -740,7 +970,10 @@ export default function AdminPlansPage() {
 
                       <div className="mt-5 space-y-4">
                         {editorState.limits.map((limit) => (
-                          <div key={limit.id} className="rounded-3xl border border-neutral-200 bg-white p-4">
+                          <div
+                            key={limit.id}
+                            className="rounded-3xl border border-neutral-200 bg-white p-4"
+                          >
                             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),220px,180px]">
                               <label className="space-y-2 text-sm text-neutral-700">
                                 <span className="font-medium">Nom visible</span>
@@ -751,10 +984,14 @@ export default function AdminPlansPage() {
                                       current
                                         ? {
                                             ...current,
-                                            limits: current.limits.map((item) =>
-                                              item.id === limit.id
-                                                ? { ...item, label: event.target.value }
-                                                : item,
+                                            limits: current.limits.map(
+                                              (item) =>
+                                                item.id === limit.id
+                                                  ? {
+                                                      ...item,
+                                                      label: event.target.value,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : current,
@@ -766,7 +1003,9 @@ export default function AdminPlansPage() {
                               </label>
 
                               <label className="space-y-2 text-sm text-neutral-700">
-                                <span className="font-medium">Code interne</span>
+                                <span className="font-medium">
+                                  Code interne
+                                </span>
                                 <input
                                   value={limit.key}
                                   onChange={(event) =>
@@ -774,10 +1013,14 @@ export default function AdminPlansPage() {
                                       current
                                         ? {
                                             ...current,
-                                            limits: current.limits.map((item) =>
-                                              item.id === limit.id
-                                                ? { ...item, key: event.target.value }
-                                                : item,
+                                            limits: current.limits.map(
+                                              (item) =>
+                                                item.id === limit.id
+                                                  ? {
+                                                      ...item,
+                                                      key: event.target.value,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : current,
@@ -798,13 +1041,15 @@ export default function AdminPlansPage() {
                                         current
                                           ? {
                                               ...current,
-                                              limits: current.limits.map((item) =>
-                                                item.id === limit.id
-                                                  ? {
-                                                      ...item,
-                                                      type: event.target.value as EditableLimitType,
-                                                    }
-                                                  : item,
+                                              limits: current.limits.map(
+                                                (item) =>
+                                                  item.id === limit.id
+                                                    ? {
+                                                        ...item,
+                                                        type: event.target
+                                                          .value as EditableLimitType,
+                                                      }
+                                                    : item,
                                               ),
                                             }
                                           : current,
@@ -848,10 +1093,15 @@ export default function AdminPlansPage() {
                                       current
                                         ? {
                                             ...current,
-                                            limits: current.limits.map((item) =>
-                                              item.id === limit.id
-                                                ? { ...item, numberValue: event.target.value }
-                                                : item,
+                                            limits: current.limits.map(
+                                              (item) =>
+                                                item.id === limit.id
+                                                  ? {
+                                                      ...item,
+                                                      numberValue:
+                                                        event.target.value,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : current,
@@ -869,10 +1119,15 @@ export default function AdminPlansPage() {
                                       current
                                         ? {
                                             ...current,
-                                            limits: current.limits.map((item) =>
-                                              item.id === limit.id
-                                                ? { ...item, booleanValue: !item.booleanValue }
-                                                : item,
+                                            limits: current.limits.map(
+                                              (item) =>
+                                                item.id === limit.id
+                                                  ? {
+                                                      ...item,
+                                                      booleanValue:
+                                                        !item.booleanValue,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : current,
@@ -885,7 +1140,9 @@ export default function AdminPlansPage() {
                                       : "border-neutral-200 bg-neutral-50 text-neutral-700",
                                   )}
                                 >
-                                  {limit.booleanValue ? "Oui, autorise" : "Non, bloque"}
+                                  {limit.booleanValue
+                                    ? "Oui, autorise"
+                                    : "Non, bloque"}
                                 </button>
                               ) : null}
 
@@ -897,10 +1154,15 @@ export default function AdminPlansPage() {
                                       current
                                         ? {
                                             ...current,
-                                            limits: current.limits.map((item) =>
-                                              item.id === limit.id
-                                                ? { ...item, textValue: event.target.value }
-                                                : item,
+                                            limits: current.limits.map(
+                                              (item) =>
+                                                item.id === limit.id
+                                                  ? {
+                                                      ...item,
+                                                      textValue:
+                                                        event.target.value,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : current,
@@ -919,36 +1181,48 @@ export default function AdminPlansPage() {
 
                   <aside className="space-y-4">
                     <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
-                      <p className="text-sm font-semibold text-neutral-900">Apercu rapide</p>
+                      <p className="text-sm font-semibold text-neutral-900">
+                        Apercu rapide
+                      </p>
                       <div className="mt-4 space-y-3">
                         <div className="rounded-2xl bg-white p-4">
-                          <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Prix</p>
+                          <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                            Prix
+                          </p>
                           <p className="mt-1 text-2xl font-semibold text-neutral-900">
                             {formatPrice(
-                              Number(editorState.promoPrice || editorState.price || 0),
+                              Number(
+                                editorState.promoPrice ||
+                                  editorState.price ||
+                                  0,
+                              ),
                               editorState.currencyCode,
                             )}
                           </p>
                         </div>
                         <div className="rounded-2xl bg-white p-4">
-                          <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Position</p>
+                          <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                            Position
+                          </p>
                           <p className="mt-1 text-lg font-semibold text-neutral-900">
                             {editorState.sortOrder || "0"}
                           </p>
                         </div>
                         <div className="rounded-2xl bg-white p-4 text-sm leading-6 text-neutral-500">
-                          Le code interne des options peut rester vide. Il sera genere
-                          automatiquement a partir du nom visible.
+                          Le code interne des options peut rester vide. Il sera
+                          genere automatiquement a partir du nom visible.
                         </div>
                       </div>
                     </div>
 
                     <div className="rounded-3xl border border-neutral-200 bg-white p-5">
-                      <p className="text-sm font-semibold text-neutral-900">Organisation admin</p>
+                      <p className="text-sm font-semibold text-neutral-900">
+                        Organisation admin
+                      </p>
                       <div className="mt-4 space-y-3 text-sm leading-6 text-neutral-500">
                         <p>
-                          Les plans sont geres ici. Les preuves de paiement et les validations sont
-                          traitees dans une file distincte.
+                          Les plans sont geres ici. Les preuves de paiement et
+                          les validations sont traitees dans une file distincte.
                         </p>
                         <Link
                           href="/admin/plans/demandes"
@@ -963,7 +1237,10 @@ export default function AdminPlansPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 border-t border-neutral-200 pt-6">
-                  <Button onClick={() => void savePlan()} isLoading={updatePlanMutation.isPending}>
+                  <Button
+                    onClick={() => void savePlan()}
+                    isLoading={updatePlanMutation.isPending}
+                  >
                     Enregistrer les changements
                   </Button>
                   <Link

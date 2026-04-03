@@ -2,10 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Search, ShieldCheck, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Search,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   useAdminSellerPlanRequestsQuery,
   useReviewSellerPlanRequestMutation,
@@ -70,9 +76,10 @@ export default function AdminPlanRequestsPage() {
   const [page, setPage] = useState(1);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
-    null,
-  );
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const planOptions = useMemo(
     () =>
@@ -80,7 +87,10 @@ export default function AdminPlanRequestsPage() {
         new Map(
           requests
             .filter((request) => request.plan)
-            .map((request) => [request.plan!.id, { id: request.plan!.id, name: request.plan!.name }]),
+            .map((request) => [
+              request.plan!.id,
+              { id: request.plan!.id, name: request.plan!.name },
+            ]),
         ).values(),
       ),
     [requests],
@@ -88,22 +98,30 @@ export default function AdminPlanRequestsPage() {
 
   const filteredRequests = useMemo(() => {
     return requests.filter((request) => {
-      const matchesStatus = statusFilter === "all" || request.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || request.status === statusFilter;
       const matchesPlan = planFilter === "all" || request.planId === planFilter;
-      const matchesText = !search.trim() || matchesSearch(request, search.trim());
+      const matchesText =
+        !search.trim() || matchesSearch(request, search.trim());
       return matchesStatus && matchesPlan && matchesText;
     });
   }, [planFilter, requests, search, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paginatedRequests = filteredRequests.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paginatedRequests = filteredRequests.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
 
   const summary = {
     total: requests.length,
-    pending: requests.filter((request) => request.status === "pending_review").length,
-    approved: requests.filter((request) => request.status === "approved").length,
-    rejected: requests.filter((request) => request.status === "rejected").length,
+    pending: requests.filter((request) => request.status === "pending_review")
+      .length,
+    approved: requests.filter((request) => request.status === "approved")
+      .length,
+    rejected: requests.filter((request) => request.status === "rejected")
+      .length,
   };
 
   const reviewRequest = async (
@@ -116,7 +134,8 @@ export default function AdminPlanRequestsPage() {
       await reviewMutation.mutateAsync({
         requestId,
         status,
-        rejectionReason: status === "rejected" ? reason || "Paiement non valide." : undefined,
+        rejectionReason:
+          status === "rejected" ? reason || "Paiement non valide." : undefined,
       });
       setFeedback({
         type: "success",
@@ -146,8 +165,9 @@ export default function AdminPlanRequestsPage() {
                 File d&apos;approbation des plans
               </h1>
               <p className="mt-3 text-sm leading-7 text-neutral-500">
-                Cette vue est separee de l&apos;edition des plans. Elle est pensee pour trier, filtrer et
-                traiter un grand volume de demandes sans melanger la configuration du catalogue.
+                Cette vue est separee de l&apos;edition des plans. Elle est
+                pensee pour trier, filtrer et traiter un grand volume de
+                demandes sans melanger la configuration du catalogue.
               </p>
             </div>
 
@@ -162,20 +182,34 @@ export default function AdminPlanRequestsPage() {
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <div className="rounded-3xl bg-neutral-950 p-5 text-white">
-              <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Total</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                Total
+              </p>
               <p className="mt-3 text-3xl font-semibold">{summary.total}</p>
             </div>
             <div className="rounded-3xl bg-amber-50 p-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-amber-700">En attente</p>
-              <p className="mt-3 text-3xl font-semibold text-amber-950">{summary.pending}</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-amber-700">
+                En attente
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-amber-950">
+                {summary.pending}
+              </p>
             </div>
             <div className="rounded-3xl bg-emerald-50 p-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700">Approuvees</p>
-              <p className="mt-3 text-3xl font-semibold text-emerald-950">{summary.approved}</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700">
+                Approuvees
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-emerald-950">
+                {summary.approved}
+              </p>
             </div>
             <div className="rounded-3xl bg-rose-50 p-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-rose-700">Refusees</p>
-              <p className="mt-3 text-3xl font-semibold text-rose-950">{summary.rejected}</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-rose-700">
+                Refusees
+              </p>
+              <p className="mt-3 text-3xl font-semibold text-rose-950">
+                {summary.rejected}
+              </p>
             </div>
           </div>
         </section>
@@ -269,11 +303,16 @@ export default function AdminPlanRequestsPage() {
             ) : null}
 
             {paginatedRequests.map((request) => (
-              <div key={request.id} className="rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
+              <div
+                key={request.id}
+                className="rounded-3xl border border-neutral-200 bg-neutral-50 p-5"
+              >
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Boutique</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                        Boutique
+                      </p>
                       <p className="mt-1 font-semibold text-neutral-900">
                         {request.sellerBusinessName || "Boutique inconnue"}
                       </p>
@@ -282,7 +321,9 @@ export default function AdminPlanRequestsPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Plan demande</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                        Plan demande
+                      </p>
                       <p className="mt-1 font-semibold text-neutral-900">
                         {request.plan?.name || "Plan inconnu"}
                       </p>
@@ -291,7 +332,9 @@ export default function AdminPlanRequestsPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Paiement</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                        Paiement
+                      </p>
                       <p className="mt-1 font-semibold text-neutral-900">
                         {request.paymentMethod || "Aucune methode"}
                       </p>
@@ -300,9 +343,16 @@ export default function AdminPlanRequestsPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">Statut</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                        Statut
+                      </p>
                       <div className="mt-1 flex items-center gap-3">
-                        <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-medium", getStatusBadgeClass(request.status))}>
+                        <span
+                          className={cn(
+                            "inline-flex rounded-full px-3 py-1 text-xs font-medium",
+                            getStatusBadgeClass(request.status),
+                          )}
+                        >
                           {statusLabels[request.status]}
                         </span>
                         {request.paymentProofUrl ? (
@@ -324,7 +374,10 @@ export default function AdminPlanRequestsPage() {
                     <Button
                       size="sm"
                       onClick={() => void reviewRequest(request.id, "approved")}
-                      disabled={request.status !== "pending_review" || reviewMutation.isPending}
+                      disabled={
+                        request.status !== "pending_review" ||
+                        reviewMutation.isPending
+                      }
                     >
                       <ShieldCheck className="mr-2 h-4 w-4" />
                       Approuver
@@ -333,9 +386,14 @@ export default function AdminPlanRequestsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() =>
-                        setRejectingId((current) => (current === request.id ? null : request.id))
+                        setRejectingId((current) =>
+                          current === request.id ? null : request.id,
+                        )
                       }
-                      disabled={request.status !== "pending_review" || reviewMutation.isPending}
+                      disabled={
+                        request.status !== "pending_review" ||
+                        reviewMutation.isPending
+                      }
                     >
                       <XCircle className="mr-2 h-4 w-4" />
                       Refuser
@@ -349,7 +407,9 @@ export default function AdminPlanRequestsPage() {
                       <span className="font-medium">Motif du refus</span>
                       <textarea
                         value={rejectionReason}
-                        onChange={(event) => setRejectionReason(event.target.value)}
+                        onChange={(event) =>
+                          setRejectionReason(event.target.value)
+                        }
                         rows={3}
                         className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-neutral-900"
                         placeholder="Ex: reference introuvable, capture illisible, montant incorrect"
@@ -395,7 +455,8 @@ export default function AdminPlanRequestsPage() {
 
           <div className="mt-6 flex flex-col gap-4 border-t border-neutral-200 pt-6 md:flex-row md:items-center md:justify-between">
             <p className="text-sm text-neutral-500">
-              {filteredRequests.length} demandes trouvees, page {safePage} sur {totalPages}.
+              {filteredRequests.length} demandes trouvees, page {safePage} sur{" "}
+              {totalPages}.
             </p>
             <div className="flex flex-wrap gap-3">
               <Button
@@ -409,7 +470,9 @@ export default function AdminPlanRequestsPage() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                onClick={() =>
+                  setPage((current) => Math.min(totalPages, current + 1))
+                }
                 disabled={safePage >= totalPages}
               >
                 Suivant

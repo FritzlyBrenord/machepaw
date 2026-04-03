@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useCreateFlashSale } from "@/hooks/usePromotions";
 import type { SupabaseProduct } from "@/data/types";
@@ -26,10 +26,13 @@ export default function AdminNewFlashSalePage() {
   const router = useRouter();
   const createSale = useCreateFlashSale();
   const { data: products = [] } = useProducts({ status: "active" });
-  const defaultEndsAt = new Date(Date.now() + 86400000).toISOString().slice(0, 16);
+  const defaultEndsAt = new Date(Date.now() + 86400000)
+    .toISOString()
+    .slice(0, 16);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<SupabaseProduct | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -43,7 +46,7 @@ export default function AdminNewFlashSalePage() {
     .filter(
       (p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+        p.sku?.toLowerCase().includes(searchQuery.toLowerCase()),
     )
     .slice(0, 6);
 
@@ -58,9 +61,12 @@ export default function AdminNewFlashSalePage() {
     }));
   };
 
-  const discount = selectedProduct && formData.sale_price
-    ? Math.round((1 - parseFloat(formData.sale_price) / selectedProduct.price) * 100)
-    : 0;
+  const discount =
+    selectedProduct && formData.sale_price
+      ? Math.round(
+          (1 - parseFloat(formData.sale_price) / selectedProduct.price) * 100,
+        )
+      : 0;
 
   const canSubmit =
     selectedProduct &&
@@ -94,7 +100,11 @@ export default function AdminNewFlashSalePage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="flex items-center gap-2"
+          >
             <ChevronLeft className="w-4 h-4" /> Retour
           </Button>
           <div>
@@ -164,7 +174,9 @@ export default function AdminNewFlashSalePage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-neutral-900 truncate">{product.name}</p>
+                        <p className="text-sm font-medium text-neutral-900 truncate">
+                          {product.name}
+                        </p>
                         <p className="text-xs text-neutral-500">
                           {product.sku} · {product.price.toLocaleString()} HTG
                         </p>
@@ -192,9 +204,14 @@ export default function AdminNewFlashSalePage() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-green-900">{selectedProduct.name}</p>
+                  <p className="text-sm font-medium text-green-900">
+                    {selectedProduct.name}
+                  </p>
                   <p className="text-xs text-green-700">
-                    Prix original: <strong>{selectedProduct.price.toLocaleString()} HTG</strong>
+                    Prix original:{" "}
+                    <strong>
+                      {selectedProduct.price.toLocaleString()} HTG
+                    </strong>
                     {" · "}Stock: <strong>{selectedProduct.stock}</strong>
                   </p>
                 </div>
@@ -210,7 +227,9 @@ export default function AdminNewFlashSalePage() {
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="Ex: Vente Flash – Montre Luxe"
               className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
             />
@@ -226,7 +245,9 @@ export default function AdminNewFlashSalePage() {
               <input
                 type="number"
                 value={formData.sale_price}
-                onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, sale_price: e.target.value })
+                }
                 placeholder="0"
                 min="0"
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
@@ -236,11 +257,13 @@ export default function AdminNewFlashSalePage() {
                   Réduction: {discount}%
                 </p>
               )}
-              {formData.sale_price && selectedProduct && parseFloat(formData.sale_price) >= selectedProduct.price && (
-                <p className="text-xs text-red-600 mt-1">
-                  Le prix promo doit être inférieur au prix original
-                </p>
-              )}
+              {formData.sale_price &&
+                selectedProduct &&
+                parseFloat(formData.sale_price) >= selectedProduct.price && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Le prix promo doit être inférieur au prix original
+                  </p>
+                )}
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -250,7 +273,9 @@ export default function AdminNewFlashSalePage() {
               <input
                 type="number"
                 value={formData.quantity_limit}
-                onChange={(e) => setFormData({ ...formData, quantity_limit: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, quantity_limit: e.target.value })
+                }
                 placeholder="0 = sans limite"
                 min="0"
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
@@ -278,7 +303,9 @@ export default function AdminNewFlashSalePage() {
               <input
                 type="datetime-local"
                 value={formData.ends_at}
-                onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, ends_at: e.target.value })
+                }
                 min={new Date().toISOString().slice(0, 16)}
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
               />

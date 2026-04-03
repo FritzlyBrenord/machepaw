@@ -6,8 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { SellerHeader } from "@/components/SellerHeader";
 import { SellerFooter } from "@/components/SellerFooter";
 import { WorkspaceStatusCard } from "@/components/WorkspaceStatusCard";
-import { Button } from "@/components/ui/Button";
-import { canSellerAccessRoute, sellerNeedsPlanSelection } from "@/data/sellerPlans";
+import { Button } from "@/components/ui/button";
+import {
+  canSellerAccessRoute,
+  sellerNeedsPlanSelection,
+} from "@/data/sellerPlans";
 import { getSellerSetupStatus } from "@/data/sellerSetup";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import { useSellerPaymentMethodsQuery } from "@/hooks/useSellerPaymentMethods";
@@ -20,8 +23,10 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: account, isLoading } = useCurrentAccountQuery();
-  const { data: sellerPaymentMethods = [], isLoading: sellerPaymentMethodsLoading } =
-    useSellerPaymentMethodsQuery(account?.seller?.id);
+  const {
+    data: sellerPaymentMethods = [],
+    isLoading: sellerPaymentMethodsLoading,
+  } = useSellerPaymentMethodsQuery(account?.seller?.id);
 
   const isApprovedSeller =
     account?.role === "seller" && account.seller?.status === "approved";
@@ -31,24 +36,29 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     account && !isApprovedSeller && !account.isBlocked,
   );
   const shouldRedirectToPlan = Boolean(
-    isApprovedSeller && sellerNeedsPlanSelection(account?.seller) && !isPlanPage,
+    isApprovedSeller &&
+    sellerNeedsPlanSelection(account?.seller) &&
+    !isPlanPage,
   );
-  const setupStatus = getSellerSetupStatus(account?.seller, sellerPaymentMethods);
+  const setupStatus = getSellerSetupStatus(
+    account?.seller,
+    sellerPaymentMethods,
+  );
   const shouldRedirectToSetup = Boolean(
     isApprovedSeller &&
-      account?.seller?.planSelectionCompleted &&
-      !isPlanPage &&
-      !isSettingsPage &&
-      !sellerPaymentMethodsLoading &&
-      !setupStatus.isComplete,
+    account?.seller?.planSelectionCompleted &&
+    !isPlanPage &&
+    !isSettingsPage &&
+    !sellerPaymentMethodsLoading &&
+    !setupStatus.isComplete,
   );
   const routeAccess = canSellerAccessRoute(account?.seller, pathname);
   const shouldRedirectForPlanCapability = Boolean(
     isApprovedSeller &&
-      account?.seller?.planSelectionCompleted &&
-      setupStatus.isComplete &&
-      !isPlanPage &&
-      !routeAccess.allowed,
+    account?.seller?.planSelectionCompleted &&
+    setupStatus.isComplete &&
+    !isPlanPage &&
+    !routeAccess.allowed,
   );
 
   useEffect(() => {
@@ -57,7 +67,9 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     }
 
     if (shouldRedirectToBecomeSeller) {
-      router.replace(`/devenir-vendeur?redirect=${encodeURIComponent(pathname)}`);
+      router.replace(
+        `/devenir-vendeur?redirect=${encodeURIComponent(pathname)}`,
+      );
       return;
     }
 
@@ -93,7 +105,12 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     sellerPaymentMethodsLoading,
   ]);
 
-  if (isLoading || (isApprovedSeller && account?.seller?.planSelectionCompleted && sellerPaymentMethodsLoading)) {
+  if (
+    isLoading ||
+    (isApprovedSeller &&
+      account?.seller?.planSelectionCompleted &&
+      sellerPaymentMethodsLoading)
+  ) {
     return (
       <WorkspaceStatusCard
         title="Chargement de l'espace vendeur"

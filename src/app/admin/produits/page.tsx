@@ -23,7 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { ProductDetailModal } from "@/components/admin/ProductDetailModal";
 import { PRODUCT_ONTOLOGY } from "@/data/productOntology";
 import {
@@ -304,28 +304,32 @@ export default function AdminProductsPage() {
                                 <span>{product.sku}</span>
                                 <span>•</span>
                                 <span className="text-xs px-2 py-0.5 bg-neutral-100 rounded text-neutral-600">
-                                  {
-                                    PRODUCT_ONTOLOGY.find(
-                                      (c) => c.id === product.category_id,
-                                    )?.name || product.category_id
-                                  }
+                                  {PRODUCT_ONTOLOGY.find(
+                                    (c) => c.id === product.category_id,
+                                  )?.name || product.category_id}
                                 </span>
                               </div>
                             </div>
                           </div>
                         </td>
-                         <td className="px-4 py-4">
-                           <div>
-                             <p className="font-medium text-neutral-900">
-                               {formatPrice(product.price, (product as any).currency_code)}
-                             </p>
-                             {product.original_price && (
-                               <p className="text-sm text-neutral-500 line-through">
-                                 {formatPrice(product.original_price, (product as any).currency_code)}
-                               </p>
-                             )}
-                           </div>
-                         </td>
+                        <td className="px-4 py-4">
+                          <div>
+                            <p className="font-medium text-neutral-900">
+                              {formatPrice(
+                                product.price,
+                                (product as any).currency_code,
+                              )}
+                            </p>
+                            {product.original_price && (
+                              <p className="text-sm text-neutral-500 line-through">
+                                {formatPrice(
+                                  product.original_price,
+                                  (product as any).currency_code,
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-4">
                           <span
                             className={cn(

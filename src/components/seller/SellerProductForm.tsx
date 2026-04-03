@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Package, Plus, Upload, X } from "lucide-react";
 import { PRODUCT_ONTOLOGY } from "@/data/productOntology";
 import type { SupabaseProduct } from "@/data/types";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 type DraftImage = {
   file: File;
@@ -86,11 +86,11 @@ export function SellerProductForm({
   const canSubmit = useMemo(() => {
     return Boolean(
       name.trim() &&
-        description.trim() &&
-        categoryId &&
-        price &&
-        stock &&
-        totalImageCount > 0,
+      description.trim() &&
+      categoryId &&
+      price &&
+      stock &&
+      totalImageCount > 0,
     );
   }, [categoryId, description, name, price, stock, totalImageCount]);
 
@@ -162,7 +162,9 @@ export function SellerProductForm({
     const parsedMaxProcessingDays = Number(maxProcessingDays || 3);
 
     if (!canSubmit) {
-      setError("Completez les champs obligatoires et ajoutez au moins une image.");
+      setError(
+        "Completez les champs obligatoires et ajoutez au moins une image.",
+      );
       return;
     }
 
@@ -370,7 +372,9 @@ export function SellerProductForm({
       <section className="rounded-2xl border border-neutral-200 bg-white p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-neutral-900">Caracteristiques</h2>
+            <h2 className="text-lg font-semibold text-neutral-900">
+              Caracteristiques
+            </h2>
             <p className="mt-1 text-sm text-neutral-500">
               Ajoutez les points forts que le client doit voir rapidement.
             </p>
@@ -407,7 +411,9 @@ export function SellerProductForm({
 
       <section className="rounded-2xl border border-neutral-200 bg-white p-6">
         <div>
-          <h2 className="text-lg font-semibold text-neutral-900">Images du produit</h2>
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Images du produit
+          </h2>
           <p className="mt-1 text-sm text-neutral-500">
             Ajoutez jusqu'a 5 images. Le produit doit garder au moins une image.
           </p>
@@ -420,7 +426,12 @@ export function SellerProductForm({
               className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50"
             >
               <div className="relative aspect-square">
-                <Image src={image} alt={name || "Produit"} fill className="object-cover" />
+                <Image
+                  src={image}
+                  alt={name || "Produit"}
+                  fill
+                  className="object-cover"
+                />
               </div>
               <button
                 type="button"
@@ -460,7 +471,9 @@ export function SellerProductForm({
               <span className="mt-3 text-sm font-medium text-neutral-700">
                 Ajouter une image
               </span>
-              <span className="mt-1 text-xs text-neutral-500">PNG, JPG ou WebP</span>
+              <span className="mt-1 text-xs text-neutral-500">
+                PNG, JPG ou WebP
+              </span>
               <input
                 type="file"
                 accept="image/*"

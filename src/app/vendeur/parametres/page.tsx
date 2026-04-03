@@ -15,7 +15,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import {
   SELLER_PAYMENT_METHODS,
@@ -23,11 +23,6 @@ import {
 } from "@/data/paymentMethods";
 import { SellerSetupRequiredModal } from "@/components/seller/SellerSetupRequiredModal";
 import haitiData from "@/data/haitiData.json";
-import {
-  BOUTIQUE_THEMES,
-  DEFAULT_BOUTIQUE_THEME_SLUG,
-  buildStorefrontThemeConfig,
-} from "@/data/boutiqueThemes";
 import { getSellerSetupStatus } from "@/data/sellerSetup";
 import type { SellerPaymentMethod } from "@/data/types";
 import { uploadImage } from "@/lib/supabase";
@@ -70,7 +65,6 @@ type ProfileFormState = {
   phone: string;
   avatar: string;
   logo: string;
-  storefrontThemeSlug: string;
   businessName: string;
   storeSlug: string;
   description: string;
@@ -295,8 +289,6 @@ export default function SellerSettingsPage() {
       phone: account.phone || "",
       avatar: account.avatar || "",
       logo: account.seller?.logo || "",
-      storefrontThemeSlug:
-        account.seller?.storefrontThemeSlug || DEFAULT_BOUTIQUE_THEME_SLUG,
       businessName: account.seller?.businessName || "",
       storeSlug:
         account.seller?.storeSlug ||
@@ -414,13 +406,6 @@ export default function SellerSettingsPage() {
   const seller = currentAccount.seller!;
   const currentProfile = profileForm!;
   const currentShipping = shippingForm!;
-  const boutiqueSlug = normalizeStoreSlug(currentProfile.storeSlug || "");
-  const boutiquePath = boutiqueSlug ? `/boutique/${boutiqueSlug}` : null;
-  const selectedTheme =
-    BOUTIQUE_THEMES.find(
-      (theme) => theme.slug === currentProfile.storefrontThemeSlug,
-    ) || BOUTIQUE_THEMES[0];
-
   const selectedLocationValue = currentShipping.locationName
     ? `${currentShipping.locationName}|${currentShipping.locationType || ""}|${currentShipping.locationDept || ""}|${currentShipping.latitude ?? ""}|${currentShipping.longitude ?? ""}`
     : "";
@@ -514,7 +499,9 @@ export default function SellerSettingsPage() {
       );
       setFeedback("Logo de la boutique mis a jour.");
     } catch (uploadError) {
-      setError(getErrorMessage(uploadError, "Impossible d'envoyer le logo boutique."));
+      setError(
+        getErrorMessage(uploadError, "Impossible d'envoyer le logo boutique."),
+      );
     } finally {
       setUploadingLogo(false);
     }
@@ -535,11 +522,6 @@ export default function SellerSettingsPage() {
         businessName: currentProfile.businessName.trim(),
         storeSlug: normalizeStoreSlug(currentProfile.storeSlug.trim()),
         logo: currentProfile.logo.trim() || null,
-        storefrontThemeSlug: currentProfile.storefrontThemeSlug,
-        storefrontThemeConfig: buildStorefrontThemeConfig(
-          currentProfile.storefrontThemeSlug,
-          account?.seller?.storefrontThemeConfig || null,
-        ),
         description: currentProfile.description.trim(),
         contactPerson: currentProfile.contactPerson.trim(),
         contactPhone: currentProfile.contactPhone.trim(),
@@ -806,7 +788,7 @@ export default function SellerSettingsPage() {
         activeTab === "profile" ? (
           <Button
             onClick={handleProfileSave}
-            isLoading={
+            disabled={
               updateAccountMutation.isPending || updateSellerMutation.isPending
             }
             className="gap-2"
@@ -817,7 +799,7 @@ export default function SellerSettingsPage() {
         ) : activeTab === "shipping" ? (
           <Button
             onClick={handleShippingSave}
-            isLoading={updateSellerMutation.isPending}
+            disabled={updateSellerMutation.isPending}
             className="gap-2"
           >
             <Save className="h-4 w-4" />
@@ -826,8 +808,9 @@ export default function SellerSettingsPage() {
         ) : activeTab === "payments" ? (
           <Button
             onClick={handlePaymentSave}
-            isLoading={upsertPaymentMethodsMutation.isPending}
-            disabled={!paymentForm.confirmCorrect}
+            disabled={
+              upsertPaymentMethodsMutation.isPending || !paymentForm.confirmCorrect
+            }
             className="gap-2"
           >
             <Save className="h-4 w-4" />
@@ -1046,10 +1029,12 @@ export default function SellerSettingsPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-medium text-neutral-900">Logo de la boutique</h3>
+                    <h3 className="font-medium text-neutral-900">
+                      Logo de la boutique
+                    </h3>
                     <p className="mt-1 text-sm leading-6 text-neutral-500">
-                      Ce logo sera affiche uniquement sur votre boutique publique et dans sa
-                      navigation.
+                      Ce logo sera affiche uniquement sur votre boutique
+                      publique et dans sa navigation.
                     </p>
                   </div>
                 </div>
@@ -1070,113 +1055,6 @@ export default function SellerSettingsPage() {
               </div>
             </div>
 
-            <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-5">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h3 className="font-medium text-neutral-900">
-                    Theme de la boutique
-                  </h3>
-                  <p className="mt-1 text-sm leading-6 text-neutral-500">
-                    Choisissez le design par defaut de votre storefront. Le hero,
-                    la navigation, les cartes produits et le footer suivront ce
-                    theme.
-                  </p>
-                </div>
-                <div className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600">
-                  {selectedTheme.previewLabel}
-                </div>
-              </div>
-
-              <div className="grid gap-4 xl:grid-cols-3">
-                {BOUTIQUE_THEMES.map((theme) => {
-                  const isActive =
-                    profileForm.storefrontThemeSlug === theme.slug;
-
-                  return (
-                    <button
-                      key={theme.slug}
-                      type="button"
-                      onClick={() =>
-                        setProfileForm({
-                          ...profileForm,
-                          storefrontThemeSlug: theme.slug,
-                        })
-                      }
-                      className={cn(
-                        "overflow-hidden rounded-[1.75rem] border text-left transition hover:-translate-y-1",
-                        isActive
-                          ? "border-neutral-900 shadow-[0_16px_40px_rgba(15,15,15,0.12)]"
-                          : "border-neutral-200 hover:border-neutral-300",
-                      )}
-                    >
-                      <div
-                        className="relative h-40 border-b"
-                        style={{
-                          backgroundColor: theme.palette.heroBase,
-                          borderColor: theme.palette.border,
-                        }}
-                      >
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: theme.palette.heroOverlay,
-                          }}
-                        />
-                        <div className="relative flex h-full flex-col justify-between p-5 text-white">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-white/85">
-                              {theme.previewLabel}
-                            </span>
-                            {isActive ? (
-                              <span className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-900">
-                                Actif
-                              </span>
-                            ) : null}
-                          </div>
-                          <div>
-                            <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">
-                              {theme.hero.eyebrow}
-                            </p>
-                            <h4 className="mt-2 text-xl font-semibold">
-                              {theme.name}
-                            </h4>
-                            <p className="mt-2 max-w-xs text-xs leading-5 text-white/72">
-                              {theme.shortDescription}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4 p-5">
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            theme.palette.pageBackground,
-                            theme.palette.surface,
-                            theme.palette.accent,
-                            theme.palette.footerBackground,
-                          ].map((color) => (
-                            <span
-                              key={color}
-                              className="h-4 w-10 rounded-full border border-black/5"
-                              style={{ backgroundColor: color }}
-                            />
-                          ))}
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-neutral-900">
-                            {theme.name}
-                          </p>
-                          <p className="text-sm leading-6 text-neutral-500">
-                            {theme.description}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nom de la boutique">
                 <input
@@ -1191,33 +1069,17 @@ export default function SellerSettingsPage() {
                 />
               </Field>
               <Field label="Lien boutique">
-                <div className="space-y-2">
-                  <input
-                    value={profileForm.storeSlug}
-                    onChange={(event) =>
-                      setProfileForm({
-                        ...profileForm,
-                        storeSlug: normalizeStoreSlug(event.target.value),
-                      })
-                    }
-                    className={inputClassName}
-                    placeholder="ma-boutique"
-                  />
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500">
-                    <span>
-                      URL publique: {boutiquePath || "/boutique/ma-boutique"}
-                    </span>
-                    {boutiquePath ? (
-                      <Link
-                        href={boutiquePath}
-                        target="_blank"
-                        className="font-medium text-neutral-900 underline underline-offset-4"
-                      >
-                        Ouvrir ma boutique
-                      </Link>
-                    ) : null}
-                  </div>
-                </div>
+                <input
+                  value={profileForm.storeSlug}
+                  onChange={(event) =>
+                    setProfileForm({
+                      ...profileForm,
+                      storeSlug: normalizeStoreSlug(event.target.value),
+                    })
+                  }
+                  className={inputClassName}
+                  placeholder="code-interne-boutique"
+                />
               </Field>
               <Field label="Contact principal">
                 <input

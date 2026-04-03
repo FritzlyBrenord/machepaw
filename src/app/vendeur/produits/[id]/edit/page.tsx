@@ -22,7 +22,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useUploadProductImages } from "@/hooks/useProducts";
 import {
   useSellerProductQuery,
@@ -49,7 +49,7 @@ export default function SellerEditProductPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  
+
   const { data: product, isLoading: isFetching } = useSellerProductQuery(id);
   const updateProduct = useUpdateSellerProductMutation();
   const uploadImages = useUploadProductImages();
@@ -164,7 +164,7 @@ export default function SellerEditProductPage() {
   };
 
   const handleAttributeChange = (
-    attribute: Omit<CategoryAttribute, 'categoryId'>,
+    attribute: Omit<CategoryAttribute, "categoryId">,
     value: string | string[],
   ) => {
     setFormData((prev) => {
@@ -248,7 +248,12 @@ export default function SellerEditProductPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.name && formData.description && formData.categoryId && formData.subcategory;
+        return (
+          formData.name &&
+          formData.description &&
+          formData.categoryId &&
+          formData.subcategory
+        );
       case 2:
         return formData.images.length > 0;
       case 3:
@@ -280,7 +285,8 @@ export default function SellerEditProductPage() {
               Produit introuvable
             </h1>
             <p className="text-neutral-500 mb-6">
-              Ce produit n&apos;est pas accessible depuis cette boutique vendeur.
+              Ce produit n&apos;est pas accessible depuis cette boutique
+              vendeur.
             </p>
             <Link href="/vendeur/produits">
               <Button>Retour a la liste</Button>
@@ -443,8 +449,8 @@ export default function SellerEditProductPage() {
                       setFormData({
                         ...formData,
                         categoryId: e.target.value,
-                        subcategory: "", 
-                        attributes: [], 
+                        subcategory: "",
+                        attributes: [],
                       })
                     }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900"
@@ -467,7 +473,7 @@ export default function SellerEditProductPage() {
                       setFormData({
                         ...formData,
                         subcategory: e.target.value,
-                        attributes: [], 
+                        attributes: [],
                       })
                     }
                     disabled={!formData.categoryId}
@@ -488,7 +494,9 @@ export default function SellerEditProductPage() {
                   <input
                     type="checkbox"
                     checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, isFeatured: e.target.checked })
+                    }
                     className="w-4 h-4 rounded border-neutral-300"
                   />
                   Produit en vedette (Featured)
@@ -648,7 +656,8 @@ export default function SellerEditProductPage() {
                             {attr.options?.map((color) => {
                               const values = Array.isArray(existingValue)
                                 ? existingValue
-                                : typeof existingValue === "string" && existingValue !== ""
+                                : typeof existingValue === "string" &&
+                                    existingValue !== ""
                                   ? [existingValue]
                                   : [];
                               const isSelected = values.includes(color);
@@ -767,10 +776,10 @@ export default function SellerEditProductPage() {
                               type="checkbox"
                               checked={existingValue === "true"}
                               onChange={(e) =>
-                               handleAttributeChange(
-                                 { ...attr, id: attrId } as any,
-                                 e.target.checked ? "true" : "false",
-                               )
+                                handleAttributeChange(
+                                  { ...attr, id: attrId } as any,
+                                  e.target.checked ? "true" : "false",
+                                )
                               }
                               className="w-5 h-5 rounded border-neutral-300"
                             />
@@ -809,7 +818,9 @@ export default function SellerEditProductPage() {
                   </label>
                   <select
                     value={formData.currencyCode}
-                    onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, currencyCode: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
                     {(adminSettings?.currencies || []).map((curr) => (
@@ -912,12 +923,15 @@ export default function SellerEditProductPage() {
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Catégorie</span>
                   <span className="font-medium">
-                    {PRODUCT_ONTOLOGY.find(c => c.id === formData.categoryId)?.name || formData.categoryId}
+                    {PRODUCT_ONTOLOGY.find((c) => c.id === formData.categoryId)
+                      ?.name || formData.categoryId}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Prix</span>
-                  <span className="font-medium">{formData.price} {formData.currencyCode}</span>
+                  <span className="font-medium">
+                    {formData.price} {formData.currencyCode}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Stock</span>
@@ -926,8 +940,8 @@ export default function SellerEditProductPage() {
               </div>
 
               <p className="text-sm text-neutral-500">
-                Vérifiez les informations avant de mettre à jour le produit.
-                Les changements seront immédiats.
+                Vérifiez les informations avant de mettre à jour le produit. Les
+                changements seront immédiats.
               </p>
             </div>
           )}

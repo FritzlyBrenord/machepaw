@@ -19,7 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import {
   ACTIVE_ANNOUNCEMENT_LIMITS,
   SELLER_WEEKLY_ANNOUNCEMENT_LIMIT,
@@ -51,7 +51,10 @@ const PLACEMENT_CONFIG = {
     icon: LayoutDashboard,
     color: "bg-neutral-100 text-neutral-700",
   },
-} satisfies Record<Announcement["placement"], { label: string; icon: ElementType; color: string }>;
+} satisfies Record<
+  Announcement["placement"],
+  { label: string; icon: ElementType; color: string }
+>;
 
 function AnnouncementCard({
   announcement,
@@ -66,7 +69,8 @@ function AnnouncementCard({
 }) {
   const config = PLACEMENT_CONFIG[announcement.placement];
   const PlacementIcon = config.icon;
-  const isExpired = announcement.ends_at && new Date(announcement.ends_at) < new Date();
+  const isExpired =
+    announcement.ends_at && new Date(announcement.ends_at) < new Date();
 
   return (
     <motion.div
@@ -83,7 +87,9 @@ function AnnouncementCard({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div
           className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl border border-neutral-200"
-          style={{ backgroundColor: announcement.background_color || "#111111" }}
+          style={{
+            backgroundColor: announcement.background_color || "#111111",
+          }}
         >
           <PlacementIcon
             className="h-6 w-6"
@@ -109,7 +115,12 @@ function AnnouncementCard({
                   Expiree
                 </span>
               ) : null}
-              <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", config.color)}>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-xs font-medium",
+                  config.color,
+                )}
+              >
                 {config.label}
               </span>
             </div>
@@ -133,7 +144,8 @@ function AnnouncementCard({
             {announcement.ends_at ? (
               <span className="flex items-center gap-1 text-amber-600">
                 <Clock className="h-3.5 w-3.5" />
-                Fin: {new Date(announcement.ends_at).toLocaleDateString("fr-FR")}
+                Fin:{" "}
+                {new Date(announcement.ends_at).toLocaleDateString("fr-FR")}
               </span>
             ) : null}
           </div>
@@ -180,13 +192,17 @@ export default function SellerAnnouncementsPage() {
   const deleteAnnouncement = useDeleteSellerAnnouncement();
   const toggleAnnouncement = useToggleSellerAnnouncement();
 
-  const [activeTab, setActiveTab] = useState<"all" | Announcement["placement"]>("all");
+  const [activeTab, setActiveTab] = useState<"all" | Announcement["placement"]>(
+    "all",
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filtered =
     activeTab === "all"
       ? announcements
-      : announcements.filter((announcement) => announcement.placement === activeTab);
+      : announcements.filter(
+          (announcement) => announcement.placement === activeTab,
+        );
 
   const now = Date.now();
   const stats = useMemo(() => {
@@ -197,7 +213,8 @@ export default function SellerAnnouncementsPage() {
 
     return {
       total: announcements.length,
-      active: announcements.filter((announcement) => announcement.is_active).length,
+      active: announcements.filter((announcement) => announcement.is_active)
+        .length,
       createdThisWeek,
       remainingThisWeek: Math.max(
         0,
@@ -235,17 +252,24 @@ export default function SellerAnnouncementsPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">Annonces actives</p>
-          <p className="mt-1 text-2xl font-bold text-neutral-900">{stats.active}</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">
+            {stats.active}
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">Creees cette semaine</p>
-          <p className="mt-1 text-2xl font-bold text-neutral-900">{stats.createdThisWeek}</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">
+            {stats.createdThisWeek}
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">Quota restant</p>
-          <p className="mt-1 text-2xl font-bold text-neutral-900">{stats.remainingThisWeek}</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">
+            {stats.remainingThisWeek}
+          </p>
           <p className="mt-1 text-xs text-neutral-400">
-            Limite vendeur: {SELLER_WEEKLY_ANNOUNCEMENT_LIMIT} annonces / 7 jours
+            Limite vendeur: {SELLER_WEEKLY_ANNOUNCEMENT_LIMIT} annonces / 7
+            jours
           </p>
         </div>
       </div>
@@ -253,23 +277,25 @@ export default function SellerAnnouncementsPage() {
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
         <p className="font-medium">Protection d'affichage</p>
         <p className="mt-1 text-blue-800">
-          Le site charge un nombre controle d'annonces par emplacement:
-          {" "}Hero {ACTIVE_ANNOUNCEMENT_LIMITS.hero},
-          {" "}Top bar {ACTIVE_ANNOUNCEMENT_LIMITS.top_bar},
-          {" "}Popup {ACTIVE_ANNOUNCEMENT_LIMITS.popup},
-          {" "}Sidebar {ACTIVE_ANNOUNCEMENT_LIMITS.sidebar}.
-          {" "}Un seul popup est ensuite ouvert par visite.
+          Le site charge un nombre controle d'annonces par emplacement: Hero{" "}
+          {ACTIVE_ANNOUNCEMENT_LIMITS.hero}, Top bar{" "}
+          {ACTIVE_ANNOUNCEMENT_LIMITS.top_bar}, Popup{" "}
+          {ACTIVE_ANNOUNCEMENT_LIMITS.popup}, Sidebar{" "}
+          {ACTIVE_ANNOUNCEMENT_LIMITS.sidebar}. Un seul popup est ensuite ouvert
+          par visite.
         </p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto rounded-lg bg-neutral-100 p-1">
-        {([
-          { key: "all", label: "Toutes" },
-          { key: "hero", label: "Hero" },
-          { key: "top_bar", label: "Top bar" },
-          { key: "popup", label: "Popups" },
-          { key: "sidebar", label: "Autres" },
-        ] as const).map((tab) => (
+        {(
+          [
+            { key: "all", label: "Toutes" },
+            { key: "hero", label: "Hero" },
+            { key: "top_bar", label: "Top bar" },
+            { key: "popup", label: "Popups" },
+            { key: "sidebar", label: "Autres" },
+          ] as const
+        ).map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}

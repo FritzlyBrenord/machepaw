@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useAdminSettings } from "@/store/adminStore";
 import {
@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
   const sortedHaitiData = useMemo(() => {
     const raw = (haitiData as any)?.default || haitiData;
     if (!Array.isArray(raw)) return [];
-    
+
     // Déduplication par clé unique étendue (Nom|Type|Dept|Lat|Lng)
     const seen = new Set();
     const unique = raw.filter((item: any) => {
@@ -76,7 +76,9 @@ export default function AdminSettingsPage() {
       return true;
     });
 
-    return [...unique].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    return [...unique].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || ""),
+    );
   }, []);
 
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
@@ -162,15 +164,18 @@ export default function AdminSettingsPage() {
   // Fallback pour s'assurer que formData est exploitable
   const currentData = formData || dbSettings || settingsFromStore;
   if (!currentData) {
-     return (
+    return (
       <AdminLayout>
         <div className="p-8 text-center bg-white rounded-xl border border-neutral-200">
-          <p className="text-neutral-500 mb-4">Initialisation des paramètres...</p>
+          <p className="text-neutral-500 mb-4">
+            Initialisation des paramètres...
+          </p>
           <Button onClick={() => window.location.reload()}>Réessayer</Button>
         </div>
       </AdminLayout>
     );
   }
+  const formState = formData ?? currentData;
 
   const handleSaveGeneral = async () => {
     if (!formData) return;
@@ -179,24 +184,31 @@ export default function AdminSettingsPage() {
       alert("Paramètres généraux enregistrés avec succès !");
       setIsEditing(false);
     } catch (error: any) {
-
       console.error("Error saving general settings:", error);
-      const detail = error?.message || error?.error_description || JSON.stringify(error);
-      alert(`Erreur lors de l'enregistrement des paramètres généraux : ${detail}`);
+      const detail =
+        error?.message || error?.error_description || JSON.stringify(error);
+      alert(
+        `Erreur lors de l'enregistrement des paramètres généraux : ${detail}`,
+      );
     }
   };
 
   const handleSaveShipping = async () => {
     if (!formData || !dbSettings) return;
-    
+
     // Validation: ensure required fields are not empty
-    if (!formData.locationName || formData.basePrice === undefined || formData.pricePerKm === undefined) {
-      alert("Veuillez remplir tous les champs de livraison (Localisation pivot, Frais de base et Prix par km).");
+    if (
+      !formData.locationName ||
+      formData.basePrice === undefined ||
+      formData.pricePerKm === undefined
+    ) {
+      alert(
+        "Veuillez remplir tous les champs de livraison (Localisation pivot, Frais de base et Prix par km).",
+      );
       return;
     }
 
     try {
-
       // Upsert the first shipping rate with the distance fields
       const existingRate = dbSettings.shippingRates?.[0];
       const rateToUpsert: Partial<ShippingRate> = {
@@ -225,12 +237,10 @@ export default function AdminSettingsPage() {
       alert("Paramètres de livraison enregistrés avec succès !");
       setIsEditing(false);
     } catch (error: any) {
-
       console.error("Error saving shipping settings:", error);
       alert("Erreur lors de l'enregistrement des paramètres de livraison.");
     }
   };
-
 
   const toggleMaintenanceMode = () => {
     const base = formData || dbSettings || settingsFromStore;
@@ -276,7 +286,6 @@ export default function AdminSettingsPage() {
     }
   };
 
-
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -291,24 +300,32 @@ export default function AdminSettingsPage() {
                 Gérez la configuration globale de votre boutique
               </p>
             </div>
-            {isEditing && (activeTab === "general" || activeTab === "shipping") ? (
+            {isEditing &&
+            (activeTab === "general" || activeTab === "shipping") ? (
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setIsEditing(false)}
                   className="bg-white"
                 >
                   Annuler
                 </Button>
-                <Button 
-                  onClick={activeTab === "general" ? handleSaveGeneral : handleSaveShipping} 
+                <Button
+                  onClick={
+                    activeTab === "general"
+                      ? handleSaveGeneral
+                      : handleSaveShipping
+                  }
                   className="flex items-center gap-2 bg-neutral-900 text-white hover:bg-neutral-800"
                 >
                   <Save className="w-4 h-4" />
-                  {activeTab === "general" ? "Enregistrer - Général" : "Enregistrer - Livraison"}
+                  {activeTab === "general"
+                    ? "Enregistrer - Général"
+                    : "Enregistrer - Livraison"}
                 </Button>
               </div>
-            ) : !isEditing && (activeTab === "general" || activeTab === "shipping") ? (
+            ) : !isEditing &&
+              (activeTab === "general" || activeTab === "shipping") ? (
               <Button
                 onClick={() => {
                   setFormData(dbSettings || formData);
@@ -320,7 +337,6 @@ export default function AdminSettingsPage() {
                 Démarrer la modification
               </Button>
             ) : null}
-
           </div>
         </div>
 
@@ -357,7 +373,10 @@ export default function AdminSettingsPage() {
             {!isEditing && (
               <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center gap-3 text-blue-700 text-sm">
                 <Info className="w-4 h-4" />
-                <span>Cliquez sur <strong>"Démarrer la modification"</strong> en haut de la page pour changer ces paramètres.</span>
+                <span>
+                  Cliquez sur <strong>"Démarrer la modification"</strong> en
+                  haut de la page pour changer ces paramètres.
+                </span>
               </div>
             )}
             <div className="bg-white p-6 rounded-lg border border-neutral-200">
@@ -373,7 +392,11 @@ export default function AdminSettingsPage() {
                     type="text"
                     value={formData?.siteName ?? dbSettings?.siteName ?? ""}
                     onChange={(e) => {
-                      if (formData) setFormData({ ...formData, siteName: e.target.value } as AdminSettings);
+                      if (formData)
+                        setFormData({
+                          ...formData,
+                          siteName: e.target.value,
+                        } as AdminSettings);
                     }}
                     disabled={!isEditing}
                     className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 disabled:bg-neutral-50"
@@ -387,9 +410,15 @@ export default function AdminSettingsPage() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                       type="email"
-                      value={formData?.contactEmail ?? dbSettings?.contactEmail ?? ""}
+                      value={
+                        formData?.contactEmail ?? dbSettings?.contactEmail ?? ""
+                      }
                       onChange={(e) => {
-                        if (formData) setFormData({ ...formData, contactEmail: e.target.value } as AdminSettings);
+                        if (formData)
+                          setFormData({
+                            ...formData,
+                            contactEmail: e.target.value,
+                          } as AdminSettings);
                       }}
                       disabled={!isEditing}
                       className="w-full pl-10 pr-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 disabled:bg-neutral-50"
@@ -401,9 +430,17 @@ export default function AdminSettingsPage() {
                     Description
                   </label>
                   <textarea
-                    value={formData?.siteDescription ?? dbSettings?.siteDescription ?? ""}
+                    value={
+                      formData?.siteDescription ??
+                      dbSettings?.siteDescription ??
+                      ""
+                    }
                     onChange={(e) => {
-                      if (formData) setFormData({ ...formData, siteDescription: e.target.value } as AdminSettings);
+                      if (formData)
+                        setFormData({
+                          ...formData,
+                          siteDescription: e.target.value,
+                        } as AdminSettings);
                     }}
                     disabled={!isEditing}
                     rows={3}
@@ -431,12 +468,12 @@ export default function AdminSettingsPage() {
                     onClick={toggleMaintenanceMode}
                     className={cn(
                       "transition-colors",
-                      formData.maintenanceMode
+                      formState.maintenanceMode
                         ? "text-amber-500"
                         : "text-neutral-400",
                     )}
                   >
-                    {formData.maintenanceMode ? (
+                    {formState.maintenanceMode ? (
                       <ToggleRight className="w-10 h-6" />
                     ) : (
                       <ToggleLeft className="w-10 h-6" />
@@ -456,12 +493,12 @@ export default function AdminSettingsPage() {
                     onClick={toggleRegistrations}
                     className={cn(
                       "transition-colors",
-                      formData.allowNewRegistrations
+                      formState.allowNewRegistrations
                         ? "text-green-500"
                         : "text-neutral-400",
                     )}
                   >
-                    {formData.allowNewRegistrations ? (
+                    {formState.allowNewRegistrations ? (
                       <ToggleRight className="w-10 h-6" />
                     ) : (
                       <ToggleLeft className="w-10 h-6" />
@@ -481,12 +518,12 @@ export default function AdminSettingsPage() {
                     onClick={toggleEmailVerification}
                     className={cn(
                       "transition-colors",
-                      formData.requireEmailVerification
+                      formState.requireEmailVerification
                         ? "text-green-500"
                         : "text-neutral-400",
                     )}
                   >
-                    {formData.requireEmailVerification ? (
+                    {formState.requireEmailVerification ? (
                       <ToggleRight className="w-10 h-6" />
                     ) : (
                       <ToggleLeft className="w-10 h-6" />
@@ -509,11 +546,17 @@ export default function AdminSettingsPage() {
                     <Percent className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                       type="number"
-                      value={Number.isNaN(formData.sellerCommissionRate) ? "" : (formData.sellerCommissionRate ?? "")}
+                      value={
+                        Number.isNaN(formState.sellerCommissionRate)
+                          ? ""
+                          : (formState.sellerCommissionRate ?? "")
+                      }
                       onChange={(e) =>
                         setFormData({
-                          ...formData,
-                          sellerCommissionRate: e.target.value ? parseFloat(e.target.value) : 0,
+                          ...formState,
+                          sellerCommissionRate: e.target.value
+                            ? parseFloat(e.target.value)
+                            : 0,
                         })
                       }
                       disabled={!isEditing}
@@ -529,11 +572,17 @@ export default function AdminSettingsPage() {
                     <Percent className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                       type="number"
-                      value={Number.isNaN(formData.taxRate) ? "" : (formData.taxRate ?? "")}
+                      value={
+                        Number.isNaN(formState.taxRate)
+                          ? ""
+                          : (formState.taxRate ?? "")
+                      }
                       onChange={(e) =>
                         setFormData({
-                          ...formData,
-                          taxRate: e.target.value ? parseFloat(e.target.value) : undefined,
+                          ...formState,
+                          taxRate: e.target.value
+                            ? parseFloat(e.target.value)
+                            : undefined,
                         })
                       }
                       disabled={!isEditing}
@@ -588,7 +637,11 @@ export default function AdminSettingsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-200">
-                    {(formData?.currencies || dbSettings?.currencies || [])?.map((currency) => (
+                    {(
+                      formData?.currencies ||
+                      dbSettings?.currencies ||
+                      []
+                    )?.map((currency) => (
                       <tr key={currency.code}>
                         <td className="px-4 py-3 font-medium">
                           {currency.code}
@@ -638,7 +691,10 @@ export default function AdminSettingsPage() {
             {!isEditing && (
               <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center gap-3 text-blue-700 text-sm">
                 <Info className="w-4 h-4" />
-                <span>Cliquez sur <strong>"Démarrer la modification"</strong> en haut de la page pour configurer la livraison dynamique.</span>
+                <span>
+                  Cliquez sur <strong>"Démarrer la modification"</strong> en
+                  haut de la page pour configurer la livraison dynamique.
+                </span>
               </div>
             )}
             <div className="bg-white p-6 rounded-lg border border-neutral-200">
@@ -651,21 +707,23 @@ export default function AdminSettingsPage() {
                     Votre localisation pivot (Point de départ)
                   </label>
                   <SearchableSelect
-                    options={sortedHaitiData.map(loc => ({
+                    options={sortedHaitiData.map((loc) => ({
                       // Unicité absolue par Nom + Type + Dept + Coordonnées
                       value: `${loc.name}|${loc.type || ""}|${loc.département || ""}|${loc.lat}|${loc.lng}`,
                       label: loc.name,
-                      sublabel: `${loc.département || ""}${loc.type ? ` - ${loc.type}` : ""}${loc.commune ? ` (${loc.commune})` : ""}`
+                      sublabel: `${loc.département || ""}${loc.type ? ` - ${loc.type}` : ""}${loc.commune ? ` (${loc.commune})` : ""}`,
                     }))}
                     // Retrouver la clé sélectionnée de manière unique
-                    value={formData?.locationName ? 
-                      `${formData.locationName}|${formData.locationType || ""}|${formData.locationDept || ""}|${formData.latitude ?? ""}|${formData.longitude ?? ""}` : 
-                      (dbSettings?.locationName ? 
-                        `${dbSettings.locationName}|${dbSettings.locationType || ""}|${dbSettings.locationDept || ""}|${dbSettings.latitude ?? ""}|${dbSettings.longitude ?? ""}` : 
-                        "")
+                    value={
+                      formData?.locationName
+                        ? `${formData.locationName}|${formData.locationType || ""}|${formData.locationDept || ""}|${formData.latitude ?? ""}|${formData.longitude ?? ""}`
+                        : dbSettings?.locationName
+                          ? `${dbSettings.locationName}|${dbSettings.locationType || ""}|${dbSettings.locationDept || ""}|${dbSettings.latitude ?? ""}|${dbSettings.longitude ?? ""}`
+                          : ""
                     }
                     onChange={(compositeVal) => {
-                      const [name, type, dept, lat, lng] = compositeVal.split("|");
+                      const [name, type, dept, lat, lng] =
+                        compositeVal.split("|");
                       const base = formData || dbSettings || settingsFromStore;
                       if (base) {
                         setFormData({
@@ -679,9 +737,11 @@ export default function AdminSettingsPage() {
                       }
                     }}
                     disabled={!isEditing}
-                    placeholder={sortedHaitiData.length > 0 
-                      ? "Rechercher une commune..." 
-                      : "Chargement des villes..."}
+                    placeholder={
+                      sortedHaitiData.length > 0
+                        ? "Rechercher une commune..."
+                        : "Chargement des villes..."
+                    }
                   />
                 </div>
                 <div>
@@ -692,10 +752,15 @@ export default function AdminSettingsPage() {
                     type="number"
                     value={formData?.basePrice ?? dbSettings?.basePrice ?? ""}
                     onChange={(e) => {
-                      const val = e.target.value ? parseFloat(e.target.value) : undefined;
+                      const val = e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined;
                       const base = formData || dbSettings || settingsFromStore;
                       if (base) {
-                        setFormData({ ...base, basePrice: val } as AdminSettings);
+                        setFormData({
+                          ...base,
+                          basePrice: val,
+                        } as AdminSettings);
                       }
                     }}
                     disabled={!isEditing}
@@ -711,10 +776,15 @@ export default function AdminSettingsPage() {
                     type="number"
                     value={formData?.pricePerKm ?? dbSettings?.pricePerKm ?? ""}
                     onChange={(e) => {
-                      const val = e.target.value ? parseFloat(e.target.value) : undefined;
+                      const val = e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined;
                       const base = formData || dbSettings || settingsFromStore;
                       if (base) {
-                        setFormData({ ...base, pricePerKm: val } as AdminSettings);
+                        setFormData({
+                          ...base,
+                          pricePerKm: val,
+                        } as AdminSettings);
                       }
                     }}
                     disabled={!isEditing}
@@ -744,14 +814,19 @@ export default function AdminSettingsPage() {
                       if (!isEditing) return;
                       const base = formData || dbSettings || settingsFromStore;
                       if (base) {
-                        setFormData({ ...base, allowPickup: !base.allowPickup } as AdminSettings);
+                        setFormData({
+                          ...base,
+                          allowPickup: !base.allowPickup,
+                        } as AdminSettings);
                       }
                     }}
                     disabled={!isEditing}
                     className={cn(
                       "transition-colors",
-                      formData?.allowPickup ? "text-green-500" : "text-neutral-400",
-                      !isEditing && "opacity-50 cursor-not-allowed"
+                      formData?.allowPickup
+                        ? "text-green-500"
+                        : "text-neutral-400",
+                      !isEditing && "opacity-50 cursor-not-allowed",
                     )}
                   >
                     {formData?.allowPickup ? (
@@ -774,9 +849,13 @@ export default function AdminSettingsPage() {
                     <textarea
                       value={formData?.pickupAddress || ""}
                       onChange={(e) => {
-                        const base = formData || dbSettings || settingsFromStore;
+                        const base =
+                          formData || dbSettings || settingsFromStore;
                         if (base) {
-                          setFormData({ ...base, pickupAddress: e.target.value } as AdminSettings);
+                          setFormData({
+                            ...base,
+                            pickupAddress: e.target.value,
+                          } as AdminSettings);
                         }
                       }}
                       disabled={!isEditing}
@@ -788,7 +867,6 @@ export default function AdminSettingsPage() {
                 )}
               </div>
             </div>
-
           </motion.div>
         )}
       </div>

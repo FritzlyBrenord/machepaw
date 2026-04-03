@@ -23,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useCreateAnnouncement } from "@/hooks/useAnnouncements";
 import { useProducts } from "@/hooks/useProducts";
 import { uploadImage } from "@/lib/supabase";
@@ -84,7 +84,7 @@ const ANNOUNCEMENT_TYPES = [
   },
 ] as const;
 
-type AnnouncementTypeConfig = typeof ANNOUNCEMENT_TYPES[number];
+type AnnouncementTypeConfig = (typeof ANNOUNCEMENT_TYPES)[number];
 
 // ============================================================
 // IMAGE UPLOAD COMPONENT
@@ -168,9 +168,10 @@ function ProductSearchField({
   const [open, setOpen] = useState(false);
 
   const results = products
-    .filter((p) =>
-      p.name.toLowerCase().includes(query.toLowerCase()) ||
-      p.sku?.toLowerCase().includes(query.toLowerCase())
+    .filter(
+      (p) =>
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.sku?.toLowerCase().includes(query.toLowerCase()),
     )
     .slice(0, 6);
 
@@ -178,7 +179,8 @@ function ProductSearchField({
     <div>
       <label className="block text-sm font-medium text-neutral-700 mb-1.5">
         <Package className="w-4 h-4 inline mr-1" />
-        Lier à un produit <span className="text-neutral-400 font-normal">(optionnel)</span>
+        Lier à un produit{" "}
+        <span className="text-neutral-400 font-normal">(optionnel)</span>
       </label>
       {selectedProduct ? (
         <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-3">
@@ -196,12 +198,20 @@ function ProductSearchField({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-green-900 truncate">{selectedProduct.name}</p>
+            <p className="text-sm font-medium text-green-900 truncate">
+              {selectedProduct.name}
+            </p>
             <p className="text-xs text-green-700">
-              Lien: <code className="bg-white/60 px-1 rounded">/collection?search={selectedProduct.name}</code>
+              Lien:{" "}
+              <code className="bg-white/60 px-1 rounded">
+                /collection?search={selectedProduct.name}
+              </code>
             </p>
           </div>
-          <button onClick={onClear} className="text-neutral-400 hover:text-red-500 transition-colors">
+          <button
+            onClick={onClear}
+            className="text-neutral-400 hover:text-red-500 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -211,7 +221,10 @@ function ProductSearchField({
           <input
             type="text"
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+            }}
             onFocus={() => setOpen(true)}
             onBlur={() => setTimeout(() => setOpen(false), 200)}
             placeholder="Rechercher un produit..."
@@ -228,18 +241,30 @@ function ProductSearchField({
                 {results.map((product) => (
                   <button
                     key={product.id}
-                    onMouseDown={() => { onSelect(product); setQuery(product.name); setOpen(false); }}
+                    onMouseDown={() => {
+                      onSelect(product);
+                      setQuery(product.name);
+                      setOpen(false);
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors text-left"
                   >
                     <div className="w-8 h-8 bg-neutral-100 rounded overflow-hidden flex-shrink-0">
                       {product.images?.[0] ? (
-                        <Image src={product.images[0]} alt={product.name} width={32} height={32} className="object-cover" />
+                        <Image
+                          src={product.images[0]}
+                          alt={product.name}
+                          width={32}
+                          height={32}
+                          className="object-cover"
+                        />
                       ) : (
                         <Package className="w-4 h-4 m-2 text-neutral-400" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{product.name}</p>
+                      <p className="text-sm font-medium text-neutral-900 truncate">
+                        {product.name}
+                      </p>
                       <p className="text-xs text-neutral-400">{product.sku}</p>
                     </div>
                   </button>
@@ -251,7 +276,8 @@ function ProductSearchField({
       )}
       {!selectedProduct && (
         <p className="text-xs text-neutral-400 mt-1">
-          Si aucun produit sélectionné, saisissez un lien personnalisé ci-dessous
+          Si aucun produit sélectionné, saisissez un lien personnalisé
+          ci-dessous
         </p>
       )}
     </div>
@@ -266,8 +292,10 @@ export default function AdminNewAnnouncementPage() {
   const createAnnouncement = useCreateAnnouncement();
   const { data: products = [] } = useProducts({ status: "active" });
 
-  const [selectedType, setSelectedType] = useState<AnnouncementTypeConfig | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
+  const [selectedType, setSelectedType] =
+    useState<AnnouncementTypeConfig | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<SupabaseProduct | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -332,7 +360,9 @@ export default function AdminNewAnnouncementPage() {
         is_active: formData.is_active,
         show_on_every_visit: formData.show_on_every_visit,
         display_delay_seconds: formData.display_delay_seconds,
-        ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : undefined,
+        ends_at: formData.ends_at
+          ? new Date(formData.ends_at).toISOString()
+          : undefined,
         background_color: formData.background_color,
         text_color: formData.text_color,
         priority: formData.priority,
@@ -348,7 +378,11 @@ export default function AdminNewAnnouncementPage() {
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="flex items-center gap-2"
+          >
             <ChevronLeft className="w-4 h-4" /> Retour
           </Button>
           <div>
@@ -356,7 +390,9 @@ export default function AdminNewAnnouncementPage() {
               <Megaphone className="w-5 h-5 text-blue-500" />
               Nouvelle Annonce
             </h1>
-            <p className="text-neutral-500 text-xs">Bannière, popup, barre de notification</p>
+            <p className="text-neutral-500 text-xs">
+              Bannière, popup, barre de notification
+            </p>
           </div>
         </div>
 
@@ -369,7 +405,11 @@ export default function AdminNewAnnouncementPage() {
         )}
 
         {/* ── STEP 1: Type ── */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl border border-neutral-200 p-5">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl border border-neutral-200 p-5"
+        >
           <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide mb-4">
             1 · Type d&apos;annonce
           </h2>
@@ -383,15 +423,29 @@ export default function AdminNewAnnouncementPage() {
                   onClick={() => setSelectedType(type)}
                   className={cn(
                     "flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all",
-                    isSelected ? type.color : "border-neutral-200 hover:border-neutral-300"
+                    isSelected
+                      ? type.color
+                      : "border-neutral-200 hover:border-neutral-300",
                   )}
                 >
-                  <Icon className={cn("w-5 h-5 mt-0.5 flex-shrink-0", isSelected ? type.iconColor : "text-neutral-500")} />
+                  <Icon
+                    className={cn(
+                      "w-5 h-5 mt-0.5 flex-shrink-0",
+                      isSelected ? type.iconColor : "text-neutral-500",
+                    )}
+                  />
                   <div>
-                    <p className={cn("text-sm font-semibold", isSelected ? type.iconColor : "text-neutral-900")}>
+                    <p
+                      className={cn(
+                        "text-sm font-semibold",
+                        isSelected ? type.iconColor : "text-neutral-900",
+                      )}
+                    >
                       {type.label}
                     </p>
-                    <p className="text-xs text-neutral-500 mt-0.5">{type.description}</p>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      {type.description}
+                    </p>
                   </div>
                 </button>
               );
@@ -400,7 +454,12 @@ export default function AdminNewAnnouncementPage() {
         </motion.div>
 
         {/* ── STEP 2: Content ── */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4"
+        >
           <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide">
             2 · Contenu
           </h2>
@@ -423,11 +482,15 @@ export default function AdminNewAnnouncementPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Titre *</label>
+            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+              Titre *
+            </label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder={
                 selectedType?.value === "notification_bar"
                   ? "Ex: Livraison gratuite pour toute commande +10 000 HTG"
@@ -439,10 +502,14 @@ export default function AdminNewAnnouncementPage() {
 
           {selectedType?.needsContent && (
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Description</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                Description
+              </label>
               <textarea
                 value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, content: e.target.value })
+                }
                 rows={2}
                 placeholder="Texte secondaire de l'annonce (optionnel)..."
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900 resize-none"
@@ -474,7 +541,9 @@ export default function AdminNewAnnouncementPage() {
               <input
                 type="text"
                 value={formData.custom_link_url}
-                onChange={(e) => setFormData({ ...formData, custom_link_url: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, custom_link_url: e.target.value })
+                }
                 placeholder="/collection ou https://..."
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
               />
@@ -490,7 +559,9 @@ export default function AdminNewAnnouncementPage() {
               <input
                 type="text"
                 value={formData.link_text}
-                onChange={(e) => setFormData({ ...formData, link_text: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, link_text: e.target.value })
+                }
                 placeholder={
                   selectedProduct
                     ? `Voir ${selectedProduct.name}`
@@ -503,7 +574,12 @@ export default function AdminNewAnnouncementPage() {
         </motion.div>
 
         {/* ── STEP 3: Display Settings ── */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4"
+        >
           <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wide">
             3 · Affichage & Couleurs
           </h2>
@@ -511,14 +587,28 @@ export default function AdminNewAnnouncementPage() {
           {/* Active toggle */}
           <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
             <div>
-              <p className="text-sm font-medium text-neutral-900">Activer immédiatement</p>
-              <p className="text-xs text-neutral-500">L&apos;annonce sera visible dès la sauvegarde</p>
+              <p className="text-sm font-medium text-neutral-900">
+                Activer immédiatement
+              </p>
+              <p className="text-xs text-neutral-500">
+                L&apos;annonce sera visible dès la sauvegarde
+              </p>
             </div>
             <button
-              onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
-              className={cn("w-10 h-6 rounded-full transition-colors relative", formData.is_active ? "bg-neutral-900" : "bg-neutral-300")}
+              onClick={() =>
+                setFormData({ ...formData, is_active: !formData.is_active })
+              }
+              className={cn(
+                "w-10 h-6 rounded-full transition-colors relative",
+                formData.is_active ? "bg-neutral-900" : "bg-neutral-300",
+              )}
             >
-              <span className={cn("absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all", formData.is_active ? "left-5" : "left-1")} />
+              <span
+                className={cn(
+                  "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all",
+                  formData.is_active ? "left-5" : "left-1",
+                )}
+              />
             </button>
           </div>
 
@@ -527,14 +617,33 @@ export default function AdminNewAnnouncementPage() {
             <>
               <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">Afficher à chaque visite</p>
-                  <p className="text-xs text-neutral-500">Sinon: une seule fois par session</p>
+                  <p className="text-sm font-medium text-neutral-900">
+                    Afficher à chaque visite
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    Sinon: une seule fois par session
+                  </p>
                 </div>
                 <button
-                  onClick={() => setFormData({ ...formData, show_on_every_visit: !formData.show_on_every_visit })}
-                  className={cn("w-10 h-6 rounded-full transition-colors relative", formData.show_on_every_visit ? "bg-neutral-900" : "bg-neutral-300")}
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      show_on_every_visit: !formData.show_on_every_visit,
+                    })
+                  }
+                  className={cn(
+                    "w-10 h-6 rounded-full transition-colors relative",
+                    formData.show_on_every_visit
+                      ? "bg-neutral-900"
+                      : "bg-neutral-300",
+                  )}
                 >
-                  <span className={cn("absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all", formData.show_on_every_visit ? "left-5" : "left-1")} />
+                  <span
+                    className={cn(
+                      "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all",
+                      formData.show_on_every_visit ? "left-5" : "left-1",
+                    )}
+                  />
                 </button>
               </div>
               <div>
@@ -546,10 +655,17 @@ export default function AdminNewAnnouncementPage() {
                   type="number"
                   min="0"
                   value={formData.display_delay_seconds}
-                  onChange={(e) => setFormData({ ...formData, display_delay_seconds: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      display_delay_seconds: parseInt(e.target.value) || 0,
+                    })
+                  }
                   className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
                 />
-                <p className="text-xs text-neutral-400 mt-1">0 = s&apos;affiche immédiatement à l&apos;ouverture</p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  0 = s&apos;affiche immédiatement à l&apos;ouverture
+                </p>
               </div>
             </>
           )}
@@ -564,30 +680,46 @@ export default function AdminNewAnnouncementPage() {
                 <input
                   type="color"
                   value={formData.background_color}
-                  onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      background_color: e.target.value,
+                    })
+                  }
                   className="w-12 h-11 border border-neutral-200 rounded-lg cursor-pointer p-1"
                 />
                 <input
                   type="text"
                   value={formData.background_color}
-                  onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      background_color: e.target.value,
+                    })
+                  }
                   className="flex-1 border border-neutral-200 rounded-lg px-3 text-sm focus:outline-none focus:border-neutral-900"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Couleur du texte</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                Couleur du texte
+              </label>
               <div className="flex gap-2">
                 <input
                   type="color"
                   value={formData.text_color}
-                  onChange={(e) => setFormData({ ...formData, text_color: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, text_color: e.target.value })
+                  }
                   className="w-12 h-11 border border-neutral-200 rounded-lg cursor-pointer p-1"
                 />
                 <input
                   type="text"
                   value={formData.text_color}
-                  onChange={(e) => setFormData({ ...formData, text_color: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, text_color: e.target.value })
+                  }
                   className="flex-1 border border-neutral-200 rounded-lg px-3 text-sm focus:outline-none focus:border-neutral-900"
                 />
               </div>
@@ -597,24 +729,37 @@ export default function AdminNewAnnouncementPage() {
           {/* Dates & Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Date de fin (optionnel)</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                Date de fin (optionnel)
+              </label>
               <input
                 type="datetime-local"
                 value={formData.ends_at}
-                onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, ends_at: e.target.value })
+                }
                 min={new Date().toISOString().slice(0, 16)}
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Priorité</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                Priorité
+              </label>
               <input
                 type="number"
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    priority: parseInt(e.target.value) || 0,
+                  })
+                }
                 className="w-full border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-neutral-900"
               />
-              <p className="text-xs text-neutral-400 mt-1">Plus élevé = affiché en premier</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Plus élevé = affiché en premier
+              </p>
             </div>
           </div>
 
@@ -630,11 +775,24 @@ export default function AdminNewAnnouncementPage() {
               >
                 {imageUrl && selectedType.needsImage && (
                   <div className="relative h-32 w-full">
-                    <Image src={imageUrl} alt="preview" fill className="object-cover opacity-60" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4"
-                      style={{ color: formData.text_color }}>
-                      <p className="font-bold text-base drop-shadow">{formData.title}</p>
-                      {formData.content && <p className="text-xs mt-1 drop-shadow">{formData.content}</p>}
+                    <Image
+                      src={imageUrl}
+                      alt="preview"
+                      fill
+                      className="object-cover opacity-60"
+                    />
+                    <div
+                      className="absolute inset-0 flex flex-col items-center justify-center text-center px-4"
+                      style={{ color: formData.text_color }}
+                    >
+                      <p className="font-bold text-base drop-shadow">
+                        {formData.title}
+                      </p>
+                      {formData.content && (
+                        <p className="text-xs mt-1 drop-shadow">
+                          {formData.content}
+                        </p>
+                      )}
                       {formData.link_text && (
                         <span className="mt-2 text-xs border border-current px-3 py-1 rounded-full">
                           {formData.link_text}
@@ -644,10 +802,15 @@ export default function AdminNewAnnouncementPage() {
                   </div>
                 )}
                 {!imageUrl && (
-                  <div className="px-4 py-3 flex items-center justify-between" style={{ color: formData.text_color }}>
+                  <div
+                    className="px-4 py-3 flex items-center justify-between"
+                    style={{ color: formData.text_color }}
+                  >
                     <p className="text-sm font-medium">{formData.title}</p>
                     {formData.link_text && (
-                      <span className="text-xs underline opacity-90 ml-4 whitespace-nowrap">{formData.link_text}</span>
+                      <span className="text-xs underline opacity-90 ml-4 whitespace-nowrap">
+                        {formData.link_text}
+                      </span>
                     )}
                   </div>
                 )}
@@ -658,16 +821,24 @@ export default function AdminNewAnnouncementPage() {
 
         {/* Actions */}
         <div className="flex gap-3 justify-end pb-6">
-          <Button variant="outline" onClick={() => router.back()}>Annuler</Button>
+          <Button variant="outline" onClick={() => router.back()}>
+            Annuler
+          </Button>
           <Button
             onClick={handleSubmit}
             disabled={!canSubmit || createAnnouncement.isPending || isUploading}
             className="flex items-center gap-2"
           >
             {createAnnouncement.isPending ? (
-              <><Loader2 className="w-4 h-4 animate-spin" />Publication...</>
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Publication...
+              </>
             ) : (
-              <><Megaphone className="w-4 h-4" />Publier l&apos;annonce</>
+              <>
+                <Megaphone className="w-4 h-4" />
+                Publier l&apos;annonce
+              </>
             )}
           </Button>
         </div>

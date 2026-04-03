@@ -26,7 +26,7 @@ import {
   Folder,
 } from "lucide-react";
 import { PRODUCT_ONTOLOGY } from "@/data/productOntology";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
 import { useCurrencyConverter } from "@/store/adminStore";
 import type { SupabaseProduct } from "@/data/types";
@@ -36,7 +36,7 @@ interface ProductDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: (product: SupabaseProduct) => void;
-  onViewSeller: (product: SupabaseProduct) => void;
+  onViewSeller?: (product: SupabaseProduct) => void;
   onDelete: (product: SupabaseProduct) => void;
   onToggleStatus: (product: SupabaseProduct, newStatus: string) => void;
   onUpdateStock: (product: SupabaseProduct, newStock: number) => void;
@@ -295,12 +295,18 @@ export function ProductDetailModal({
                   <div className="bg-neutral-50 p-4 rounded-lg">
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl font-bold text-neutral-900">
-                        {formatPrice(product.price, (product as any).currency_code)}
+                        {formatPrice(
+                          product.price,
+                          (product as any).currency_code,
+                        )}
                       </span>
                       {product.original_price &&
                         product.original_price > product.price && (
                           <span className="text-lg text-neutral-400 line-through">
-                            {formatPrice(product.original_price, (product as any).currency_code)}
+                            {formatPrice(
+                              product.original_price,
+                              (product as any).currency_code,
+                            )}
                           </span>
                         )}
                     </div>
@@ -383,7 +389,9 @@ export function ProductDetailModal({
                         </div>
                       </div>
 
-                      {product.owner_type === "seller" && product.seller_id ? (
+                      {product.owner_type === "seller" &&
+                      product.seller_id &&
+                      onViewSeller ? (
                         <Button
                           variant="outline"
                           size="sm"

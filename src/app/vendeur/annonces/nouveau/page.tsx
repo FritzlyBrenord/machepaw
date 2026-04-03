@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import {
   SELLER_WEEKLY_ANNOUNCEMENT_LIMIT,
   useCreateSellerAnnouncement,
@@ -159,7 +159,8 @@ function ProductSearchField({
     <div>
       <label className="mb-1.5 block text-sm font-medium text-neutral-700">
         <Package className="mr-1 inline h-4 w-4" />
-        Lier a un produit <span className="font-normal text-neutral-400">(optionnel)</span>
+        Lier a un produit{" "}
+        <span className="font-normal text-neutral-400">(optionnel)</span>
       </label>
       {selectedProduct ? (
         <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3">
@@ -187,7 +188,10 @@ function ProductSearchField({
               </code>
             </p>
           </div>
-          <button onClick={onClear} className="text-neutral-400 transition-colors hover:text-red-500">
+          <button
+            onClick={onClear}
+            className="text-neutral-400 transition-colors hover:text-red-500"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -252,7 +256,8 @@ function ProductSearchField({
       )}
       {!selectedProduct ? (
         <p className="mt-1 text-xs text-neutral-400">
-          Si aucun produit n'est selectionne, vous pouvez saisir un lien personnalise.
+          Si aucun produit n'est selectionne, vous pouvez saisir un lien
+          personnalise.
         </p>
       ) : null}
     </div>
@@ -264,8 +269,10 @@ export default function SellerNewAnnouncementPage() {
   const createAnnouncement = useCreateSellerAnnouncement();
   const { data: products = [] } = useSellerProductsQuery();
 
-  const [selectedType, setSelectedType] = useState<AnnouncementTypeConfig | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<SupabaseProduct | null>(null);
+  const [selectedType, setSelectedType] =
+    useState<AnnouncementTypeConfig | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<SupabaseProduct | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -285,7 +292,9 @@ export default function SellerNewAnnouncementPage() {
     priority: 0,
   });
 
-  const activeProducts = products.filter((product) => product.status === "active");
+  const activeProducts = products.filter(
+    (product) => product.status === "active",
+  );
 
   const linkUrl = selectedProduct
     ? `/collection?search=${encodeURIComponent(selectedProduct.name)}`
@@ -339,7 +348,9 @@ export default function SellerNewAnnouncementPage() {
         is_active: formData.is_active,
         show_on_every_visit: formData.show_on_every_visit,
         display_delay_seconds: formData.display_delay_seconds,
-        ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : undefined,
+        ends_at: formData.ends_at
+          ? new Date(formData.ends_at).toISOString()
+          : undefined,
         background_color: formData.background_color,
         text_color: formData.text_color,
         priority: formData.priority,
@@ -378,8 +389,9 @@ export default function SellerNewAnnouncementPage() {
         ) : null}
 
         <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
-          Le systeme limite automatiquement les annonces vendeur pour proteger l'accueil:
-          un seul emplacement actif par type et un quota hebdomadaire.
+          Le systeme limite automatiquement les annonces vendeur pour proteger
+          l'accueil: un seul emplacement actif par type et un quota
+          hebdomadaire.
         </div>
 
         <motion.div
@@ -400,7 +412,9 @@ export default function SellerNewAnnouncementPage() {
                   onClick={() => setSelectedType(type)}
                   className={cn(
                     "flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all",
-                    isSelected ? type.color : "border-neutral-200 hover:border-neutral-300",
+                    isSelected
+                      ? type.color
+                      : "border-neutral-200 hover:border-neutral-300",
                   )}
                 >
                   <Icon
@@ -418,7 +432,9 @@ export default function SellerNewAnnouncementPage() {
                     >
                       {type.label}
                     </p>
-                    <p className="mt-0.5 text-xs text-neutral-500">{type.description}</p>
+                    <p className="mt-0.5 text-xs text-neutral-500">
+                      {type.description}
+                    </p>
                   </div>
                 </button>
               );
@@ -459,7 +475,9 @@ export default function SellerNewAnnouncementPage() {
             <input
               type="text"
               value={formData.title}
-              onChange={(event) => setFormData({ ...formData, title: event.target.value })}
+              onChange={(event) =>
+                setFormData({ ...formData, title: event.target.value })
+              }
               placeholder="Ex: Nouvelle collection disponible"
               className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
             />
@@ -472,7 +490,9 @@ export default function SellerNewAnnouncementPage() {
               </label>
               <textarea
                 value={formData.content}
-                onChange={(event) => setFormData({ ...formData, content: event.target.value })}
+                onChange={(event) =>
+                  setFormData({ ...formData, content: event.target.value })
+                }
                 rows={2}
                 placeholder="Texte secondaire de l'annonce..."
                 className="w-full resize-none rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
@@ -485,7 +505,11 @@ export default function SellerNewAnnouncementPage() {
             selectedProduct={selectedProduct}
             onSelect={(product) => {
               setSelectedProduct(product);
-              if (!imageUrl && selectedType?.needsImage && product.images?.[0]) {
+              if (
+                !imageUrl &&
+                selectedType?.needsImage &&
+                product.images?.[0]
+              ) {
                 setImageUrl(product.images[0]);
               }
             }}
@@ -502,7 +526,10 @@ export default function SellerNewAnnouncementPage() {
                 type="text"
                 value={formData.custom_link_url}
                 onChange={(event) =>
-                  setFormData({ ...formData, custom_link_url: event.target.value })
+                  setFormData({
+                    ...formData,
+                    custom_link_url: event.target.value,
+                  })
                 }
                 placeholder="/collection ou https://..."
                 className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
@@ -521,7 +548,11 @@ export default function SellerNewAnnouncementPage() {
                 onChange={(event) =>
                   setFormData({ ...formData, link_text: event.target.value })
                 }
-                placeholder={selectedProduct ? `Voir ${selectedProduct.name}` : "Ex: Decouvrir"}
+                placeholder={
+                  selectedProduct
+                    ? `Voir ${selectedProduct.name}`
+                    : "Ex: Decouvrir"
+                }
                 className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
               />
             </div>
@@ -540,13 +571,18 @@ export default function SellerNewAnnouncementPage() {
 
           <div className="flex items-center justify-between rounded-lg bg-neutral-50 p-3">
             <div>
-              <p className="text-sm font-medium text-neutral-900">Activer immediatement</p>
+              <p className="text-sm font-medium text-neutral-900">
+                Activer immediatement
+              </p>
               <p className="text-xs text-neutral-500">
-                Votre annonce sera visible des la sauvegarde si elle passe les limites automatiques.
+                Votre annonce sera visible des la sauvegarde si elle passe les
+                limites automatiques.
               </p>
             </div>
             <button
-              onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
+              onClick={() =>
+                setFormData({ ...formData, is_active: !formData.is_active })
+              }
               className={cn(
                 "relative h-6 w-10 rounded-full transition-colors",
                 formData.is_active ? "bg-neutral-900" : "bg-neutral-300",
@@ -565,8 +601,12 @@ export default function SellerNewAnnouncementPage() {
             <>
               <div className="flex items-center justify-between rounded-lg bg-neutral-50 p-3">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">Afficher a chaque visite</p>
-                  <p className="text-xs text-neutral-500">Sinon: une seule fois par session</p>
+                  <p className="text-sm font-medium text-neutral-900">
+                    Afficher a chaque visite
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    Sinon: une seule fois par session
+                  </p>
                 </div>
                 <button
                   onClick={() =>
@@ -577,7 +617,9 @@ export default function SellerNewAnnouncementPage() {
                   }
                   className={cn(
                     "relative h-6 w-10 rounded-full transition-colors",
-                    formData.show_on_every_visit ? "bg-neutral-900" : "bg-neutral-300",
+                    formData.show_on_every_visit
+                      ? "bg-neutral-900"
+                      : "bg-neutral-300",
                   )}
                 >
                   <span
@@ -602,12 +644,15 @@ export default function SellerNewAnnouncementPage() {
                   onChange={(event) =>
                     setFormData({
                       ...formData,
-                      display_delay_seconds: parseInt(event.target.value, 10) || 0,
+                      display_delay_seconds:
+                        parseInt(event.target.value, 10) || 0,
                     })
                   }
                   className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
                 />
-                <p className="mt-1 text-xs text-neutral-400">0 = affichage immediat</p>
+                <p className="mt-1 text-xs text-neutral-400">
+                  0 = affichage immediat
+                </p>
               </div>
             </>
           ) : null}
@@ -623,7 +668,10 @@ export default function SellerNewAnnouncementPage() {
                   type="color"
                   value={formData.background_color}
                   onChange={(event) =>
-                    setFormData({ ...formData, background_color: event.target.value })
+                    setFormData({
+                      ...formData,
+                      background_color: event.target.value,
+                    })
                   }
                   className="h-11 w-12 cursor-pointer rounded-lg border border-neutral-200 p-1"
                 />
@@ -631,7 +679,10 @@ export default function SellerNewAnnouncementPage() {
                   type="text"
                   value={formData.background_color}
                   onChange={(event) =>
-                    setFormData({ ...formData, background_color: event.target.value })
+                    setFormData({
+                      ...formData,
+                      background_color: event.target.value,
+                    })
                   }
                   className="flex-1 rounded-lg border border-neutral-200 px-3 text-sm focus:border-neutral-900 focus:outline-none"
                 />
@@ -670,7 +721,9 @@ export default function SellerNewAnnouncementPage() {
               <input
                 type="datetime-local"
                 value={formData.ends_at}
-                onChange={(event) => setFormData({ ...formData, ends_at: event.target.value })}
+                onChange={(event) =>
+                  setFormData({ ...formData, ends_at: event.target.value })
+                }
                 min={new Date().toISOString().slice(0, 16)}
                 className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
               />
@@ -692,7 +745,9 @@ export default function SellerNewAnnouncementPage() {
                 }
                 className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm focus:border-neutral-900 focus:outline-none"
               />
-              <p className="mt-1 text-xs text-neutral-400">Le systeme vendeur limite automatiquement la priorite.</p>
+              <p className="mt-1 text-xs text-neutral-400">
+                Le systeme vendeur limite automatiquement la priorite.
+              </p>
             </div>
           </div>
 
@@ -707,14 +762,23 @@ export default function SellerNewAnnouncementPage() {
               >
                 {imageUrl && selectedType.needsImage ? (
                   <div className="relative h-32 w-full">
-                    <Image src={imageUrl} alt="preview" fill className="object-cover opacity-60" />
+                    <Image
+                      src={imageUrl}
+                      alt="preview"
+                      fill
+                      className="object-cover opacity-60"
+                    />
                     <div
                       className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center"
                       style={{ color: formData.text_color }}
                     >
-                      <p className="text-base font-bold drop-shadow">{formData.title}</p>
+                      <p className="text-base font-bold drop-shadow">
+                        {formData.title}
+                      </p>
                       {formData.content ? (
-                        <p className="mt-1 text-xs drop-shadow">{formData.content}</p>
+                        <p className="mt-1 text-xs drop-shadow">
+                          {formData.content}
+                        </p>
                       ) : null}
                       {formData.link_text ? (
                         <span className="mt-2 rounded-full border border-current px-3 py-1 text-xs">
@@ -742,7 +806,10 @@ export default function SellerNewAnnouncementPage() {
         </motion.div>
 
         <div className="flex justify-end gap-3 pb-6">
-          <Button variant="outline" onClick={() => router.push("/vendeur/annonces")}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/vendeur/annonces")}
+          >
             Annuler
           </Button>
           <Button

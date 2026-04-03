@@ -23,7 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useCreateProduct, useUploadProductImages } from "@/hooks/useProducts";
 import { useAdmin } from "@/store/adminStore";
 import {
@@ -127,7 +127,7 @@ export default function AdminAddProductPage() {
   };
 
   const handleAttributeChange = (
-    attribute: Omit<CategoryAttribute, 'categoryId'>,
+    attribute: Omit<CategoryAttribute, "categoryId">,
     value: string | string[],
   ) => {
     setFormData((prev) => {
@@ -201,7 +201,12 @@ export default function AdminAddProductPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.name && formData.description && formData.categoryId && formData.subcategory;
+        return (
+          formData.name &&
+          formData.description &&
+          formData.categoryId &&
+          formData.subcategory
+        );
       case 2:
         return formData.images.length > 0;
       case 3:
@@ -556,7 +561,8 @@ export default function AdminAddProductPage() {
                             {attr.options?.map((color) => {
                               const values = Array.isArray(existingValue)
                                 ? existingValue
-                                : typeof existingValue === "string" && existingValue !== ""
+                                : typeof existingValue === "string" &&
+                                    existingValue !== ""
                                   ? [existingValue]
                                   : [];
                               const isSelected = values.includes(color);
@@ -675,10 +681,10 @@ export default function AdminAddProductPage() {
                               type="checkbox"
                               checked={existingValue === "true"}
                               onChange={(e) =>
-                               handleAttributeChange(
-                                 { ...attr, id: attrId } as any,
-                                 e.target.checked ? "true" : "false",
-                               )
+                                handleAttributeChange(
+                                  { ...attr, id: attrId } as any,
+                                  e.target.checked ? "true" : "false",
+                                )
                               }
                               className="w-5 h-5 rounded border-neutral-300"
                             />
@@ -717,7 +723,9 @@ export default function AdminAddProductPage() {
                   </label>
                   <select
                     value={formData.currencyCode}
-                    onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, currencyCode: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
                     {(adminSettings?.currencies || []).map((curr) => (
@@ -811,7 +819,10 @@ export default function AdminAddProductPage() {
                   <select
                     value={formData.minProcessingDays}
                     onChange={(e) =>
-                      setFormData({ ...formData, minProcessingDays: e.target.value })
+                      setFormData({
+                        ...formData,
+                        minProcessingDays: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
@@ -829,7 +840,10 @@ export default function AdminAddProductPage() {
                   <select
                     value={formData.maxProcessingDays}
                     onChange={(e) =>
-                      setFormData({ ...formData, maxProcessingDays: e.target.value })
+                      setFormData({
+                        ...formData,
+                        maxProcessingDays: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
@@ -842,29 +856,42 @@ export default function AdminAddProductPage() {
                 </div>
               </div>
               <p className="text-xs text-neutral-500">
-                Remarque : Assurez-vous que le produit sera prêt à être expédié dans cet intervalle. Ce délai sera utilisé pour calculer la date de livraison prévue pour le client.
+                Remarque : Assurez-vous que le produit sera prêt à être expédié
+                dans cet intervalle. Ce délai sera utilisé pour calculer la date
+                de livraison prévue pour le client.
               </p>
-              
+
               <div className="pt-4 border-t border-neutral-100">
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className={cn(
-                    "w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out relative",
-                    formData.isFeatured ? "bg-neutral-900" : "bg-neutral-200"
-                  )}>
-                    <div className={cn(
-                      "w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ease-in-out",
-                      formData.isFeatured ? "translate-x-6" : "translate-x-0"
-                    )} />
+                  <div
+                    className={cn(
+                      "w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out relative",
+                      formData.isFeatured ? "bg-neutral-900" : "bg-neutral-200",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ease-in-out",
+                        formData.isFeatured ? "translate-x-6" : "translate-x-0",
+                      )}
+                    />
                   </div>
                   <input
                     type="checkbox"
                     checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, isFeatured: e.target.checked })
+                    }
                     className="hidden"
                   />
                   <div>
-                    <span className="block text-sm font-medium text-neutral-900">Produit en vedette</span>
-                    <span className="block text-xs text-neutral-500 max-w-md">Mettre ce produit en avant sur la page d&apos;accueil et dans les sections spéciales.</span>
+                    <span className="block text-sm font-medium text-neutral-900">
+                      Produit en vedette
+                    </span>
+                    <span className="block text-xs text-neutral-500 max-w-md">
+                      Mettre ce produit en avant sur la page d&apos;accueil et
+                      dans les sections spéciales.
+                    </span>
                   </div>
                 </label>
               </div>
@@ -900,16 +927,22 @@ export default function AdminAddProductPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">En vedette</span>
-                  <span className={cn(
-                    "font-medium",
-                    formData.isFeatured ? "text-green-600" : "text-neutral-400"
-                  )}>
+                  <span
+                    className={cn(
+                      "font-medium",
+                      formData.isFeatured
+                        ? "text-green-600"
+                        : "text-neutral-400",
+                    )}
+                  >
                     {formData.isFeatured ? "Oui" : "Non"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Prix</span>
-                  <span className="font-medium">{formData.price} {formData.currencyCode}</span>
+                  <span className="font-medium">
+                    {formData.price} {formData.currencyCode}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Stock</span>

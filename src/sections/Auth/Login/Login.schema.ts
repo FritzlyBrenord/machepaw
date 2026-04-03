@@ -1,0 +1,87 @@
+import type { SectionSchema } from "@/lib/section-registry";
+
+export const loginSchema: SectionSchema = {
+  name: "Login",
+  type: "login",
+  category: "auth",
+  description: "Formulaire de connexion client",
+  icon: "Shield",
+  settings: [
+    { id: "content.title", type: "text", label: "Titre", default: "Connexion" },
+    {
+      id: "content.subtitle",
+      type: "textarea",
+      label: "Sous-titre",
+      default: "Accedez a votre compte",
+    },
+    { id: "content.emailLabel", type: "text", label: "Label email", default: "Adresse email" },
+    { id: "content.emailPlaceholder", type: "text", label: "Placeholder email", default: "vous@exemple.com" },
+    { id: "content.passwordLabel", type: "text", label: "Label mot de passe", default: "Mot de passe" },
+    { id: "content.passwordPlaceholder", type: "text", label: "Placeholder mot de passe", default: "••••••••" },
+    { id: "content.rememberMeLabel", type: "text", label: "Label se souvenir", default: "Se souvenir de moi" },
+    { id: "content.forgotPasswordLabel", type: "text", label: "Label mot de passe oublie", default: "Mot de passe oublie?" },
+    { id: "content.submitButtonText", type: "text", label: "Texte bouton", default: "Se connecter" },
+    { id: "content.loadingText", type: "text", label: "Texte chargement", default: "Connexion..." },
+    { id: "content.socialLoginDivider", type: "text", label: "Separateur social", default: "Ou continuer avec" },
+    { id: "content.noAccountText", type: "text", label: "Texte sans compte", default: "Pas encore de compte?" },
+    { id: "content.registerLinkText", type: "text", label: "Texte lien inscription", default: "Creer un compte" },
+    {
+      id: "config.variant",
+      type: "select",
+      label: "Variant",
+      options: [
+        { value: "centered", label: "Centered" },
+        { value: "split", label: "Split" },
+        { value: "minimal", label: "Minimal" },
+      ],
+      default: "centered",
+    },
+    { id: "config.showEmail", type: "checkbox", label: "Afficher email", default: true },
+    { id: "config.showPassword", type: "checkbox", label: "Afficher mot de passe", default: true },
+    { id: "config.showRememberMe", type: "checkbox", label: "Afficher se souvenir", default: true },
+    { id: "config.showForgotPassword", type: "checkbox", label: "Afficher mot de passe oublie", default: true },
+    { id: "config.showSocialLogin", type: "checkbox", label: "Afficher social login", default: true },
+  ],
+  blocks: [],
+  defaults: {
+    content: {
+      title: "Connexion",
+      subtitle: "Accedez a votre compte",
+      emailLabel: "Adresse email",
+      emailPlaceholder: "vous@exemple.com",
+      passwordLabel: "Mot de passe",
+      passwordPlaceholder: "••••••••",
+      rememberMeLabel: "Se souvenir de moi",
+      forgotPasswordLabel: "Mot de passe oublie?",
+      submitButtonText: "Se connecter",
+      loadingText: "Connexion...",
+      socialLoginDivider: "Ou continuer avec",
+      noAccountText: "Pas encore de compte?",
+      registerLinkText: "Creer un compte",
+    },
+    config: {
+      variant: "centered",
+      showEmail: true,
+      showPassword: true,
+      showRememberMe: true,
+      showForgotPassword: true,
+      showSocialLogin: true,
+      socialProviders: ["google", "facebook", "apple"],
+    },
+    style: {
+      colors: {
+        background: "white",
+        cardBackground: "white",
+        text: "primary",
+        accent: "accent",
+      },
+      spacing: {
+        paddingY: "16",
+        container: "contained",
+      },
+    },
+    classes: {},
+  },
+};
+
+export default loginSchema;

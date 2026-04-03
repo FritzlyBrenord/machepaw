@@ -17,6 +17,12 @@ function isBecomeSellerPath(pathname: string) {
   return pathname === "/devenir-vendeur";
 }
 
+function hasSupabaseAuthCookies(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
+}
+
 async function getSellerStatus(
   supabase: ReturnType<typeof createServerClient>,
   authUserId: string,
@@ -51,6 +57,18 @@ export async function middleware(request: NextRequest) {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
+    return response;
+  }
+
+  const path = request.nextUrl.pathname;
+
+  if (!hasSupabaseAuthCookies(request)) {
+    if (isSellerPath(path) || isBecomeSellerPath(path)) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("redirect", path);
+      return NextResponse.redirect(loginUrl);
+    }
+
     return response;
   }
 
@@ -96,68 +114,77 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const path = request.nextUrl.pathname;
-  const { data: claimsData, error } = await supabase.auth.getClaims();
-  const authUserId = claimsData?.claims?.sub ?? null;
-  const isAuthenticated = Boolean(authUserId && !error);
+  try {
+    const { data: claimsData, error } = await supabase.auth.getClaims();
+    const authUserId = claimsData?.claims?.sub ?? null;
+    const isAuthenticated = Boolean(authUserId && !error);
 
-  if (!isAuthenticated) {
-    if (isSellerPath(path) || isBecomeSellerPath(path)) {
-      const loginUrl = new URL("/auth/login", request.url);
-      loginUrl.searchParams.set("redirect", path);
-      return NextResponse.redirect(loginUrl);
+    if (!isAuthenticated) {
+      if (isSellerPath(path) || isBecomeSellerPath(path)) {
+        const loginUrl = new URL("/auth/login", request.url);
+        loginUrl.searchParams.set("redirect", path);
+        return NextResponse.redirect(loginUrl);
+      }
+
+      return response;
     }
 
-    return response;
-  }
-
-  if (!authUserId) {
-    return response;
-  }
-
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("id, auth_id, role, is_blocked")
-    .or(`id.eq.${authUserId},auth_id.eq.${authUserId}`)
-    .maybeSingle();
-
-  if (!userRow || userRow.is_blocked) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
-  }
-
-  const isAdmin = userRow.role === "admin";
-
-  if (isAdmin) {
-    if (isRootPath(path) || isAuthPath(path) || isSellerPath(path) || isBecomeSellerPath(path)) {
-      return NextResponse.redirect(new URL("/admin", request.url));
+    if (!authUserId) {
+      return response;
     }
 
-    return response;
-  }
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("id, auth_id, role, is_blocked")
+      .or(`id.eq.${authUserId},auth_id.eq.${authUserId}`)
+      .maybeSingle();
 
-  if (isRootPath(path) || isAuthPath(path)) {
-    return NextResponse.redirect(new URL("/vendeur", request.url));
-  }
-
-  if (isSellerPath(path)) {
-    const sellerStatus = await getSellerStatus(supabase, authUserId);
-
-    if (sellerStatus !== "approved") {
-      const becomeSellerUrl = new URL("/devenir-vendeur", request.url);
-      becomeSellerUrl.searchParams.set("redirect", path);
-      return NextResponse.redirect(becomeSellerUrl);
+    if (!userRow || userRow.is_blocked) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
     }
-  }
 
-  if (isBecomeSellerPath(path)) {
-    const sellerStatus = await getSellerStatus(supabase, authUserId);
+    const isAdmin = userRow.role === "admin";
 
-    if (sellerStatus === "approved") {
+    if (isAdmin) {
+      if (
+        isRootPath(path) ||
+        isAuthPath(path) ||
+        isSellerPath(path) ||
+        isBecomeSellerPath(path)
+      ) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+
+      return response;
+    }
+
+    if (isRootPath(path) || isAuthPath(path)) {
       return NextResponse.redirect(new URL("/vendeur", request.url));
     }
-  }
 
-  return response;
+    if (isSellerPath(path)) {
+      const sellerStatus = await getSellerStatus(supabase, authUserId);
+
+      if (sellerStatus !== "approved") {
+        const becomeSellerUrl = new URL("/devenir-vendeur", request.url);
+        becomeSellerUrl.searchParams.set("redirect", path);
+        return NextResponse.redirect(becomeSellerUrl);
+      }
+    }
+
+    if (isBecomeSellerPath(path)) {
+      const sellerStatus = await getSellerStatus(supabase, authUserId);
+
+      if (sellerStatus === "approved") {
+        return NextResponse.redirect(new URL("/vendeur", request.url));
+      }
+    }
+
+    return response;
+  } catch (error) {
+    console.error("[middleware] Supabase auth check failed, allowing request:", error);
+    return response;
+  }
 }
 
 export const config = {

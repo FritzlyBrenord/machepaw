@@ -22,7 +22,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { getPlanNumericLimit, getSellerActivePlan } from "@/data/sellerPlans";
 import { useAdminSettingsQuery } from "@/hooks/useAdminSettings";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
@@ -149,7 +149,8 @@ export default function SellerAddProductPage() {
   const { data: adminSettings } = useAdminSettingsQuery();
   const activePlan = getSellerActivePlan(account?.seller);
   const productLimit = getPlanNumericLimit(activePlan, "products");
-  const hasReachedProductLimit = productLimit > 0 && sellerProducts.length >= productLimit;
+  const hasReachedProductLimit =
+    productLimit > 0 && sellerProducts.length >= productLimit;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -182,17 +183,14 @@ export default function SellerAddProductPage() {
     formData.categoryId,
     formData.subcategory,
   );
-  const activeCurrencies = useMemo(
-    () => {
-      const configuredCurrencies =
-        adminSettings?.currencies?.filter((currency) => currency.isActive) || [];
+  const activeCurrencies = useMemo(() => {
+    const configuredCurrencies =
+      adminSettings?.currencies?.filter((currency) => currency.isActive) || [];
 
-      return configuredCurrencies.length > 0
-        ? configuredCurrencies
-        : FALLBACK_CURRENCIES;
-    },
-    [adminSettings],
-  );
+    return configuredCurrencies.length > 0
+      ? configuredCurrencies
+      : FALLBACK_CURRENCIES;
+  }, [adminSettings]);
   const missingRequiredAttributeLabels = useMemo(
     () =>
       defaultAttributes
@@ -200,7 +198,8 @@ export default function SellerAddProductPage() {
         .filter((attribute) => {
           const value = formData.attributes.find(
             (item) =>
-              item.attributeId === attribute.name || item.name === attribute.name,
+              item.attributeId === attribute.name ||
+              item.name === attribute.name,
           )?.value;
 
           return !hasAttributeValue(value);
@@ -256,7 +255,7 @@ export default function SellerAddProductPage() {
   };
 
   const handleAttributeChange = (
-    attribute: Omit<CategoryAttribute, 'categoryId'>,
+    attribute: Omit<CategoryAttribute, "categoryId">,
     value: string | string[],
   ) => {
     setFormData((prev) => {
@@ -300,7 +299,9 @@ export default function SellerAddProductPage() {
       !formData.categoryId ||
       !formData.subcategory
     ) {
-      setError("Le nom, la description, la categorie et la sous-categorie sont obligatoires.");
+      setError(
+        "Le nom, la description, la categorie et la sous-categorie sont obligatoires.",
+      );
       setCurrentStep(1);
       return;
     }
@@ -384,9 +385,9 @@ export default function SellerAddProductPage() {
       case 1:
         return Boolean(
           formData.name.trim() &&
-            formData.description.trim() &&
-            formData.categoryId &&
-            formData.subcategory,
+          formData.description.trim() &&
+          formData.categoryId &&
+          formData.subcategory,
         );
       case 2:
         return formData.images.length > 0;
@@ -395,18 +396,18 @@ export default function SellerAddProductPage() {
       case 4:
         return Boolean(
           formData.currencyCode &&
-            formData.sku.trim() &&
-            formData.price &&
-            Number.isFinite(parseFloat(formData.price)) &&
-            parseFloat(formData.price) > 0 &&
-            formData.stock &&
-            Number.isFinite(parseInt(formData.stock, 10)) &&
-            parseInt(formData.stock, 10) >= 0 &&
-            Number.isFinite(parseInt(formData.minProcessingDays, 10)) &&
-            Number.isFinite(parseInt(formData.maxProcessingDays, 10)) &&
-            parseInt(formData.minProcessingDays, 10) >= 1 &&
-            parseInt(formData.maxProcessingDays, 10) >=
-              parseInt(formData.minProcessingDays, 10),
+          formData.sku.trim() &&
+          formData.price &&
+          Number.isFinite(parseFloat(formData.price)) &&
+          parseFloat(formData.price) > 0 &&
+          formData.stock &&
+          Number.isFinite(parseInt(formData.stock, 10)) &&
+          parseInt(formData.stock, 10) >= 0 &&
+          Number.isFinite(parseInt(formData.minProcessingDays, 10)) &&
+          Number.isFinite(parseInt(formData.maxProcessingDays, 10)) &&
+          parseInt(formData.minProcessingDays, 10) >= 1 &&
+          parseInt(formData.maxProcessingDays, 10) >=
+            parseInt(formData.minProcessingDays, 10),
         );
       default:
         return true;
@@ -451,8 +452,8 @@ export default function SellerAddProductPage() {
       <div className="space-y-6">
         {hasReachedProductLimit ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-            Vous avez atteint la limite de <strong>{productLimit}</strong> produit(s) de votre plan
-            actuel.
+            Vous avez atteint la limite de <strong>{productLimit}</strong>{" "}
+            produit(s) de votre plan actuel.
             <div className="mt-4">
               <Link href="/vendeur/plan">
                 <Button variant="outline">Voir les plans</Button>
@@ -782,7 +783,8 @@ export default function SellerAddProductPage() {
                             {attr.options?.map((color) => {
                               const values = Array.isArray(existingValue)
                                 ? existingValue
-                                : typeof existingValue === "string" && existingValue !== ""
+                                : typeof existingValue === "string" &&
+                                    existingValue !== ""
                                   ? [existingValue]
                                   : [];
                               const isSelected = values.includes(color);
@@ -901,10 +903,10 @@ export default function SellerAddProductPage() {
                               type="checkbox"
                               checked={existingValue === "true"}
                               onChange={(e) =>
-                               handleAttributeChange(
-                                 { ...attr, id: attrId } as any,
-                                 e.target.checked ? "true" : "false",
-                               )
+                                handleAttributeChange(
+                                  { ...attr, id: attrId } as any,
+                                  e.target.checked ? "true" : "false",
+                                )
                               }
                               className="w-5 h-5 rounded border-neutral-300"
                             />
@@ -943,7 +945,9 @@ export default function SellerAddProductPage() {
                   </label>
                   <select
                     value={formData.currencyCode}
-                    onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, currencyCode: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
                     {activeCurrencies.map((curr) => (
@@ -1037,7 +1041,10 @@ export default function SellerAddProductPage() {
                   <select
                     value={formData.minProcessingDays}
                     onChange={(e) =>
-                      setFormData({ ...formData, minProcessingDays: e.target.value })
+                      setFormData({
+                        ...formData,
+                        minProcessingDays: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
@@ -1055,7 +1062,10 @@ export default function SellerAddProductPage() {
                   <select
                     value={formData.maxProcessingDays}
                     onChange={(e) =>
-                      setFormData({ ...formData, maxProcessingDays: e.target.value })
+                      setFormData({
+                        ...formData,
+                        maxProcessingDays: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 bg-white"
                   >
@@ -1068,29 +1078,42 @@ export default function SellerAddProductPage() {
                 </div>
               </div>
               <p className="text-xs text-neutral-500">
-                Remarque : Assurez-vous que le produit sera prêt à être expédié dans cet intervalle. Ce délai sera utilisé pour calculer la date de livraison prévue pour le client.
+                Remarque : Assurez-vous que le produit sera prêt à être expédié
+                dans cet intervalle. Ce délai sera utilisé pour calculer la date
+                de livraison prévue pour le client.
               </p>
-              
+
               <div className="pt-4 border-t border-neutral-100">
                 <label className="flex items-center gap-3 cursor-pointer group">
-                  <div className={cn(
-                    "w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out relative",
-                    formData.isFeatured ? "bg-neutral-900" : "bg-neutral-200"
-                  )}>
-                    <div className={cn(
-                      "w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ease-in-out",
-                      formData.isFeatured ? "translate-x-6" : "translate-x-0"
-                    )} />
+                  <div
+                    className={cn(
+                      "w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out relative",
+                      formData.isFeatured ? "bg-neutral-900" : "bg-neutral-200",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ease-in-out",
+                        formData.isFeatured ? "translate-x-6" : "translate-x-0",
+                      )}
+                    />
                   </div>
                   <input
                     type="checkbox"
                     checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, isFeatured: e.target.checked })
+                    }
                     className="hidden"
                   />
                   <div>
-                    <span className="block text-sm font-medium text-neutral-900">Produit en vedette</span>
-                    <span className="block text-xs text-neutral-500 max-w-md">Mettre ce produit en avant sur la page d&apos;accueil et dans les sections spéciales.</span>
+                    <span className="block text-sm font-medium text-neutral-900">
+                      Produit en vedette
+                    </span>
+                    <span className="block text-xs text-neutral-500 max-w-md">
+                      Mettre ce produit en avant sur la page d&apos;accueil et
+                      dans les sections spéciales.
+                    </span>
                   </div>
                 </label>
               </div>
@@ -1126,16 +1149,22 @@ export default function SellerAddProductPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">En vedette</span>
-                  <span className={cn(
-                    "font-medium",
-                    formData.isFeatured ? "text-green-600" : "text-neutral-400"
-                  )}>
+                  <span
+                    className={cn(
+                      "font-medium",
+                      formData.isFeatured
+                        ? "text-green-600"
+                        : "text-neutral-400",
+                    )}
+                  >
                     {formData.isFeatured ? "Oui" : "Non"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Prix</span>
-                  <span className="font-medium">{formData.price} {formData.currencyCode}</span>
+                  <span className="font-medium">
+                    {formData.price} {formData.currencyCode}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Stock</span>

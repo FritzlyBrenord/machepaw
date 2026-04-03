@@ -17,7 +17,7 @@ import {
   Flag,
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useAdminConversations } from "@/store/adminStore";
 import { cn, formatDate } from "@/lib/utils";
 import type { AdminConversation } from "@/data/types";
@@ -39,7 +39,8 @@ export default function AdminConversationsPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [selectedConversation, setSelectedConversation] = useState<AdminConversation | null>(null);
+  const [selectedConversation, setSelectedConversation] =
+    useState<AdminConversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
 
   const filteredConversations = conversations.filter((conv) => {
@@ -63,8 +64,12 @@ export default function AdminConversationsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900">Conversations</h1>
-            <p className="text-neutral-500">Gérez les conversations avec les utilisateurs</p>
+            <h1 className="text-2xl font-semibold text-neutral-900">
+              Conversations
+            </h1>
+            <p className="text-neutral-500">
+              Gérez les conversations avec les utilisateurs
+            </p>
           </div>
         </div>
 
@@ -72,7 +77,9 @@ export default function AdminConversationsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg border border-neutral-200">
             <p className="text-sm text-neutral-500">Total</p>
-            <p className="text-2xl font-semibold text-neutral-900">{conversations.length}</p>
+            <p className="text-2xl font-semibold text-neutral-900">
+              {conversations.length}
+            </p>
           </div>
           <div className="bg-white p-4 rounded-lg border border-neutral-200">
             <p className="text-sm text-neutral-500">Ouvertes</p>
@@ -134,7 +141,8 @@ export default function AdminConversationsPage() {
                     onClick={() => setSelectedConversation(conv)}
                     className={cn(
                       "w-full p-4 text-left border-b border-neutral-100 hover:bg-neutral-50 transition-colors",
-                      selectedConversation?.id === conv.id && "bg-neutral-50 border-l-4 border-l-neutral-900"
+                      selectedConversation?.id === conv.id &&
+                        "bg-neutral-50 border-l-4 border-l-neutral-900",
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -151,16 +159,34 @@ export default function AdminConversationsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-neutral-900 truncate">{conv.userName}</p>
-                          {conv.isAutomated && <Bot className="w-4 h-4 text-blue-500" />}
+                          <p className="font-medium text-neutral-900 truncate">
+                            {conv.userName}
+                          </p>
+                          {conv.isAutomated && (
+                            <Bot className="w-4 h-4 text-blue-500" />
+                          )}
                         </div>
-                        <p className="text-sm text-neutral-500 truncate">{conv.subject}</p>
-                        <p className="text-xs text-neutral-400 mt-1 truncate">{conv.lastMessage}</p>
+                        <p className="text-sm text-neutral-500 truncate">
+                          {conv.subject}
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-1 truncate">
+                          {conv.lastMessage}
+                        </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className={cn("px-2 py-0.5 text-xs rounded-full", statusConfig[conv.status].color)}>
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 text-xs rounded-full",
+                              statusConfig[conv.status].color,
+                            )}
+                          >
                             {statusConfig[conv.status].label}
                           </span>
-                          <span className={cn("px-2 py-0.5 text-xs rounded-full", priorityConfig[conv.priority].color)}>
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 text-xs rounded-full",
+                              priorityConfig[conv.priority].color,
+                            )}
+                          >
                             {priorityConfig[conv.priority].label}
                           </span>
                         </div>
@@ -197,8 +223,12 @@ export default function AdminConversationsPage() {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-neutral-900">{selectedConversation.userName}</p>
-                      <p className="text-sm text-neutral-500">{selectedConversation.subject}</p>
+                      <p className="font-medium text-neutral-900">
+                        {selectedConversation.userName}
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {selectedConversation.subject}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -234,7 +264,9 @@ export default function AdminConversationsPage() {
                         key={message.id}
                         className={cn(
                           "flex",
-                          message.senderType === "admin" ? "justify-end" : "justify-start"
+                          message.senderType === "admin"
+                            ? "justify-end"
+                            : "justify-start",
                         )}
                       >
                         <div
@@ -243,7 +275,8 @@ export default function AdminConversationsPage() {
                             message.senderType === "admin"
                               ? "bg-neutral-900 text-white"
                               : "bg-neutral-100 text-neutral-900",
-                            message.senderType === "system" && "bg-blue-50 text-blue-900"
+                            message.senderType === "system" &&
+                              "bg-blue-50 text-blue-900",
                           )}
                         >
                           <p className="text-sm">{message.content}</p>
@@ -266,7 +299,9 @@ export default function AdminConversationsPage() {
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleSendMessage()
+                      }
                       placeholder="Écrivez votre message..."
                       className="flex-1 px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900"
                     />

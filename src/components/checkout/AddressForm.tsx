@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import type { Address } from "@/data/types";
+import { toast } from "sonner";
 import {
   HAITI_DEPARTMENTS,
+  HAITI_HIERARCHY,
   getArrondissementsByDepartment,
   getCommunesByArrondissement,
   getSectionsByCommune,
-  HAITI_HIERARCHY,
 } from "@/data/haitiCities";
 
 interface AddressFormProps {
@@ -34,6 +35,7 @@ export function AddressForm({
     firstName: "",
     lastName: "",
     address: "",
+    apartment: "",
     department: "",
     arrondissement: "",
     commune: "",
@@ -46,442 +48,365 @@ export function AddressForm({
     ...initialData,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
 
-    // Validation des champs requis
-    const requiredFields = ["firstName", "lastName", "address", "phone"];
-    const missingFields = requiredFields.filter((field) => !formData[field]);
+    const requiredFields = ["firstName", "lastName", "address", "phone"] as const;
+    const missingFields = requiredFields.filter((field) => !formData[field]?.trim?.());
 
     if (missingFields.length > 0) {
-      alert(
-        `Veuillez remplir les champs obligatoires: ${missingFields.join(", ")}`,
-      );
+      toast.error(`Veuillez remplir les champs obligatoires: ${missingFields.join(", ")}`);
       return;
     }
 
-    // Validation spécifique pour Haïti
     if (formData.country === "Haiti") {
-      const haitiRequiredFields = ["department", "arrondissement", "commune"];
-      const missingHaitiFields = haitiRequiredFields.filter(
-        (field) => !formData[field],
-      );
+      const haitiRequiredFields = ["department", "arrondissement", "commune"] as const;
+      const missingHaitiFields = haitiRequiredFields.filter((field) => !formData[field]?.trim?.());
 
       if (missingHaitiFields.length > 0) {
-        alert(
-          `Veuillez remplir les champs obligatoires pour Haïti: ${missingHaitiFields.join(
-            ", ",
-          )}`,
+        toast.error(
+          `Veuillez remplir les champs obligatoires pour Haiti: ${missingHaitiFields.join(", ")}`,
         );
         return;
       }
     } else {
-      // Validation pour les autres pays
-      const otherRequiredFields = ["city", "postalCode"];
-      const missingOtherFields = otherRequiredFields.filter(
-        (field) => !formData[field],
-      );
+      const otherRequiredFields = ["city", "postalCode"] as const;
+      const missingOtherFields = otherRequiredFields.filter((field) => !formData[field]?.trim?.());
 
       if (missingOtherFields.length > 0) {
-        alert(
-          `Veuillez remplir les champs obligatoires: ${missingOtherFields.join(
-            ", ",
-          )}`,
-        );
+        toast.error(`Veuillez remplir les champs obligatoires: ${missingOtherFields.join(", ")}`);
         return;
       }
     }
 
-    // Log des données pour debugging
-    console.log("Address form data being submitted:", formData);
+    let latitude = formData.latitude;
+    let longitude = formData.longitude;
 
-    // Auto-récupérer les coordonnées si manquantes et si Haïti
-    let lat = formData.latitude;
-    let lng = formData.longitude;
-    
-    if ((!lat || !lng) && formData.country === "Haiti" && formData.department && formData.arrondissement && formData.commune) {
-      const communeData = HAITI_HIERARCHY[formData.department]?.arrondissements[formData.arrondissement]?.communes[formData.commune];
-      if (communeData && communeData.latitude && communeData.longitude) {
-         lat = communeData.latitude;
-         lng = communeData.longitude;
-         console.log("Auto-recovered coordinates from HAITI_HIERARCHY:", { lat, lng });
+    if (
+      formData.country === "Haiti" &&
+      formData.department &&
+      formData.arrondissement &&
+      formData.commune
+    ) {
+      const communeData =
+        HAITI_HIERARCHY[formData.department]?.arrondissements[formData.arrondissement]?.communes[
+          formData.commune
+        ];
+
+      if (communeData?.latitude && communeData?.longitude) {
+        latitude = communeData.latitude;
+        longitude = communeData.longitude;
       }
     }
 
-    console.log("Form data coordinates:", {
-      latitude: lat,
-      longitude: lng,
-    });
-
-    // S'assurer que tous les champs requis sont présents
-    const addressData = {
+    onSubmit({
       ...formData,
+      label: formData.label?.trim() || "Domicile",
       firstName: formData.firstName?.trim() || "",
       lastName: formData.lastName?.trim() || "",
       address: formData.address?.trim() || "",
-      phone: formData.phone?.trim() || "",
-      city:
-        formData.country === "Haiti"
-          ? formData.commune || ""
-          : formData.city?.trim() || "",
-      postalCode:
-        formData.country === "Haiti" ? "" : formData.postalCode?.trim() || "",
-      country: formData.country?.trim() || "Haiti",
+      apartment: formData.apartment?.trim() || "",
       department: formData.department?.trim() || "",
       arrondissement: formData.arrondissement?.trim() || "",
       commune: formData.commune?.trim() || "",
       communalSection: formData.communalSection?.trim() || "",
-      apartment: formData.apartment?.trim() || "",
-      label: formData.label?.trim() || "Domicile",
+      city:
+        formData.country === "Haiti"
+          ? formData.commune?.trim() || ""
+          : formData.city?.trim() || "",
+      postalCode:
+        formData.country === "Haiti" ? "" : formData.postalCode?.trim() || "",
+      country: formData.country?.trim() || "Haiti",
+      phone: formData.phone?.trim() || "",
       isDefault: Boolean(formData.isDefault),
-      // S'assurer que les coordonnées sont incluses
-      latitude: lat,
-      longitude: lng,
-    } as Address;
-
-    console.log("Final address data with coordinates:", addressData);
-    onSubmit(addressData);
+      latitude,
+      longitude,
+    } as Address);
   };
 
   return (
     <motion.form
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       onSubmit={handleSubmit}
-      className="bg-white p-6 border border-neutral-200"
+      className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm"
     >
-      {title && <h3 className="font-medium text-neutral-900 mb-4">{title}</h3>}
-      <div className="grid md:grid-cols-2 gap-4">
+      {title ? <h4 className="mb-4 text-lg font-semibold">{title}</h4> : null}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            Libellé (ex: Domicile, Bureau)
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Libelle</label>
           <input
             type="text"
-            placeholder="Domicile, Bureau..."
-            value={formData.label}
-            onChange={(e) =>
-              setFormData({ ...formData, label: e.target.value })
+            value={formData.label || ""}
+            onChange={(event) =>
+              setFormData((current) => ({ ...current, label: event.target.value }))
             }
-            className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+            placeholder="Domicile, Bureau..."
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            Téléphone *
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Telephone *</label>
           <input
             type="tel"
-            required
-            value={formData.phone}
-            onChange={(e) =>
-              setFormData({ ...formData, phone: e.target.value })
+            value={formData.phone || ""}
+            onChange={(event) =>
+              setFormData((current) => ({ ...current, phone: event.target.value }))
             }
-            className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            Prénom *
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Prenom *</label>
           <input
             type="text"
-            required
-            value={formData.firstName}
-            onChange={(e) =>
-              setFormData({ ...formData, firstName: e.target.value })
+            value={formData.firstName || ""}
+            onChange={(event) =>
+              setFormData((current) => ({ ...current, firstName: event.target.value }))
             }
-            className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            Nom *
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Nom *</label>
           <input
             type="text"
-            required
-            value={formData.lastName}
-            onChange={(e) =>
-              setFormData({ ...formData, lastName: e.target.value })
+            value={formData.lastName || ""}
+            onChange={(event) =>
+              setFormData((current) => ({ ...current, lastName: event.target.value }))
             }
-            className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
           />
         </div>
+
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            Adresse *
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Adresse *</label>
           <input
             type="text"
-            required
-            value={formData.address}
-            onChange={(e) =>
-              setFormData({ ...formData, address: e.target.value })
+            value={formData.address || ""}
+            onChange={(event) =>
+              setFormData((current) => ({ ...current, address: event.target.value }))
             }
-            className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
           />
         </div>
+
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            Pays *
-          </label>
+          <label className="mb-1 block text-sm font-medium text-gray-700">Complement</label>
+          <input
+            type="text"
+            value={formData.apartment || ""}
+            onChange={(event) =>
+              setFormData((current) => ({ ...current, apartment: event.target.value }))
+            }
+            placeholder="Appartement, repere, etc."
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="mb-1 block text-sm font-medium text-gray-700">Pays *</label>
           <select
-            required
-            value={formData.country}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                country: e.target.value,
+            value={formData.country || "Haiti"}
+            onChange={(event) =>
+              setFormData((current) => ({
+                ...current,
+                country: event.target.value,
                 department: "",
                 arrondissement: "",
                 commune: "",
                 communalSection: "",
-              })
+                city: "",
+                postalCode: "",
+                latitude: undefined,
+                longitude: undefined,
+              }))
             }
-            className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
           >
             <option value="Haiti">Haiti</option>
             <option value="Autre">Autre</option>
           </select>
         </div>
 
-        {formData.country === "Haiti" && (
+        {formData.country === "Haiti" ? (
           <>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Département *
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Departement *</label>
               <select
-                required
-                value={formData.department}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFormData({
-                    ...formData,
-                    department: e.target.value,
+                value={formData.department || ""}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    department: event.target.value,
                     arrondissement: "",
                     commune: "",
                     communalSection: "",
-                    // Réinitialiser les coordonnées
+                    city: "",
                     latitude: undefined,
                     longitude: undefined,
-                  });
-                }}
-                className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
               >
-                <option value="">Sélectionner</option>
-                {HAITI_DEPARTMENTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
+                <option value="">Selectionner</option>
+                {HAITI_DEPARTMENTS.map((department) => (
+                  <option key={department} value={department}>
+                    {department}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Arrondissement *
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Arrondissement *</label>
               <select
-                required
                 disabled={!formData.department}
-                value={formData.arrondissement}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    arrondissement: e.target.value,
+                value={formData.arrondissement || ""}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    arrondissement: event.target.value,
                     commune: "",
                     communalSection: "",
-                  })
+                    city: "",
+                    latitude: undefined,
+                    longitude: undefined,
+                  }))
                 }
-                className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none disabled:opacity-50"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 disabled:opacity-50"
               >
-                <option value="">Sélectionner</option>
-                {formData.department &&
-                  getArrondissementsByDepartment(formData.department).map(
-                    (a) => (
-                      <option key={a} value={a}>
-                        {a}
+                <option value="">Selectionner</option>
+                {formData.department
+                  ? getArrondissementsByDepartment(formData.department).map((item) => (
+                      <option key={item} value={item}>
+                        {item}
                       </option>
-                    ),
-                  )}
+                    ))
+                  : null}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Commune *
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Commune *</label>
               <select
-                required
-                disabled={!formData.arrondissement}
-                value={formData.commune}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  console.log("=== COMMUNE SELECTION DEBUG ===");
-                  console.log("Selected commune:", val);
-                  console.log("Department:", formData.department);
-                  console.log("Arrondissement:", formData.arrondissement);
+                disabled={!formData.arrondissement || !formData.department}
+                value={formData.commune || ""}
+                onChange={(event) => {
+                  const commune = event.target.value;
+                  const communeData =
+                    formData.department && formData.arrondissement
+                      ? HAITI_HIERARCHY[formData.department]?.arrondissements[
+                          formData.arrondissement
+                        ]?.communes[commune]
+                      : undefined;
 
-                  // Récupérer les coordonnées depuis HAITI_HIERARCHY
-                  let coordinates = {};
-
-                  if (formData.department && formData.arrondissement) {
-                    const communeData =
-                      HAITI_HIERARCHY[formData.department]?.arrondissements[
-                        formData.arrondissement
-                      ]?.communes[val];
-                    console.log(
-                      "Commune data from HAITI_HIERARCHY:",
-                      communeData,
-                    );
-
-                    // Test direct pour vérifier
-                    console.log(
-                      "Direct test - Cap-Haïtien data:",
-                      HAITI_HIERARCHY["Nord"]?.arrondissements["Cap-Haïtien"]
-                        ?.communes["Cap-Haïtien"],
-                    );
-
-                    if (
-                      communeData &&
-                      communeData.latitude &&
-                      communeData.longitude
-                    ) {
-                      coordinates = {
-                        latitude: communeData.latitude,
-                        longitude: communeData.longitude,
-                      };
-                      console.log("Found coordinates:", coordinates);
-                    } else {
-                      console.log("No coordinates found for this commune");
-                    }
-                  }
-
-                  const newFormData = {
-                    ...formData,
-                    commune: val,
+                  setFormData((current) => ({
+                    ...current,
+                    commune,
                     communalSection: "",
-                    // Auto-remplir la ville avec la commune pour Haïti
-                    city: val,
-                    // Ajouter les coordonnées si trouvées
-                    ...coordinates,
-                  };
-
-                  console.log("New form data:", newFormData);
-                  console.log("===================================");
-
-                  setFormData(newFormData);
+                    city: commune,
+                    latitude: communeData?.latitude,
+                    longitude: communeData?.longitude,
+                  }));
                 }}
-                className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none disabled:opacity-50"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 disabled:opacity-50"
               >
-                <option value="">Sélectionner</option>
-                {formData.department &&
-                  formData.arrondissement &&
-                  getCommunesByArrondissement(
-                    formData.department,
-                    formData.arrondissement,
-                  ).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                <option value="">Selectionner</option>
+                {formData.department && formData.arrondissement
+                  ? getCommunesByArrondissement(
+                      formData.department,
+                      formData.arrondissement,
+                    ).map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))
+                  : null}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Section Communale *
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Section communale
               </label>
               <select
-                required
-                disabled={!formData.commune}
-                value={formData.communalSection}
-                onChange={(e) =>
-                  setFormData({ ...formData, communalSection: e.target.value })
+                disabled={!formData.commune || !formData.arrondissement || !formData.department}
+                value={formData.communalSection || ""}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    communalSection: event.target.value,
+                  }))
                 }
-                className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none disabled:opacity-50"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 disabled:opacity-50"
               >
-                <option value="">Sélectionner</option>
-                {formData.department &&
-                  formData.arrondissement &&
-                  formData.commune &&
-                  getSectionsByCommune(
-                    formData.department,
-                    formData.arrondissement,
-                    formData.commune,
-                  ).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
+                <option value="">Selectionner</option>
+                {formData.department && formData.arrondissement && formData.commune
+                  ? getSectionsByCommune(
+                      formData.department,
+                      formData.arrondissement,
+                      formData.commune,
+                    ).map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))
+                  : null}
               </select>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Ville *</label>
+              <input
+                type="text"
+                value={formData.city || ""}
+                onChange={(event) =>
+                  setFormData((current) => ({ ...current, city: event.target.value }))
+                }
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Code postal *</label>
+              <input
+                type="text"
+                value={formData.postalCode || ""}
+                onChange={(event) =>
+                  setFormData((current) => ({ ...current, postalCode: event.target.value }))
+                }
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5"
+              />
             </div>
           </>
         )}
 
-        {formData.country !== "Haiti" && (
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1">
-              Ville *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.city}
-              onChange={(e) => {
-                const val = e.target.value;
-                // Pour les autres pays, pas de recherche automatique pour l'instant
-                setFormData({
-                  ...formData,
-                  city: val,
-                });
-              }}
-              className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
-            />
-          </div>
-        )}
-
-        {formData.country !== "Haiti" && (
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1">
-              Code postal *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.postalCode}
-              onChange={(e) =>
-                setFormData({ ...formData, postalCode: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-neutral-200 focus:border-neutral-900 focus:outline-none"
-            />
-          </div>
-        )}
-
         <div className="md:col-span-2">
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
             <input
               type="checkbox"
-              checked={formData.isDefault}
-              onChange={(e) =>
-                setFormData({ ...formData, isDefault: e.target.checked })
+              checked={Boolean(formData.isDefault)}
+              onChange={(event) =>
+                setFormData((current) => ({ ...current, isDefault: event.target.checked }))
               }
-              className="w-4 h-4 border-neutral-300 rounded text-neutral-900 focus:ring-neutral-900"
             />
-            <span className="text-sm text-neutral-600">
-              Définir comme adresse par défaut
-            </span>
+            Definir comme adresse par defaut
           </label>
         </div>
       </div>
 
-      <div className="flex gap-3 mt-8">
-        <Button type="submit" isLoading={isSubmitting}>
-          {submitLabel || (initialData?.id ? "Enregistrer" : "Ajouter")}
+      <div className="mt-6 flex items-center gap-3">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Enregistrement..." : submitLabel || (initialData?.id ? "Enregistrer" : "Ajouter")}
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Annuler
         </Button>
       </div>

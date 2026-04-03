@@ -9,11 +9,14 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { SellerWorkspaceShell } from "@/components/SellerWorkspaceShell";
 import { getSellerPaymentMethodLabel } from "@/data/paymentMethods";
-import { getSellerPlanEffectivePrice, isPaidSellerPlan } from "@/data/sellerPlans";
+import {
+  getSellerPlanEffectivePrice,
+  isPaidSellerPlan,
+} from "@/data/sellerPlans";
 import { useCurrentAccountQuery } from "@/hooks/useAccount";
 import {
   useCreateSellerPlanRequestMutation,
@@ -45,9 +48,9 @@ export default function SellerPlanPage() {
   const createPlanRequestMutation = useCreateSellerPlanRequestMutation();
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<"moncash_manual" | "natcash_manual">(
-    "moncash_manual",
-  );
+  const [paymentMethod, setPaymentMethod] = useState<
+    "moncash_manual" | "natcash_manual"
+  >("moncash_manual");
   const [paymentFirstName, setPaymentFirstName] = useState("");
   const [paymentLastName, setPaymentLastName] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
@@ -100,7 +103,9 @@ export default function SellerPlanPage() {
           "Votre demande d'upgrade a ete envoyee. Votre plan gratuit reste actif jusqu'a verification du paiement.",
         );
       } else {
-        setSuccess("Le plan gratuit est maintenant confirme pour votre boutique.");
+        setSuccess(
+          "Le plan gratuit est maintenant confirme pour votre boutique.",
+        );
       }
 
       router.push(
@@ -108,7 +113,10 @@ export default function SellerPlanPage() {
       );
     } catch (submissionError) {
       setError(
-        getErrorMessage(submissionError, "Impossible de valider votre choix de plan."),
+        getErrorMessage(
+          submissionError,
+          "Impossible de valider votre choix de plan.",
+        ),
       );
     }
   };
@@ -120,7 +128,10 @@ export default function SellerPlanPage() {
       actions={
         currentPlan ? (
           <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600">
-            Plan actif: <span className="font-semibold text-neutral-900">{currentPlan.name}</span>
+            Plan actif:{" "}
+            <span className="font-semibold text-neutral-900">
+              {currentPlan.name}
+            </span>
           </div>
         ) : null
       }
@@ -133,8 +144,9 @@ export default function SellerPlanPage() {
               Acces ajuste selon votre plan
             </div>
             <p className="mt-2 leading-6 text-amber-800">
-              Cette zone n&apos;est pas encore disponible sur votre plan actuel. Choisissez un autre
-              plan si vous voulez activer plus de fonctionnalites.
+              Cette zone n&apos;est pas encore disponible sur votre plan actuel.
+              Choisissez un autre plan si vous voulez activer plus de
+              fonctionnalites.
             </p>
           </section>
         ) : null}
@@ -146,8 +158,9 @@ export default function SellerPlanPage() {
               Verification en attente
             </div>
             <p className="mt-2 leading-6 text-sky-800">
-              Votre demande pour le plan <strong>{requestedPlan.name}</strong> est en attente de
-              verification. Votre plan actuel reste <strong>{currentPlan?.name || "Gratuit"}</strong>.
+              Votre demande pour le plan <strong>{requestedPlan.name}</strong>{" "}
+              est en attente de verification. Votre plan actuel reste{" "}
+              <strong>{currentPlan?.name || "Gratuit"}</strong>.
             </p>
           </section>
         ) : null}
@@ -169,7 +182,8 @@ export default function SellerPlanPage() {
             const effectivePrice = getSellerPlanEffectivePrice(plan);
             const isSelected = resolvedSelectedPlanId === plan.id;
             const isCurrent = currentPlan?.id === plan.id;
-            const isRequested = requestedPlan?.id === plan.id && hasPendingReview;
+            const isRequested =
+              requestedPlan?.id === plan.id && hasPendingReview;
 
             return (
               <button
@@ -187,7 +201,9 @@ export default function SellerPlanPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl font-semibold">{plan.name}</h2>
-                      {plan.isFeatured ? <Badge variant="primary">Recommande</Badge> : null}
+                      {plan.isFeatured ? (
+                        <Badge variant="primary">Recommande</Badge>
+                      ) : null}
                     </div>
                     <p
                       className={cn(
@@ -199,7 +215,11 @@ export default function SellerPlanPage() {
                     </p>
                   </div>
                   {isCurrent ? (
-                    <Badge className={isSelected ? "bg-white text-neutral-900" : ""}>Actuel</Badge>
+                    <Badge
+                      className={isSelected ? "bg-white text-neutral-900" : ""}
+                    >
+                      Actuel
+                    </Badge>
                   ) : null}
                 </div>
 
@@ -213,9 +233,12 @@ export default function SellerPlanPage() {
                       isSelected ? "text-neutral-300" : "text-neutral-500",
                     )}
                   >
-                    {plan.billingInterval === "monthly" ? "par mois" : plan.billingInterval}
+                    {plan.billingInterval === "monthly"
+                      ? "par mois"
+                      : plan.billingInterval}
                   </p>
-                  {Number(plan.promoPrice ?? 0) > 0 && Number(plan.price) > Number(plan.promoPrice) ? (
+                  {Number(plan.promoPrice ?? 0) > 0 &&
+                  Number(plan.price) > Number(plan.promoPrice) ? (
                     <p
                       className={cn(
                         "mt-1 text-sm line-through",
@@ -247,7 +270,9 @@ export default function SellerPlanPage() {
                         <p
                           className={cn(
                             "text-xs leading-5",
-                            isSelected ? "text-neutral-300" : "text-neutral-500",
+                            isSelected
+                              ? "text-neutral-300"
+                              : "text-neutral-500",
                           )}
                         >
                           {feature.description}
@@ -258,20 +283,29 @@ export default function SellerPlanPage() {
                 </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
-                  {Object.entries(plan.limits).slice(0, 6).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className={cn(
-                        "rounded-2xl px-3 py-2",
-                        isSelected ? "bg-white/10" : "bg-neutral-50",
-                      )}
-                    >
-                      <p className={cn("text-xs uppercase tracking-[0.18em]", isSelected ? "text-neutral-300" : "text-neutral-400")}>
-                        {key.replace(/_/g, " ")}
-                      </p>
-                      <p className="mt-1 font-semibold">{String(value)}</p>
-                    </div>
-                  ))}
+                  {Object.entries(plan.limits)
+                    .slice(0, 6)
+                    .map(([key, value]) => (
+                      <div
+                        key={key}
+                        className={cn(
+                          "rounded-2xl px-3 py-2",
+                          isSelected ? "bg-white/10" : "bg-neutral-50",
+                        )}
+                      >
+                        <p
+                          className={cn(
+                            "text-xs uppercase tracking-[0.18em]",
+                            isSelected
+                              ? "text-neutral-300"
+                              : "text-neutral-400",
+                          )}
+                        >
+                          {key.replace(/_/g, " ")}
+                        </p>
+                        <p className="mt-1 font-semibold">{String(value)}</p>
+                      </div>
+                    ))}
                 </div>
 
                 {isRequested ? (
@@ -313,32 +347,37 @@ export default function SellerPlanPage() {
               <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
                 <div className="space-y-5">
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {(["moncash_manual", "natcash_manual"] as const).map((method) => (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => setPaymentMethod(method)}
-                        className={cn(
-                          "rounded-2xl border px-4 py-4 text-left transition-colors",
-                          paymentMethod === method
-                            ? "border-neutral-900 bg-neutral-900 text-white"
-                            : "border-neutral-200 bg-white text-neutral-900",
-                        )}
-                      >
-                        <div className="flex items-center gap-2 font-medium">
-                          <CreditCard className="h-4 w-4" />
-                          {getSellerPaymentMethodLabel(method)}
-                        </div>
-                        <p
+                    {(["moncash_manual", "natcash_manual"] as const).map(
+                      (method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setPaymentMethod(method)}
                           className={cn(
-                            "mt-2 text-sm",
-                            paymentMethod === method ? "text-neutral-300" : "text-neutral-500",
+                            "rounded-2xl border px-4 py-4 text-left transition-colors",
+                            paymentMethod === method
+                              ? "border-neutral-900 bg-neutral-900 text-white"
+                              : "border-neutral-200 bg-white text-neutral-900",
                           )}
                         >
-                          Paiement manuel avec reference et capture d&apos;ecran.
-                        </p>
-                      </button>
-                    ))}
+                          <div className="flex items-center gap-2 font-medium">
+                            <CreditCard className="h-4 w-4" />
+                            {getSellerPaymentMethodLabel(method)}
+                          </div>
+                          <p
+                            className={cn(
+                              "mt-2 text-sm",
+                              paymentMethod === method
+                                ? "text-neutral-300"
+                                : "text-neutral-500",
+                            )}
+                          >
+                            Paiement manuel avec reference et capture
+                            d&apos;ecran.
+                          </p>
+                        </button>
+                      ),
+                    )}
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
@@ -346,7 +385,9 @@ export default function SellerPlanPage() {
                       <span className="font-medium">Prenom du payeur</span>
                       <input
                         value={paymentFirstName}
-                        onChange={(event) => setPaymentFirstName(event.target.value)}
+                        onChange={(event) =>
+                          setPaymentFirstName(event.target.value)
+                        }
                         className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-neutral-900"
                         placeholder="Prenom"
                       />
@@ -355,7 +396,9 @@ export default function SellerPlanPage() {
                       <span className="font-medium">Nom du payeur</span>
                       <input
                         value={paymentLastName}
-                        onChange={(event) => setPaymentLastName(event.target.value)}
+                        onChange={(event) =>
+                          setPaymentLastName(event.target.value)
+                        }
                         className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-neutral-900"
                         placeholder="Nom"
                       />
@@ -363,10 +406,14 @@ export default function SellerPlanPage() {
                   </div>
 
                   <label className="block space-y-2 text-sm text-neutral-700">
-                    <span className="font-medium">Reference ou ID transaction</span>
+                    <span className="font-medium">
+                      Reference ou ID transaction
+                    </span>
                     <input
                       value={paymentReference}
-                      onChange={(event) => setPaymentReference(event.target.value)}
+                      onChange={(event) =>
+                        setPaymentReference(event.target.value)
+                      }
                       className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-neutral-900"
                       placeholder="Ex: MC-458899 ou NC-220194"
                     />
@@ -378,8 +425,8 @@ export default function SellerPlanPage() {
                       Capture ou screenshot du paiement
                     </div>
                     <p className="mt-2 leading-6">
-                      Envoyez une preuve lisible contenant le montant, la reference et le nom du
-                      compte payeur.
+                      Envoyez une preuve lisible contenant le montant, la
+                      reference et le nom du compte payeur.
                     </p>
                     <input
                       type="file"
@@ -390,20 +437,26 @@ export default function SellerPlanPage() {
                       className="mt-4 block w-full text-sm"
                     />
                     {paymentProofFile ? (
-                      <p className="mt-3 text-xs text-neutral-500">{paymentProofFile.name}</p>
+                      <p className="mt-3 text-xs text-neutral-500">
+                        {paymentProofFile.name}
+                      </p>
                     ) : null}
                   </label>
                 </div>
 
                 <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
-                  <h3 className="font-semibold text-neutral-900">Etapes conseillees</h3>
+                  <h3 className="font-semibold text-neutral-900">
+                    Etapes conseillees
+                  </h3>
                   <div className="mt-4 space-y-3 text-sm text-neutral-600">
-                    {buildPlanPaymentSteps(getSellerPaymentMethodLabel(paymentMethod)).map((instruction) => (
+                    {buildPlanPaymentSteps(
+                      getSellerPaymentMethodLabel(paymentMethod),
+                    ).map((instruction) => (
                       <p key={instruction}>{instruction}</p>
                     ))}
                     <p>
-                      Finalement, revenez ici, ajoutez votre reference et la capture du paiement,
-                      puis envoyez la demande.
+                      Finalement, revenez ici, ajoutez votre reference et la
+                      capture du paiement, puis envoyez la demande.
                     </p>
                   </div>
                 </div>
@@ -414,13 +467,15 @@ export default function SellerPlanPage() {
               <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
                 <p className="font-medium text-neutral-900">Derniere demande</p>
                 <p className="mt-2">
-                  Plan: <strong>{latestRequest.plan?.name || "Plan inconnu"}</strong>
+                  Plan:{" "}
+                  <strong>{latestRequest.plan?.name || "Plan inconnu"}</strong>
                 </p>
                 <p className="mt-1">
                   Statut: <strong>{latestRequest.status}</strong>
                 </p>
                 <p className="mt-1">
-                  Cree le: <strong>{formatDate(latestRequest.createdAt)}</strong>
+                  Cree le:{" "}
+                  <strong>{formatDate(latestRequest.createdAt)}</strong>
                 </p>
                 {latestRequest.rejectionReason ? (
                   <p className="mt-2 text-rose-700">
@@ -436,7 +491,9 @@ export default function SellerPlanPage() {
                 isLoading={createPlanRequestMutation.isPending}
                 disabled={hasPendingReview}
               >
-                {planIsPaid ? "Envoyer la demande de plan" : "Activer le plan gratuit"}
+                {planIsPaid
+                  ? "Envoyer la demande de plan"
+                  : "Activer le plan gratuit"}
               </Button>
               {hasPendingReview ? (
                 <Button variant="outline" disabled>

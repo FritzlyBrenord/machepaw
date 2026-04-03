@@ -17,6 +17,17 @@ import { normalizePlanFeatures, normalizePlanLimits } from "@/data/sellerPlans";
 
 const CURRENT_ACCOUNT_QUERY_KEY = ["current-account"];
 
+function isRateLimitedAuthError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  return (
+    ("status" in error && error.status === 429) ||
+    ("code" in error && error.code === "over_request_rate_limit")
+  );
+}
+
 type UserRow = {
   id: string;
   auth_id?: string | null;
@@ -46,8 +57,6 @@ type SellerRow = {
   contact_email: string;
   logo?: string | null;
   banner?: string | null;
-  storefront_theme_slug?: string | null;
-  storefront_theme_config?: Record<string, unknown> | null;
   total_sales?: number | null;
   total_revenue?: number | null;
   rating?: number | null;
@@ -87,6 +96,87 @@ type SellerRow = {
   created_at: string;
   updated_at: string;
 };
+
+async function fetchSellerCategoryFallback(userId: string) {
+  const { data, error } = await supabase
+    .from("seller_applications")
+    .select("product_categories,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  const categories = data?.product_categories;
+  return Array.isArray(categories)
+    ? categories.filter((value): value is string => typeof value === "string")
+    : [];
+}
+
+async function resolveCategoryNames(rawValues: string[]) {
+  const normalizedValues = Array.from(
+    new Set(
+      rawValues
+        .map((value) => String(value || "").trim())
+        .filter((value) => value.length > 0),
+    ),
+  );
+
+  if (normalizedValues.length === 0) {
+    return [];
+  }
+
+  const [byIdResponse, bySlugResponse] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id,name,slug")
+      .in("id", normalizedValues),
+    supabase
+      .from("categories")
+      .select("id,name,slug")
+      .in("slug", normalizedValues),
+  ]);
+
+  if (byIdResponse.error) {
+    throw byIdResponse.error;
+  }
+
+  if (bySlugResponse.error) {
+    throw bySlugResponse.error;
+  }
+
+  const rows = [...(byIdResponse.data || []), ...(bySlugResponse.data || [])];
+  const resolvedMap = new Map<string, string>();
+
+  rows.forEach((row) => {
+    if (typeof row.id === "string" && typeof row.name === "string") {
+      resolvedMap.set(row.id, row.name);
+    }
+    if (typeof row.slug === "string" && typeof row.name === "string") {
+      resolvedMap.set(row.slug, row.name);
+    }
+    if (typeof row.name === "string") {
+      resolvedMap.set(row.name, row.name);
+    }
+  });
+
+  const seen = new Set<string>();
+
+  return normalizedValues
+    .map((value) => resolvedMap.get(value) || value)
+    .filter((value) => value.length > 0)
+    .filter((value) => {
+      const key = value.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+}
 
 type SellerPlanRow = {
   id: string;
@@ -227,8 +317,6 @@ function mapSellerRow(row: SellerRow, planMap: Record<string, SellerPlan>): Sell
     contactEmail: row.contact_email,
     logo: row.logo || undefined,
     banner: row.banner || undefined,
-    storefrontThemeSlug: row.storefront_theme_slug || undefined,
-    storefrontThemeConfig: row.storefront_theme_config || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     products: [],
@@ -272,7 +360,19 @@ async function resolveSellerRow(row: SellerRow) {
     new Set([row.current_plan_id, row.requested_plan_id].filter(Boolean) as string[]),
   );
   const planMap = await fetchSellerPlansMap(planIds);
-  return mapSellerRow(row, planMap);
+  const fallbackCategories =
+    Array.isArray(row.categories) && row.categories.length > 0
+      ? row.categories
+      : await fetchSellerCategoryFallback(row.user_id);
+  const resolvedCategories = await resolveCategoryNames(fallbackCategories);
+
+  return mapSellerRow(
+    {
+      ...row,
+      categories: resolvedCategories,
+    },
+    planMap,
+  );
 }
 
 export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
@@ -282,6 +382,10 @@ export async function fetchCurrentAccount(): Promise<CurrentAccount | null> {
   } = await supabase.auth.getUser();
 
   if (authError) {
+    if (isRateLimitedAuthError(authError)) {
+      return null;
+    }
+
     throw authError;
   }
 
@@ -395,6 +499,10 @@ export function useCurrentAccountQuery() {
   return useQuery({
     queryKey: CURRENT_ACCOUNT_QUERY_KEY,
     queryFn: fetchCurrentAccount,
+    staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -458,8 +566,6 @@ type UpdateSellerProfileInput = {
   description?: string;
   logo?: string | null;
   banner?: string | null;
-  storefrontThemeSlug?: string | null;
-  storefrontThemeConfig?: Record<string, unknown> | null;
   contactEmail?: string;
   contactPhone?: string;
   contactPerson?: string;
@@ -486,12 +592,6 @@ export function useUpdateSellerProfileMutation() {
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.logo !== undefined ? { logo: input.logo } : {}),
         ...(input.banner !== undefined ? { banner: input.banner } : {}),
-        ...(input.storefrontThemeSlug !== undefined
-          ? { storefront_theme_slug: input.storefrontThemeSlug }
-          : {}),
-        ...(input.storefrontThemeConfig !== undefined
-          ? { storefront_theme_config: input.storefrontThemeConfig }
-          : {}),
         ...(input.contactEmail !== undefined ? { contact_email: input.contactEmail } : {}),
         ...(input.contactPhone !== undefined ? { contact_phone: input.contactPhone } : {}),
         ...(input.contactPerson !== undefined ? { contact_person: input.contactPerson } : {}),
